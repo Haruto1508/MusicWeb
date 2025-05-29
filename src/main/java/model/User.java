@@ -21,6 +21,7 @@ public class User {
     private String role; // "customer" hoặc "admin"
     private String account;
     private LocalDateTime createDateTime;
+
     public User() {
     }
 
@@ -35,7 +36,7 @@ public class User {
         this.account = account;
         this.createDateTime = createDateTime;
     }
-    
+
     // constructor to get user from db
     public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime) {
         this.userId = userId;
@@ -125,5 +126,5 @@ public class User {
     public String toString() {
         return "User{" + "userId=" + userId + ", fullName=" + fullName + ", email=" + email + ", password=" + password + ", phone=" + phone + ", address=" + address + ", role=" + role + ", account=" + account + ", createDateTime=" + createDateTime + '}';
     }
-    
+
 }

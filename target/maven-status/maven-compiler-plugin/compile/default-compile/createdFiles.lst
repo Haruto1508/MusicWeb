@@ -1,4 +1,5 @@
 controller\LoginServlet.class
+<<<<<<< HEAD
 dao\OrderDAO.class
 model\OrderDetail.class
 model\Cart.class
@@ -11,13 +12,22 @@ dao\RoleDAO.class
 controller\RefreshServlet.class
 dao\OrderDetailDAO.class
 model\SubCategory.class
+=======
+model\OrderDetail.class
+db\JDBCUtil.class
+dao\CategoryDAO.class
+>>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
 model\Order.class
 model\Product.class
 model\Category.class
 controller\LogoutServlet.class
 dao\UserDAO.class
+<<<<<<< HEAD
 controller\ProfileServlet.class
 controller\RegisterServlet.class
 dao\ProductDAO.class
 controller\HomeServlet.class
+=======
+dao\ProductDAO.class
+>>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
 model\User.class

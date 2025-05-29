@@ -3,7 +3,11 @@
     Created on : May 21, 2025, 10:38:27 AM
     Author     : Nguyen Hoang Thai Vinh - CE190384
 --%>
+<<<<<<< HEAD
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+=======
+
+>>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg">
     <div class="container">
@@ -29,7 +33,11 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
+<<<<<<< HEAD
                         <li><a class="dropdown-item" href="#">All Product </a></li>
+=======
+                        <li><a class="dropdown-item" href="#">All Product</a></li>
+>>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -60,7 +68,11 @@
                 </li>
                 <li class="nav-item mx-2">
                     <form class="d-flex" role="search">
+<<<<<<< HEAD
                         <input class="form-control form-control-sm me-2 rounded-pill" type="search" placeholder="TÃ¬m ki?m..." aria-label="Search">
+=======
+                        <input class="form-control form-control-sm me-2 rounded-pill" type="search" placeholder="Tìm ki?m..." aria-label="Search">
+>>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
                         <button class="btn btn-light btn-sm rounded-pill px-3" type="submit"><i class="fa fa-search text-primary"></i></button>
                     </form>
                 </li>

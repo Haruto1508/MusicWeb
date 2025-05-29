@@ -41,6 +41,7 @@
                             <li><a href="${pageContext.request.contextPath}/profile?view=order"><i class="fas fa-box"></i> Order</a></li>
                             <li><a href="${pageContext.request.contextPath}/profile?view=cart"><i class="fas fa-heart"></i> Cart</a></li>
                             <li><a href="${pageContext.request.contextPath}/profile?view=setting"><i class="fas fa-cog"></i> Setting</a></li>
+
                         </ul>
                     </div>
                 </div>

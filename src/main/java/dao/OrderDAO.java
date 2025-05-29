@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Order;
 
+
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
@@ -95,8 +96,10 @@ public class OrderDAO {
 
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
+
         String sql = "SELECT * FROM Orders;";
         try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql);  ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
                 orders.add(
                         new Order(

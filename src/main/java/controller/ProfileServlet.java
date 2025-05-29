@@ -26,7 +26,9 @@ import model.User;
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
+
 @WebServlet(name = "ProfileServlet", urlPatterns = {"/profile"})
+
 public class ProfileServlet extends HttpServlet {
 
     /**
@@ -69,6 +71,7 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
+
         System.out.println(user);
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/path?page=login");
@@ -92,12 +95,14 @@ public class ProfileServlet extends HttpServlet {
 //                List<Product> history = productDAO.getOrderHistoryByUserId(user.getUserId());
 //                request.setAttribute("history", history);
 //                break;
+
             case "cart":
                 CartDAO cartDAO = new CartDAO();
 
                 List<Cart> carts = cartDAO.getCartByUserId(user.getUserId());
                 request.setAttribute("carts", carts);
                 break;
+
             case "setting":
                 // Form có sẵn thông tin người dùng
                 break;
@@ -105,9 +110,9 @@ public class ProfileServlet extends HttpServlet {
                 // tab = info
                 break;
         }
-
         request.setAttribute("data", view);
         request.getRequestDispatcher("/WEB-INF/user/profile/" + view + ".jsp").forward(request, response);
+
     }
 
     /**

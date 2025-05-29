@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\ProfileServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\CategoryServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\UserDAO.java
@@ -18,6 +19,18 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\controller\RegisterServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\DispatcherServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\HomeServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\OrderDAO.java
+=======
+D:\Java Web\MusicShop\MusicShop\src\main\java\dao\UserDAO.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\dao\CategoryDAO.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\Order.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\Category.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\controller\LogoutServlet.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\OrderDetail.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\db\JDBCUtil.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\User.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\controller\DispatcherServlet.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\controller\HomeServlet.java
+>>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\LoginServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\ProductDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\Product.java

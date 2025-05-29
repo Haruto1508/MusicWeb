@@ -183,7 +183,6 @@ public class UserDAO {
         
         return false;
     }
-    
     public static void main(String[] args) {
         UserDAO u = new UserDAO();
         
@@ -193,4 +192,5 @@ public class UserDAO {
             System.out.println(us.toString());
         }
     }
+
 }
