@@ -183,4 +183,14 @@ public class UserDAO {
         
         return false;
     }
+    
+    public static void main(String[] args) {
+        UserDAO u = new UserDAO();
+        
+        List<User> user = u.getAll();
+        
+        for(User us : user) {
+            System.out.println(us.toString());
+        }
+    }
 }

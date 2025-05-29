@@ -37,7 +37,7 @@ public class User {
     }
     
     // constructor to get user from db
-    public User(int id, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime) {
+    public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime) {
         this.userId = userId;
         this.fullName = fullName;
         this.email = email;

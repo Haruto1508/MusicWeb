@@ -69,6 +69,7 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
+        System.out.println(user);
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/path?page=login");
             return;
@@ -80,16 +81,17 @@ public class ProfileServlet extends HttpServlet {
         }
 
         switch (view) {
-            case "orders":
+            case "order":
                 OrderDAO orderDAO = new OrderDAO();
                 List<Order> orders = orderDAO.getOrdersByUserId(user.getUserId());
+                System.out.println("có");
                 request.setAttribute("orders", orders);
                 break;
-            case "order":
-                ProductDAO productDAO = new ProductDAO();
-                List<Product> history = productDAO.getOrderHistoryByUserId(user.getUserId());
-                request.setAttribute("history", history);
-                break;
+//            case "order":
+//                ProductDAO productDAO = new ProductDAO();
+//                List<Product> history = productDAO.getOrderHistoryByUserId(user.getUserId());
+//                request.setAttribute("history", history);
+//                break;
             case "cart":
                 CartDAO cartDAO = new CartDAO();
 
