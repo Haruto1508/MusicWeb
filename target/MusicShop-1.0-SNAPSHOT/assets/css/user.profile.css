@@ -1,0 +1,157 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : May 30, 2025, 6:49:37 PM
+    Author     : Nguyen Hoang Thai Vinh - CE190384
+*/
+/* info */
+root {
+    --bg-color: #f9f9f9;
+    --text-color: #333;
+    --card-bg: #fff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --primary: #8b5cf6;
+    --sidebar-bg: #f2f2f2;
+    --sidebar-text: #555;
+}
+
+.info-box {
+    margin-top: 90px;
+}
+
+.sidebar {
+    background-color: var(--sidebar-bg);
+    border-radius: 15px;
+    padding: 20px;
+    color: var(--sidebar-text);
+}
+
+.sidebar h4 {
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin-bottom: 10px;
+}
+
+.sidebar a {
+    color: var(--sidebar-text);
+    text-decoration: none;
+    display: block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: var(--primary);
+    color: #fff;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px var(--shadow-color);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.profile-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border: none;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #5653c7;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #e44d26;
+    border: none;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-danger:hover {
+    background-color: #c44624;
+    transform: translateY(-2px);
+}
+
+/* Dark Mode */
+.dark-mode {
+    --bg-color: #222;
+    --text-color: #eee;
+    --card-bg: #333;
+    --shadow-color: rgba(255, 255, 255, 0.1);
+    --sidebar-bg: #444;
+    --sidebar-text: #ddd;
+}
+
+/* cart */
+.cart-item {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 15px 0;
+}
+.cart-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.cart-total {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.cart-buttons .btn {
+    margin-right: 10px;
+}
+
+/* order */
+.order-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.order-item {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-item h5 {
+    margin-bottom: 0;
+}

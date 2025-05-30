@@ -7,73 +7,54 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<html lang="vi">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Đơn hàng của tôi</title>
-        <!-- Link Bootstrap -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <!-- Link Header -->
-        <!-- Link Footer -->
-        <!-- Link CSS -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.header.css">
-        <style>
-            body {
-                background-color: #f8f9fa;
-            }
 
-            .card {
-                border: none;
-                border-radius: 15px;
-                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            }
+<div class="container mt-5">
+    <h2 class="mb-4">🧾 Đơn hàng của bạn</h2>
 
-            .order-item {
-                margin-bottom: 20px;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 15px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
+    <c:choose>
+        <c:when test="${not empty orders}">
+            <div class="row row-cols-1 g-4">
+                <c:forEach var="order" items="${orders}">
+                    <div class="col">
+                        <div class="card shadow-sm border-0 order-item">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">🆔 Mã đơn: <strong>${order.orderId}</strong></h5>
+                                        <p class="mb-0">📅 Ngày: ${order.orderDate}</p>
+                                        <p class="mb-0">💰 Tổng: <strong>${order.totalAmount} VNĐ</strong></p>
+                                        <p class="mb-0">📦 Trạng thái: 
+                                            <span class="badge bg-${order.status == 'Đã giao' ? 'success' : order.status == 'Đang xử lý' ? 'warning' : 'secondary'}">
+                                                ${order.status}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <a href="order-detail?orderId=${order.orderId}" class="btn btn-outline-primary btn-sm">
+                                        Chi tiết
+                                    </a>
+                                </div>
 
-            .order-item h5 {
-                margin-bottom: 0;
-            }
-        </style>
-    </head>
-    <!-- Header -->
-    <%@include file="/WEB-INF/include/header.jsp" %>
-    <body>
-        <div class="container">
-            <h1>My Order</h1>
-            <c:choose>
-                <c:when test="${not empty orders}">
-                    <c:forEach var="order" items="${orders}">
-                        <div class="order-item">
-                            <div>
-                                <h5>Order ID: ${order.orderId}</h5>
-                                <p>Price: ${order.totalAmount}</p>
-                            </div>
-                            <div>
-                                <button class="btn btn-primary btn-sm">Xem chi tiết</button>
+                                <!-- Danh sách sản phẩm trong đơn -->
+                                <c:forEach var="item" items="${order.orderDetails}">
+                                    <div class="d-flex align-items-center border-top pt-3 pb-2">
+                                        <img src="${item.product.imageUrl}" alt="${item.product.name}" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                        <div>
+                                            <h6 class="mb-1">${item.product.name}</h6>
+                                            <p class="mb-0">SL: ${item.quantity} × ${item.price} VNĐ</p>
+                                        </div>
+                                    </div>
+                                </c:forEach>
                             </div>
                         </div>
-                    </c:forEach>
-                </c:when>
-                <c:otherwise>
-                    <div>You have no order now!</div>
-                </c:otherwise>
-            </c:choose>
-
-            
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
-
-</html>
+                    </div>
+                </c:forEach>
+            </div>
+        </c:when>
+        <c:otherwise>
+            <div class="alert alert-info text-center" role="alert">
+                🛒 Bạn chưa có đơn hàng nào!
+            </div>
+        </c:otherwise>
+    </c:choose>
+</div>

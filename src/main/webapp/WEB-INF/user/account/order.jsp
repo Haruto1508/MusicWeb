@@ -67,7 +67,7 @@
                     </c:forEach>
                 </c:when>
                 <c:otherwise>
-                    <div>You have no order now!</div>
+                    <h3>You have no order now!</h3>
                 </c:otherwise>
             </c:choose>
 

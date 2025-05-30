@@ -4,6 +4,7 @@
  */
 package controller;
 
+import dao.ProductDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import model.Product;
 
 /**
  *
@@ -66,13 +69,24 @@ public class DispatcherServlet extends HttpServlet {
             case "register":
                 forwardRegister(request, response);
                 break;
-            case "guitar":
-                forwardGuitar(request, response);
             case "home":
                 forwardHome(request, response);
                 break;
             case "profile":
                 forwardProfile(request, response);
+                break;
+            case "guitar":
+                forwardGuitarPage(request, response);
+                break;
+            case "piano":
+                forwardPianoPage(request, response);
+                break;
+            case "violin":
+                forwardViolinPage(request, response);
+                break;
+            case "accessory":
+                forwardAccessoryPage(request, response);
+                break;
             default:
                 throw new AssertionError();
         }
@@ -82,20 +96,52 @@ public class DispatcherServlet extends HttpServlet {
     protected void forwardLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
     }
-    
+
     protected void forwardRegister(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
     }
-    
-    protected void forwardGuitar(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/user/guitar.jsp").forward(request, response);
-    }
-    
-    protected  void forwardHome(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    protected void forwardHome(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
     }
-    
+
     protected void forwardProfile(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("WEB-INF/user/profile/info.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/user2/profile.jsp").forward(request, response);
+    }
+
+    protected void forwardGuitarPage(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        ProductDAO productDAO = new ProductDAO();
+
+        List<Product> guitars = productDAO.getProductsByCategory(1);
+
+        request.setAttribute("guitars", guitars);
+        request.getRequestDispatcher("/WEB-INF/collections/guitar.jsp").forward(request, response);
+    }
+
+    protected void forwardPianoPage(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        ProductDAO productDAO = new ProductDAO();
+
+        List<Product> pianos = productDAO.getProductsByCategory(3);
+
+        request.setAttribute("pianos", pianos);
+        request.getRequestDispatcher("/WEB-INF/collections/piano.jsp").forward(request, response);
+    }
+
+    protected void forwardViolinPage(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        ProductDAO productDAO = new ProductDAO();
+
+        List<Product> violins = productDAO.getProductsByCategory(2);
+
+        request.setAttribute("violins", violins);
+        request.getRequestDispatcher("/WEB-INF/collections/violin.jsp").forward(request, response);
+    }
+
+    protected void forwardAccessoryPage(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        ProductDAO productDAO = new ProductDAO();
+
+        List<Product> accessories = productDAO.getProductsByCategory(4);
+
+        request.setAttribute("accessories", accessories);
+        request.getRequestDispatcher("WEB-INF/collections/accessory.jsp").forward(request, response);
     }
 }

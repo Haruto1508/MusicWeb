@@ -14,7 +14,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import model.Order;
-
+import model.OrderDetail;
 
 /**
  *
@@ -70,22 +70,28 @@ public class OrderDAO {
     public List<Order> getOrdersByUserId(int userId) {
         List<Order> orders = new ArrayList<>();
         String sql = "SELECT * FROM Orders WHERE user_id = ?";
+        OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+
         try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try ( ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    orders.add(
-                            new Order(
-                                    rs.getInt("order_id"),
-                                    rs.getInt("user_id"),
-                                    rs.getTimestamp("order_date").toLocalDateTime(),
-                                    rs.getString("status"),
-                                    rs.getBigDecimal("total_amount"),
-                                    rs.getString("shipping_address"),
-                                    rs.getObject("discount_id") != null ? rs.getInt("discount_id") : null,
-                                    rs.getBigDecimal("discount_amount")
-                            )
+                    Order order = new Order(
+                            rs.getInt("order_id"),
+                            rs.getInt("user_id"),
+                            rs.getTimestamp("order_date").toLocalDateTime(),
+                            rs.getString("status"),
+                            rs.getBigDecimal("total_amount"),
+                            rs.getString("shipping_address"),
+                            rs.getObject("discount_id") != null ? rs.getInt("discount_id") : null,
+                            rs.getBigDecimal("discount_amount")
                     );
+
+                    // Lấy chi tiết sản phẩm trong order
+                    List<OrderDetail> orderDetails = orderDetailDAO.getOrderDetailsByOrderId(order.getOrderId());
+                    order.setOrderDetails(orderDetails);
+
+                    orders.add(order);
                 }
             }
         } catch (SQLException e) {

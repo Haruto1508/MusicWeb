@@ -5,137 +5,48 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html lang="vi">
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Giỏ hàng</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <style>
-            body {
-                background-color: #f8f9fa;
-            }
+<div class="container my-5">
+    <h2 class="mb-4">🛒 Giỏ hàng của bạn</h2>
 
-            .container {
-                margin-top: 30px;
-            }
-
-            .cart-item {
-                margin-bottom: 20px;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 15px;
-                display: flex;
-                align-items: center;
-            }
-
-            .cart-item img {
-                width: 100px;
-                height: 100px;
-                object-fit: cover;
-                border-radius: 8px;
-                margin-right: 15px;
-            }
-
-            .cart-item-details {
-                flex-grow: 1;
-            }
-
-            .cart-item-quantity {
-                display: flex;
-                align-items: center;
-            }
-
-            .cart-item-quantity button {
-                width: 30px;
-                height: 30px;
-                border: none;
-                background-color: #f0f0f0;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 5px;
-            }
-
-            .cart-item-quantity input {
-                width: 40px;
-                text-align: center;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                padding: 5px;
-            }
-
-            .cart-total {
-                margin-top: 20px;
-                text-align: right;
-            }
-
-            .remove-item {
-                color: red;
-                cursor: pointer;
-                margin-left: 10px;
-            }
-
-            .cart-buttons {
-                display: flex;
-                gap: 10px;
-                margin-top: 10px;
-            }
-        </style>
-    </head>
-
-    <body>
-        <div class="container">
-            <h1>Giỏ hàng của bạn</h1>
-            <div class="cart-item">
-                <img src="https://via.placeholder.com/100" alt="Sản phẩm 1">
-                <div class="cart-item-details">
-                    <h5>Sản phẩm 1</h5>
-                    <p>Giá: 200.000 VNĐ</p>
-                    <div class="cart-buttons">
-                        <button class="btn btn-sm btn-outline-primary">Xem chi tiết</button>
-                        <button class="btn btn-sm btn-success">Mua ngay</button>
+    <c:choose>
+        <c:when test="${not empty carts}">
+            <div class="list-group">
+                <c:forEach var="cart" items="${carts}">
+                    <div class="row cart-item align-items-center">
+                        <div class="col-md-2 text-center">
+                            <img src="${cart.product.imageUrl}" alt="${cart.product.name}">
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-1">${cart.product.name}</h5>
+                            <p class="mb-1 text-muted">Giá: ${cart.product.price} VNĐ</p>
+                            <p class="mb-1 text-muted">Số lượng: ${cart.quantity}</p>
+                        </div>
+                        <div class="col-md-4 text-end cart-buttons">
+                            <a href="product-detail?productId=${cart.product.productId}" class="btn btn-outline-primary btn-sm">🔍 Xem chi tiết</a>
+                            <a href="checkout?productId=${cart.product.productId}" class="btn btn-success btn-sm">💳 Mua ngay</a>
+                        </div>
                     </div>
-                </div>
-                <div class="cart-item-quantity">
-                    <button><i class="fas fa-minus"></i></button>
-                    <input type="number" value="1">
-                    <button><i class="fas fa-plus"></i></button>
-                </div>
-                <div class="remove-item">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
+                </c:forEach>
             </div>
-            <div class="cart-item">
-                <img src="https://via.placeholder.com/100" alt="Sản phẩm 2">
-                <div class="cart-item-details">
-                    <h5>Sản phẩm 2</h5>
-                    <p>Giá: 300.000 VNĐ</p>
-                    <div class="cart-buttons">
-                        <button class="btn btn-sm btn-outline-primary">Xem chi tiết</button>
-                        <button class="btn btn-sm btn-success">Mua ngay</button>
-                    </div>
-                </div>
-                <div class="cart-item-quantity">
-                    <button><i class="fas fa-minus"></i></button>
-                    <input type="number" value="2">
-                    <button><i class="fas fa-plus"></i></button>
-                </div>
-                <div class="remove-item">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
-            </div>
-            <div class="cart-total">
-                <h4>Tổng cộng: 800.000 VNĐ</h4>
-                <button class="btn btn-primary">Thanh toán</button>
-            </div>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
 
-</html>
+            <!-- Tổng tiền -->
+            <div class="mt-4 text-end">
+                <p class="cart-total">Tổng tiền: 
+                    <strong>
+                        <c:out value="${totalPrice}" /> VNĐ
+                    </strong>
+                </p>
+                <a href="checkout-all" class="btn btn-primary">🧾 Thanh toán tất cả</a>
+            </div>
+        </c:when>
+
+        <c:otherwise>
+            <div class="alert alert-info text-center mt-5">
+                🛒 Giỏ hàng của bạn đang trống!
+            </div>
+        </c:otherwise>
+    </c:choose>
+</div>
+

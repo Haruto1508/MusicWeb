@@ -4,7 +4,6 @@
  */
 package model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -18,6 +17,8 @@ public class Cart {
     private int productID;
     private int quantity;
     private LocalDateTime addDate;
+    
+    private Product product;
 
     public Cart() {
     }
@@ -28,6 +29,15 @@ public class Cart {
         this.productID = productID;
         this.quantity = quantity;
         this.addDate = addDate;
+    }
+
+    public Cart(int cartID, int userID, int productID, int quantity, LocalDateTime addDate, Product product) {
+        this.cartID = cartID;
+        this.userID = userID;
+        this.productID = productID;
+        this.quantity = quantity;
+        this.addDate = addDate;
+        this.product = product;
     }
 
     public int getCartID() {
@@ -70,6 +80,14 @@ public class Cart {
         this.addDate = addDate;
     }
 
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+    
     @Override
     public String toString() {
         return "Cart{" + "cartID=" + cartID + ", userID=" + userID + ", productID=" + productID + ", quantity=" + quantity + ", addDate=" + addDate + '}';

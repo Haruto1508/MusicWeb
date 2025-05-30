@@ -88,7 +88,8 @@ public class UserDAO {
                         rs.getString("address"),
                         rs.getString("role_id"),
                         rs.getString("account"),
-                        rs.getTimestamp("created_at").toLocalDateTime()
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        rs.getString("image_url")
                 );
             }
         } catch (SQLException e) {
@@ -113,7 +114,8 @@ public class UserDAO {
                         rs.getString("address"),
                         rs.getString("role_id"),
                         rs.getString("account"),
-                        rs.getTimestamp("created_at").toLocalDateTime()
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        rs.getString("image_url")
                 );
                 
                 list.add(user);
@@ -162,7 +164,8 @@ public class UserDAO {
                         rs.getString("address"),
                         rs.getString("role_id"),
                         rs.getString("account"),
-                        rs.getTimestamp("created_at").toLocalDateTime()
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        rs.getString("image_url")
                 );
             }
         } catch (SQLException e) {

@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.OrderDetail;
+import model.Product;
 
 /**
  *
@@ -75,28 +76,41 @@ public class OrderDetailDAO {
 
     // Get all OrderDetails for an order
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
-        String sql = "SELECT * FROM order_details WHERE order_id = ?";
-        List<OrderDetail> orderDetails = new ArrayList<>();
+        List<OrderDetail> list = new ArrayList<>();
+        String sql = "SELECT od.*, p.product_id, p.name, p.image_url, p.description, p.price AS product_price "
+                + "FROM order_details od "
+                + "JOIN products p ON od.product_id = p.product_id "
+                + "WHERE od.order_id = ?";
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql)) {
+        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            statement.setInt(1, orderId);
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
 
-            try ( ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    OrderDetail orderDetail = new OrderDetail();
-                    orderDetail.setOrderDetailId(resultSet.getInt("order_detail_id"));
-                    orderDetail.setOrderId(resultSet.getInt("order_id"));
-                    orderDetail.setProductId(resultSet.getInt("product_id"));
-                    orderDetail.setQuantity(resultSet.getInt("quantity"));
-                    orderDetail.setPrice(resultSet.getBigDecimal("price"));
-                    orderDetails.add(orderDetail);
-                }
+            while (rs.next()) {
+                // Tạo Product
+                Product product = new Product();
+                product.setProductId(rs.getInt("product_id"));
+                product.setName(rs.getString("name"));
+                product.setImageUrl(rs.getString("image_url"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getBigDecimal("product_price"));
+
+                // Tạo OrderDetail
+                OrderDetail od = new OrderDetail();
+                od.setOrderDetailId(rs.getInt("order_detail_id"));
+                od.setOrderId(rs.getInt("order_id"));
+                od.setProductId(rs.getInt("product_id"));
+                od.setQuantity(rs.getInt("quantity"));
+                od.setPrice(rs.getBigDecimal("price"));
+                od.setProduct(product);  // Gán product vào
+
+                list.add(od);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return orderDetails;
+        return list;
     }
 
     // Update existing OrderDetail

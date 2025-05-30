@@ -1,3 +1,4 @@
+
 <%-- 
     Document   : home
     Created on : May 17, 2025, 3:46:27 PM
@@ -68,7 +69,7 @@
             <h2 class="text-center fw-bold mb-4">Danh mục nổi bật</h2>
             <div class="row g-4">
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/category?type=guitar" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/path?page=guitar" class="text-decoration-none text-dark">
                         <div class="card text-center py-4 h-100">
                             <div class="category-icon mb-2"><i class="fa-solid fa-guitar"></i></div>
                             <h5 class="fw-semibold">Guitar</h5>
@@ -76,7 +77,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/category?type=violin" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/path?page=violin" class="text-decoration-none text-dark">
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-violin"></i></div>
                             <h5 class="fw-semibold">Violin</h5>
@@ -84,7 +85,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/category?type=piano" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/path?page=piano" class="text-decoration-none text-dark">
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-keyboard"></i></div>
                             <h5 class="fw-semibold">Piano & Keyboard</h5>
@@ -92,7 +93,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/category?type=accessory" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/path?page=accessory" class="text-decoration-none text-dark">
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-microphone"></i></div>
                             <h5 class="fw-semibold">Micro & Phụ kiện</h5>

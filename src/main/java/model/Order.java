@@ -1,4 +1,4 @@
- /*
+/*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
@@ -6,12 +6,14 @@ package model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 public class Order {
+
     private int orderId;
     private int userId;
     private LocalDateTime orderDate;
@@ -21,7 +23,10 @@ public class Order {
     private Integer discountId; // có thể null
     private BigDecimal discountAmount;
 
-    public Order() {}
+    private List<OrderDetail> orderDetails;
+
+    public Order() {
+    }
 
     public Order(int orderId, int userId, LocalDateTime orderDate, String status, BigDecimal totalAmount, String shippingAddress, Integer discountId, BigDecimal discountAmount) {
         this.orderId = orderId;
@@ -32,6 +37,14 @@ public class Order {
         this.shippingAddress = shippingAddress;
         this.discountId = discountId;
         this.discountAmount = discountAmount;
+    }
+
+    public List<OrderDetail> getOrderDetails() {
+        return orderDetails;
+    }
+
+    public void setOrderDetails(List<OrderDetail> orderDetails) {
+        this.orderDetails = orderDetails;
     }
 
     public int getOrderId() {

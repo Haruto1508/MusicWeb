@@ -71,8 +71,8 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-
-        System.out.println(user);
+        
+        System.out.println(user.getUserId());
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/path?page=login");
             return;

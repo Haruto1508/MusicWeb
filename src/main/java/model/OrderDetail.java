@@ -5,6 +5,7 @@
 package model;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
@@ -16,6 +17,7 @@ public class OrderDetail {
     private int productId;
     private int quantity;
     private BigDecimal price;
+    private Product product;
 
     public OrderDetail() {}
 
@@ -27,6 +29,23 @@ public class OrderDetail {
         this.price = price;
     }
 
+    public OrderDetail(int orderDetailId, int orderId, int productId, int quantity, BigDecimal price, Product product) {
+        this.orderDetailId = orderDetailId;
+        this.orderId = orderId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.price = price;
+        this.product = product;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+    
     public int getOrderDetailId() {
         return orderDetailId;
     }

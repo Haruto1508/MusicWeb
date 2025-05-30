@@ -21,6 +21,7 @@ public class User {
     private String role; // "customer" hoặc "admin"
     private String account;
     private LocalDateTime createDateTime;
+    private String imageUrl;
 
     public User() {
     }
@@ -38,7 +39,7 @@ public class User {
     }
 
     // constructor to get user from db
-    public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime) {
+    public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime, String imageUrl) {
         this.userId = userId;
         this.fullName = fullName;
         this.email = email;
@@ -48,6 +49,15 @@ public class User {
         this.role = role;
         this.account = account;
         this.createDateTime = createDateTime;
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public int getUserId() {

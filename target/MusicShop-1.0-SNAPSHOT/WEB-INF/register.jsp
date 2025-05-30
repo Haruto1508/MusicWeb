@@ -11,11 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-<<<<<<< HEAD
-        <title>Register - MusicShop</title>
-=======
         <title>Đăng ký - MusicShop</title>
->>>>>>> e2766604952605678e019bfdfdf68f64ddcc17a1
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -171,7 +167,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100" disabled><i class="fa-solid fa-user-plus me-2"></i>Register</button>
                     <div class="text-center mt-3">
-                        <span class="form-text">Already have an account? <a href="${pageContext.request.contextPath}/WEB-INF/login.jsp">Login</a></span>
+                        <span class="form-text">Already have an account? <a href="${pageContext.request.contextPath}/path?page=login">Login</a></span>
                     </div>
                 </form>
             </div>
