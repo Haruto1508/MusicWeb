@@ -18,6 +18,7 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\controller\RegisterServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\DispatcherServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\HomeServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\OrderDAO.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\controller\UserServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\LoginServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\ProductDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\Product.java

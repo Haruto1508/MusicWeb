@@ -106,7 +106,7 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     protected void forwardProfile(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/user2/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/user/profile.jsp").forward(request, response);
     }
 
     protected void forwardGuitarPage(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

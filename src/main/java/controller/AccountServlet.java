@@ -81,11 +81,6 @@ public class AccountServlet extends HttpServlet {
             return;
         }
 
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/path?page=login");
-            return;
-        }
-
         switch (view) {
             case "info":
 

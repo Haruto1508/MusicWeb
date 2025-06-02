@@ -16,6 +16,7 @@ model\Product.class
 model\Category.class
 controller\LogoutServlet.class
 dao\UserDAO.class
+controller\UserServlet.class
 controller\ProfileServlet.class
 controller\RegisterServlet.class
 dao\ProductDAO.class

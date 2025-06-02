@@ -7,7 +7,7 @@ package controller;
 import dao.CartDAO;
 import dao.OrderDAO;
 import dao.ProductDAO;
-import dao.UserDAO; 
+import dao.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -26,7 +26,6 @@ import model.User;
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-
 @WebServlet(name = "ProfileServlet", urlPatterns = {"/profile"})
 
 public class ProfileServlet extends HttpServlet {
@@ -71,7 +70,7 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        
+
         System.out.println(user.getUserId());
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/path?page=login");
@@ -80,6 +79,12 @@ public class ProfileServlet extends HttpServlet {
 
         String view = request.getParameter("view");
         if (view == null) {
+            // Tạo attribute kiểu java.sql.Date cho JSP
+            if (user.getBirthdate() != null) {
+                java.sql.Date birthdateSql = java.sql.Date.valueOf(user.getBirthdate());
+                request.setAttribute("birthdateSql", birthdateSql);
+            }
+
             view = "info";
         }
 

@@ -4,6 +4,7 @@
  */
 package model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -22,12 +23,14 @@ public class User {
     private String account;
     private LocalDateTime createDateTime;
     private String imageUrl;
+    private String gender;
+    private LocalDate birthdate;
 
     public User() {
     }
 
     // constructor to insert user to db
-    public User(String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime) {
+    public User(String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime, String gender, LocalDate birthdate) {
         this.fullName = fullName;
         this.email = email;
         this.password = password;
@@ -36,10 +39,12 @@ public class User {
         this.role = role;
         this.account = account;
         this.createDateTime = createDateTime;
+        this.birthdate = birthdate;
+        this.gender = gender;
     }
 
     // constructor to get user from db
-    public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime, String imageUrl) {
+    public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime, String imageUrl, String gender, LocalDate birthdate) {
         this.userId = userId;
         this.fullName = fullName;
         this.email = email;
@@ -50,6 +55,8 @@ public class User {
         this.account = account;
         this.createDateTime = createDateTime;
         this.imageUrl = imageUrl;
+        this.birthdate = birthdate;
+        this.gender = gender;
     }
 
     public String getImageUrl() {
@@ -132,9 +139,24 @@ public class User {
         this.createDateTime = createDateTime;
     }
 
-    @Override
-    public String toString() {
-        return "User{" + "userId=" + userId + ", fullName=" + fullName + ", email=" + email + ", password=" + password + ", phone=" + phone + ", address=" + address + ", role=" + role + ", account=" + account + ", createDateTime=" + createDateTime + '}';
+    public String getGender() {
+        return gender;
     }
 
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public LocalDate getBirthdate() {
+        return birthdate;
+    }
+
+    public void setBirthdate(LocalDate birthdate) {
+        this.birthdate = birthdate;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" + "userId=" + userId + ", fullName=" + fullName + ", email=" + email + ", password=" + password + ", phone=" + phone + ", address=" + address + ", role=" + role + ", account=" + account + ", createDateTime=" + createDateTime + ", imageUrl=" + imageUrl + ", gender=" + gender + ", birthdate=" + birthdate + '}';
+    }
 }

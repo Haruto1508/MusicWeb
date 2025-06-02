@@ -20,7 +20,7 @@ import model.User;
 public class UserDAO {
 
     public boolean insert(User user) {
-        String sql = "INSERT INTO Users(full_name, email, password, phone, address, role) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Users(full_name, email, password, phone, address, role, gender, birthdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, user.getFullName());
@@ -29,6 +29,9 @@ public class UserDAO {
             ps.setString(4, user.getPhone());
             ps.setString(5, user.getAddress());
             ps.setString(6, user.getRole());
+            ps.setString(7, user.getGender());
+            ps.setDate(8, java.sql.Date.valueOf(user.getBirthdate()));
+            ps.setInt(9, user.getUserId());
             ps.executeUpdate();
 
             return true;
@@ -40,7 +43,7 @@ public class UserDAO {
     }
 
     public boolean update(User user) {
-        String sql = "UPDATE Users SET full_name=?, email=?, password=?, phone=?, address=?, role=? WHERE user_id=?";
+        String sql = "UPDATE Users SET full_name=?, email=?, password=?, phone=?, address=?, role=?, gender=?, birthdate=? WHERE user_id=?";
         try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, user.getFullName());
@@ -50,6 +53,8 @@ public class UserDAO {
             ps.setString(5, user.getAddress());
             ps.setString(6, user.getRole());
             ps.setInt(7, user.getUserId());
+            ps.setDate(8, java.sql.Date.valueOf(user.getBirthdate()));
+            ps.setInt(9, user.getUserId());
             ps.executeUpdate();
 
             return true;
@@ -89,7 +94,9 @@ public class UserDAO {
                         rs.getString("role_id"),
                         rs.getString("account"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getString("image_url")
+                        rs.getString("image_url"),
+                        rs.getString("gender"),
+                        rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null
                 );
             }
         } catch (SQLException e) {
@@ -115,9 +122,11 @@ public class UserDAO {
                         rs.getString("role_id"),
                         rs.getString("account"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getString("image_url")
+                        rs.getString("image_url"),
+                        rs.getString("gender"),
+                        rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null
                 );
-                
+
                 list.add(user);
             }
         } catch (SQLException e) {
@@ -165,7 +174,9 @@ public class UserDAO {
                         rs.getString("role_id"),
                         rs.getString("account"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getString("image_url")
+                        rs.getString("image_url"),
+                        rs.getString("gender"),
+                        rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null
                 );
             }
         } catch (SQLException e) {
@@ -183,15 +194,16 @@ public class UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         return false;
     }
+
     public static void main(String[] args) {
         UserDAO u = new UserDAO();
-        
+
         List<User> user = u.getAll();
-        
-        for(User us : user) {
+
+        for (User us : user) {
             System.out.println(us.toString());
         }
     }
