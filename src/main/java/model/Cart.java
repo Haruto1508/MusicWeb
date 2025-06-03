@@ -13,28 +13,26 @@ import java.time.LocalDateTime;
 public class Cart {
 
     private int cartID;
-    private int userID;
-    private int productID;
+    private User user;
+    private Product product;
     private int quantity;
     private LocalDateTime addDate;
-    
-    private Product product;
+
 
     public Cart() {
     }
 
-    public Cart(int cartID, int userID, int productID, int quantity, LocalDateTime addDate) {
+    public Cart(int cartID, User user, Product product, int quantity, LocalDateTime addDate) {
         this.cartID = cartID;
-        this.userID = userID;
-        this.productID = productID;
+        this.user = user;
+        this.product = product;
         this.quantity = quantity;
         this.addDate = addDate;
     }
 
-    public Cart(int cartID, int userID, int productID, int quantity, LocalDateTime addDate, Product product) {
-        this.cartID = cartID;
-        this.userID = userID;
-        this.productID = productID;
+    public Cart(User user, Product product, int quantity, LocalDateTime addDate) {
+        this.user = user;
+        this.product = product;
         this.quantity = quantity;
         this.addDate = addDate;
         this.product = product;
@@ -48,20 +46,20 @@ public class Cart {
         this.cartID = cartID;
     }
 
-    public int getUserID() {
-        return userID;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserID(int userID) {
-        this.userID = userID;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public int getProductID() {
-        return productID;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductID(int productID) {
-        this.productID = productID;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public int getQuantity() {
@@ -80,17 +78,9 @@ public class Cart {
         this.addDate = addDate;
     }
 
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-    
     @Override
     public String toString() {
-        return "Cart{" + "cartID=" + cartID + ", userID=" + userID + ", productID=" + productID + ", quantity=" + quantity + ", addDate=" + addDate + '}';
+        return "Cart{" + "cartID=" + cartID + ", user=" + user + ", product=" + product + ", quantity=" + quantity + ", addDate=" + addDate + '}';
     }
 
 }

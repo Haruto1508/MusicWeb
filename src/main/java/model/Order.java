@@ -15,7 +15,7 @@ import java.util.List;
 public class Order {
 
     private int orderId;
-    private int userId;
+    private User user;
     private LocalDateTime orderDate;
     private String status;  // pending, processing, shipped, delivered, cancelled
     private BigDecimal totalAmount;
@@ -28,9 +28,9 @@ public class Order {
     public Order() {
     }
 
-    public Order(int orderId, int userId, LocalDateTime orderDate, String status, BigDecimal totalAmount, String shippingAddress, Integer discountId, BigDecimal discountAmount) {
+    public Order(int orderId, User user, LocalDateTime orderDate, String status, BigDecimal totalAmount, String shippingAddress, Integer discountId, BigDecimal discountAmount) {
         this.orderId = orderId;
-        this.userId = userId;
+        this.user = user;
         this.orderDate = orderDate;
         this.status = status;
         this.totalAmount = totalAmount;
@@ -55,12 +55,12 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public int getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setUser(User userId) {
+        this.user = user;
     }
 
     public LocalDateTime getOrderDate() {
@@ -113,6 +113,6 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", userId=" + userId + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", shippingAddress=" + shippingAddress + ", discountId=" + discountId + ", discountAmount=" + discountAmount + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", shippingAddress=" + shippingAddress + ", discountId=" + discountId + ", discountAmount=" + discountAmount + '}';
     }
 }

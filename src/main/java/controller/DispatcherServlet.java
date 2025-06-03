@@ -87,6 +87,8 @@ public class DispatcherServlet extends HttpServlet {
             case "accessory":
                 forwardAccessoryPage(request, response);
                 break;
+            case "info":
+                forwardUserInfo(request, response);
             default:
                 throw new AssertionError();
         }
@@ -143,5 +145,9 @@ public class DispatcherServlet extends HttpServlet {
 
         request.setAttribute("accessories", accessories);
         request.getRequestDispatcher("WEB-INF/collections/accessory.jsp").forward(request, response);
+    }
+    
+    protected void forwardUserInfo(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        request.getRequestDispatcher("/WEB-INF/collections/violin.jsp").forward(request, response);
     }
 }

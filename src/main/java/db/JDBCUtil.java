@@ -6,6 +6,8 @@ package db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -13,7 +15,7 @@ import java.sql.SQLException;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 public class JDBCUtil {
-
+    private Connection conn;
     private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=MusicShop;encrypt=true;trustServerCertificate=true";
     private static final String USER = "sa";
     private static final String PASSWORD = "15082005";
@@ -40,6 +42,34 @@ public class JDBCUtil {
                 e.printStackTrace();
             }
         }
+    }
+    
+    public ResultSet execSelecQuery(String query, Object[] params) throws  SQLException {
+        PreparedStatement ps = conn.prepareStatement(query);
+        
+        if (params != null) {
+            for(int i=0; i<params.length; i++) {
+                ps.setObject(i+1, params[i]);
+            }
+        }
+        
+        return ps.executeQuery();
+    }
+    
+    public ResultSet execSelecQuery(String query) throws  SQLException {
+        return this.execSelecQuery(query, null);
+    }
+    
+    public int execQuery(String query, Object[] params) throws  SQLException {
+        PreparedStatement ps = conn.prepareStatement(query);
+        
+        if (params != null) {
+            for(int i=0; i<params.length; i++) {
+                ps.setObject(i+1, params[i]);
+            }
+        }
+        
+        return ps.executeUpdate();
     }
 
 }

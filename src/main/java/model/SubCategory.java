@@ -10,46 +10,46 @@ package model;
  */
 public class SubCategory {
 
-    private int subcategoryID;
-    private String nameString;
-    private String categoryID;
+    private int subcategory;
+    private String name;
+    private Category category;
 
     public SubCategory() {
     }
 
-    public SubCategory(int subcategoryID, String nameString, String categoryID) {
-        this.subcategoryID = subcategoryID;
-        this.nameString = nameString;
-        this.categoryID = categoryID;
+    public SubCategory(int subcategory, String name, Category category) {
+        this.subcategory = subcategory;
+        this.name = name;
+        this.category = category;
     }
 
-    public int getSubcategoryID() {
-        return subcategoryID;
+    public int getSubcategory() {
+        return subcategory;
     }
 
-    public void setSubcategoryID(int subcategoryID) {
-        this.subcategoryID = subcategoryID;
+    public void setSubcategory(int subcategory) {
+        this.subcategory = subcategory;
     }
 
-    public String getNameString() {
-        return nameString;
+    public String getName() {
+        return name;
     }
 
-    public void setNameString(String nameString) {
-        this.nameString = nameString;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getCategoryID() {
-        return categoryID;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setCategoryID(String categoryID) {
-        this.categoryID = categoryID;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     @Override
     public String toString() {
-        return "SubCategory{" + "subcategoryID=" + subcategoryID + ", nameString=" + nameString + ", categoryID=" + categoryID + '}';
+        return "SubCategory{" + "subcategory=" + subcategory + ", nameString=" + name + ", category=" + category + '}';
     }
 
 }

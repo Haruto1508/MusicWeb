@@ -77,7 +77,7 @@ public class UserDAO {
         return false;
     }
 
-    public User getById(int userId) {
+    public User getUserById(int userId) {
         String sql = "SELECT * FROM Users WHERE user_id=?";
         try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
 

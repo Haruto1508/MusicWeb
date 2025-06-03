@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  */
 public class Product {
 
-    private int productId;
+    private int productID;
     private String name;
     private String description;
     private BigDecimal price;
@@ -28,11 +28,12 @@ public class Product {
     private LocalDate discountEnd;
 
     private LocalDateTime createDateTime;
+    
     public Product() {
     }
 
-    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, int categoryId, String imageUrl, String discountType, BigDecimal discountValue, LocalDate discountStart, LocalDate discountEnd, LocalDateTime createDateTime) {
-        this.productId = productId;
+    public Product(int productID, String name, String description, BigDecimal price, int stockQuantity, int categoryId, String imageUrl, String discountType, BigDecimal discountValue, LocalDate discountStart, LocalDate discountEnd, LocalDateTime createDateTime) {
+        this.productID = productID;
         this.name = name;
         this.description = description;
         this.price = price;
@@ -46,12 +47,12 @@ public class Product {
         this.createDateTime = createDateTime;
     }
 
-    public int getProductId() {
-        return productId;
+    public int getProductID() {
+        return productID;
     }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
+    public void setProductID(int productID) {
+        this.productID = productID;
     }
 
     public String getName() {
@@ -144,6 +145,6 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + categoryId + ", imageUrl=" + imageUrl + ", discountType=" + discountType + ", discountValue=" + discountValue + ", discountStart=" + discountStart + ", discountEnd=" + discountEnd + ", createDateTime=" + createDateTime + '}';
+        return "Product{" + "product=" + productID + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + categoryId + ", imageUrl=" + imageUrl + ", discountType=" + discountType + ", discountValue=" + discountValue + ", discountStart=" + discountStart + ", discountEnd=" + discountEnd + ", createDateTime=" + createDateTime + '}';
     }
 }

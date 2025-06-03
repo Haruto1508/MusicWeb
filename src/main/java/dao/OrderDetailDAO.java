@@ -5,12 +5,15 @@
 package dao;
 
 import db.JDBCUtil;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import model.Order;
 import model.OrderDetail;
 import model.Product;
 
@@ -26,8 +29,8 @@ public class OrderDetailDAO {
 
         try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
-            statement.setInt(1, orderDetail.getOrderId());
-            statement.setInt(2, orderDetail.getProductId());
+            statement.setInt(1, orderDetail.getOrder().getOrderId());
+            statement.setInt(2, orderDetail.getProduct().getProductID());
             statement.setInt(3, orderDetail.getQuantity());
             statement.setBigDecimal(4, orderDetail.getPrice());
 
@@ -56,16 +59,18 @@ public class OrderDetailDAO {
         try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, orderDetailId);
+            try ( ResultSet rs = statement.executeQuery()) {
+                ProductDAO productDAO = new ProductDAO();
+                OrderDAO orderDAO = new OrderDAO();
 
-            try ( ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    OrderDetail orderDetail = new OrderDetail();
-                    orderDetail.setOrderDetailId(resultSet.getInt("order_detail_id"));
-                    orderDetail.setOrderId(resultSet.getInt("order_id"));
-                    orderDetail.setProductId(resultSet.getInt("product_id"));
-                    orderDetail.setQuantity(resultSet.getInt("quantity"));
-                    orderDetail.setPrice(resultSet.getBigDecimal("price"));
-                    return orderDetail;
+                if (rs.next()) {
+                    Product product = productDAO.getProductById(rs.getInt("order_detail_id"));
+                    Order order = orderDAO.getOrderById(rs.getInt("order_id"));
+                    int orderDetailID = rs.getInt("order_detail_id");
+                    int quantity = rs.getInt("quantity");
+                    BigDecimal pice = rs.getBigDecimal("price");
+                    
+                    return new OrderDetail(orderDetailID, order, product, quantity, pice);
                 }
             }
         } catch (SQLException e) {
@@ -89,18 +94,16 @@ public class OrderDetailDAO {
 
             while (rs.next()) {
                 // Tạo Product
-                Product product = new Product();
-                product.setProductId(rs.getInt("product_id"));
-                product.setName(rs.getString("name"));
-                product.setImageUrl(rs.getString("image_url"));
-                product.setDescription(rs.getString("description"));
-                product.setPrice(rs.getBigDecimal("product_price"));
-
+                ProductDAO productDAO = new ProductDAO();
+                OrderDAO orderDAO = new OrderDAO();
+                Product product = productDAO.getProductById(rs.getInt("product_id"));
+                Order order = orderDAO.getOrderById(rs.getInt("order_id"));
+                
                 // Tạo OrderDetail
                 OrderDetail od = new OrderDetail();
                 od.setOrderDetailId(rs.getInt("order_detail_id"));
-                od.setOrderId(rs.getInt("order_id"));
-                od.setProductId(rs.getInt("product_id"));
+                od.setOrder(order);
+                od.setProduct(product);
                 od.setQuantity(rs.getInt("quantity"));
                 od.setPrice(rs.getBigDecimal("price"));
                 od.setProduct(product);  // Gán product vào

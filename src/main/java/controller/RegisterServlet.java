@@ -83,9 +83,9 @@ public class RegisterServlet extends HttpServlet {
         boolean isExistUser = userDAO.isUsernameTaken(account, phone);
         
         if (isExistUser) {
-            User user = new User(name, email, password, phone, address, phone, account, LocalDateTime.MIN);
+//            User user = new User(name, email, password, phone, address, phone, account, LocalDateTime.MIN);
             HttpSession session = request.getSession(false);
-            userDAO.insert(user);
+//            userDAO.insert(user);
         }
     }
 

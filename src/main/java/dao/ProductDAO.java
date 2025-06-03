@@ -84,7 +84,7 @@ public class ProductDAO {
             } else {
                 ps.setNull(10, Types.DATE);
             }
-            ps.setInt(11, product.getProductId());
+            ps.setInt(11, product.getProductID());
             ps.executeUpdate();
             return true;
         } catch (SQLException e) {
@@ -103,7 +103,7 @@ public class ProductDAO {
         }
     }
 
-    public Product getById(int productId) {
+    public Product getProductById(int productId) {
         String sql = "SELECT * FROM Products WHERE product_id=?";
         try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -257,7 +257,7 @@ public class ProductDAO {
             try ( ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Product product = new Product();
-                    product.setProductId(rs.getInt("product_id"));
+                    product.setProductID(rs.getInt("product_id"));
                     product.setName(rs.getString("name"));
                     product.setDescription(rs.getString("description"));
                     product.setPrice(rs.getBigDecimal("price"));

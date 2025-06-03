@@ -5,7 +5,6 @@
 package model;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  *
@@ -13,29 +12,19 @@ import java.util.List;
  */
 public class OrderDetail {
     private int orderDetailId;
-    private int orderId;
-    private int productId;
+    private Order order;
+    private Product product;
     private int quantity;
     private BigDecimal price;
-    private Product product;
 
     public OrderDetail() {}
 
-    public OrderDetail(int orderDetailId, int orderId, int productId, int quantity, BigDecimal price) {
+    public OrderDetail(int orderDetailId, Order order, Product product, int quantity, BigDecimal price) {
         this.orderDetailId = orderDetailId;
-        this.orderId = orderId;
-        this.productId = productId;
-        this.quantity = quantity;
-        this.price = price;
-    }
-
-    public OrderDetail(int orderDetailId, int orderId, int productId, int quantity, BigDecimal price, Product product) {
-        this.orderDetailId = orderDetailId;
-        this.orderId = orderId;
-        this.productId = productId;
-        this.quantity = quantity;
-        this.price = price;
+        this.order = order;
         this.product = product;
+        this.quantity = quantity;
+        this.price = price;
     }
 
     public Product getProduct() {
@@ -54,22 +43,14 @@ public class OrderDetail {
         this.orderDetailId = orderDetailId;
     }
 
-    public int getOrderId() {
-        return orderId;
+    public Order getOrder() {
+        return order;
     }
 
-    public void setOrderId(int orderId) {
-        this.orderId = orderId;
+    public void setOrder(Order order) {
+        this.order = order;
     }
-
-    public int getProductId() {
-        return productId;
-    }
-
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
-
+    
     public int getQuantity() {
         return quantity;
     }
@@ -88,7 +69,7 @@ public class OrderDetail {
 
     @Override
     public String toString() {
-        return "OrderDetail{" + "orderDetailId=" + orderDetailId + ", orderId=" + orderId + ", productId=" + productId + ", quantity=" + quantity + ", price=" + price + '}';
+        return "OrderDetail{" + "orderDetailId=" + orderDetailId + ", order=" + order + ", product=" + product + ", quantity=" + quantity + ", price=" + price + '}';
     }
     
     
