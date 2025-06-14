@@ -73,17 +73,24 @@ public class CartDAO extends JDBCUtil {
     }
 
     public Cart getCartByID(int cartID) {
-        String sql = "SELECT * FROM Carts WHERE cartID=?";
+        String sql = "SELECT \n"
+                + "	c.cart_id, c.user_id, c.product_id, c.quantity, c.added_at,\n"
+                + "	p.product_id, p.name, p.description, p.price, p.stock_quantity, p.image_url,\n"
+                + "FROM Carts c\n"
+                + "JOIN Users u ON u.user_id = c.user_id\n"
+                + "JOIN Products p ON p.product_id = c.product_id\n"
+                + "WHERE c.cart_id = ?;";
         Object[] params = {cartID};
 
-        UserDAO userDAO = new UserDAO();
-        ProductDAO productDAO = new ProductDAO();
-
-        try ( ResultSet rs = execSelecQuery(sql, params)) {
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
             if (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                
+                Product product = new Product();
+                product.setProductID(rs.getInt("prodcut_id"));
+                
                 int id = rs.getInt("cartID");
-                User user = userDAO.getUserById(rs.getInt("userID"));
-                Product product = productDAO.getProductById(rs.getInt("productID"));
                 int quantity = rs.getInt("quantity");
                 LocalDateTime adDateTime = rs.getTimestamp("addDate").toLocalDateTime();
                 return new Cart(id, user, product, quantity, adDateTime);
@@ -96,27 +103,31 @@ public class CartDAO extends JDBCUtil {
 
     public List<Cart> getCartByUserId(int userId) {
         List<Cart> cartItems = new ArrayList<>();
-        String sql = "SELECT c.cart_id, c.user_id, c.product_id, c.quantity, c.added_at, "
-                + "p.name AS product_name, p.price, p.image_url "
-                + "FROM Carts c "   
-                + "JOIN Products p ON c.product_id = p.product_id "
-                + "WHERE c.user_id = ?";
+        
+        String sql = "SELECT \n"
+                + "	c.cart_id, c.user_id, c.product_id, c.quantity, c.added_at,\n"
+                + "	p.product_id, p.name, p.description, p.price, p.stock_quantity, p.image_url,\n"
+                + "FROM Carts c\n"
+                + "JOIN Users u ON u.user_id = c.user_id\n"
+                + "JOIN Products p ON p.product_id = c.product_id\n"
+                + "WHERE u.user_id = ?;";
         Object[] params = {userId};
-        
-        UserDAO userDAO = new UserDAO();
-        ProductDAO productDAO = new ProductDAO();
-        
-        try ( ResultSet rs = execSelecQuery(sql, params)) {
+
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
             while (rs.next()) {
                 int id = rs.getInt("cartID");
-                User user = userDAO.getUserById(rs.getInt("userID"));
-                Product product = productDAO.getProductById(rs.getInt("productID"));
+                User user = new User();
+                user.setUserId(rs.getInt("userID"));
+                
+                Product product = new Product();
+                product.setProductID(rs.getInt("productID"));
+                
                 int quantity = rs.getInt("quantity");
                 LocalDateTime adDateTime = rs.getTimestamp("addDate").toLocalDateTime();
 
                 // Tạo Cart và gán Product
                 Cart cart = new Cart(id, user, product, quantity, adDateTime);
- 
+
                 cartItems.add(cart);
             }
         } catch (SQLException ex) {

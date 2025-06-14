@@ -9,6 +9,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -17,19 +19,22 @@ import java.sql.SQLException;
 public class JDBCUtil {
     private Connection conn;
     private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=MusicShop;encrypt=true;trustServerCertificate=true";
-    private static final String USER = "sa";
-    private static final String PASSWORD = "15082005";
+    private static final String DB_USER = "sa";
+    private static final String BD_PASSWORD = "15082005";
 
-    static {
+    public JDBCUtil () {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            this.conn = DriverManager.getConnection(DB_URL, DB_USER, BD_PASSWORD);
+            System.out.println("Connect success");
+        } catch (ClassNotFoundException | SQLException ex) {
+            System.out.println("Eror");
+            Logger.getLogger(JDBCUtil.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public static Connection getConnection() throws SQLException {
-            return DriverManager.getConnection(DB_URL, USER, PASSWORD);
+    public Connection getConnection() {
+        return conn;
     }
     
     public static void closeConnection(Connection connect) {
@@ -44,7 +49,7 @@ public class JDBCUtil {
         }
     }
     
-    public ResultSet execSelecQuery(String query, Object[] params) throws  SQLException {
+    public ResultSet execSelectQuery(String query, Object[] params) throws  SQLException {
         PreparedStatement ps = conn.prepareStatement(query);
         
         if (params != null) {
@@ -56,8 +61,8 @@ public class JDBCUtil {
         return ps.executeQuery();
     }
     
-    public ResultSet execSelecQuery(String query) throws  SQLException {
-        return this.execSelecQuery(query, null);
+    public ResultSet execSelectQuery(String query) throws  SQLException {
+        return this.execSelectQuery(query, null);
     }
     
     public int execQuery(String query, Object[] params) throws  SQLException {

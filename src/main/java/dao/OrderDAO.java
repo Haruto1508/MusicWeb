@@ -5,117 +5,150 @@
 package dao;
 
 import db.JDBCUtil;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import model.Discount;
 import model.Order;
-import model.OrderDetail;
+import model.User;
 
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-public class OrderDAO {
+public class OrderDAO extends JDBCUtil {
 
-    public void addOrder(Order order) {
+    public boolean addOrder(Order order) {
         String sql = "INSERT INTO Orders (user_id, order_date, status, total_amount, shipping_address, discount_id, discount_amount) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, order.getUserId());
-            stmt.setTimestamp(2, Timestamp.valueOf(order.getOrderDate()));
-            stmt.setString(3, order.getStatus());
-            stmt.setBigDecimal(4, order.getTotalAmount());
-            stmt.setString(5, order.getShippingAddress());
-            if (order.getDiscountId() != null) {
-                stmt.setInt(6, order.getDiscountId());
-            } else {
-                stmt.setNull(6, Types.INTEGER);
-            }
-            stmt.setBigDecimal(7, order.getDiscountAmount());
-            stmt.executeUpdate();
+
+        Object[] params = {order.getUser(), order.getOrderDate(), order.getStatus(),
+            order.getTotalAmount(), order.getShippingAddress(), order.getDiscount(),
+            order.getDiscountAmount()
+        };
+
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     public Order getOrderById(int orderId) {
-        String sql = "SELECT * FROM Orders WHERE order_id = ?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, orderId);
-            try ( ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Order(
-                            rs.getInt("order_id"),
-                            rs.getInt("user_id"),
-                            rs.getTimestamp("order_date").toLocalDateTime(),
-                            rs.getString("status"),
-                            rs.getBigDecimal("total_amount"),
-                            rs.getString("shipping_address"),
-                            rs.getObject("discount_id") != null ? rs.getInt("discount_id") : null,
-                            rs.getBigDecimal("discount_amount")
-                    );
-                }
+        String sql = "SELECT \n"
+                + "	o.order_id,\n"
+                + "	o.user_id,\n"
+                + "	o.order_date,\n"
+                + "	o.status,\n"
+                + "	o.total_amount,\n"
+                + "	o.shipping_address,\n"
+                + "	o.discount_amount,\n"
+                + "	o.discount_amount,\n"
+                + "	d.discount_id\n"
+                + "FROM Orders o \n"
+                + "JOIN Users u ON u.user_id = o.user_id\n"
+                + "JOIN Discounts d ON d.discount_id = o.discount_id\n"
+                + "WHERE o.order_id = ?";
+
+        Object[] params = {orderId};
+
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            User user = new User();
+            user.setUserId(rs.getInt("user_id"));
+
+            Discount discount = new Discount();
+            discount.setDiscountId(rs.getInt("discount_id"));
+
+            if (rs.next()) {
+                return new Order(
+                        rs.getInt("order_id"),
+                        user,
+                        rs.getTimestamp("order_date").toLocalDateTime(),
+                        rs.getString("status"),
+                        rs.getBigDecimal("total_amount"),
+                        rs.getString("shipping_address"),
+                        discount,
+                        rs.getBigDecimal("discount_amount")
+                );
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public List<Order> getOrdersByUserId(int userId) {
-        List<Order> orders = new ArrayList<>();
-        String sql = "SELECT * FROM Orders WHERE user_id = ?";
-        OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+    public List<Order> getOrderByUserId(int userId) {
+        List<Order> list = new ArrayList<>();
 
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            try ( ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Order order = new Order(
-                            rs.getInt("order_id"),
-                            rs.getInt("user_id"),
-                            rs.getTimestamp("order_date").toLocalDateTime(),
-                            rs.getString("status"),
-                            rs.getBigDecimal("total_amount"),
-                            rs.getString("shipping_address"),
-                            rs.getObject("discount_id") != null ? rs.getInt("discount_id") : null,
-                            rs.getBigDecimal("discount_amount")
-                    );
+        String sql = "SELECT \n"
+                + " o.order_id,\n"
+                + " o.user_id,\n"
+                + " o.order_date,\n"
+                + " o.status,\n"
+                + " o.total_amount,\n"
+                + " o.shipping_address,\n"
+                + " o.discount_amount,\n"
+                + " d.discount_id\n"
+                + "FROM Orders o \n"
+                + "JOIN Users u ON u.user_id = o.user_id\n"
+                + "LEFT JOIN Discounts d ON d.discount_id = o.discount_id\n"
+                + "WHERE u.user_id = ?";
 
-                    // Lấy chi tiết sản phẩm trong order
-                    List<OrderDetail> orderDetails = orderDetailDAO.getOrderDetailsByOrderId(order.getOrderId());
-                    order.setOrderDetails(orderDetails);
+        Object[] params = {userId};
 
-                    orders.add(order);
-                }
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            while (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+
+                Discount discount = new Discount();
+                discount.setDiscountId(rs.getInt("discount_id"));
+
+                list.add(new Order(
+                        rs.getInt("order_id"),
+                        user,
+                        rs.getTimestamp("order_date").toLocalDateTime(),
+                        rs.getString("status"),
+                        rs.getBigDecimal("total_amount"),
+                        rs.getString("shipping_address"),
+                        discount,
+                        rs.getBigDecimal("discount_amount")
+                ));
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return orders;
+
+        return list;
     }
 
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
 
         String sql = "SELECT * FROM Orders;";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql);  ResultSet rs = stmt.executeQuery()) {
+        try {
+            ResultSet rs = execSelectQuery(sql);
 
             while (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+
+                Discount discount = new Discount();
+                discount.setDiscountId(rs.getInt("discount_id"));
+
                 orders.add(
                         new Order(
                                 rs.getInt("order_id"),
-                                rs.getInt("user_id"),
+                                user,
                                 rs.getTimestamp("order_date").toLocalDateTime(),
                                 rs.getString("status"),
                                 rs.getBigDecimal("total_amount"),
                                 rs.getString("shipping_address"),
-                                rs.getObject("discount_id") != null ? rs.getInt("discount_id") : null,
+                                discount,
                                 rs.getBigDecimal("discount_amount")
                         )
                 );
@@ -125,5 +158,4 @@ public class OrderDAO {
         }
         return orders;
     }
-
 }

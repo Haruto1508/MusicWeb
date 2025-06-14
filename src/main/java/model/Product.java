@@ -14,12 +14,12 @@ import java.time.LocalDateTime;
  */
 public class Product {
 
-    private int productID;
+    private int productId;
     private String name;
     private String description;
     private BigDecimal price;
     private int stockQuantity;
-    private int categoryId;
+    private Category category;
     private String imageUrl;
 
     private String discountType;  // "percentage", "fixed", hoặc null
@@ -32,13 +32,13 @@ public class Product {
     public Product() {
     }
 
-    public Product(int productID, String name, String description, BigDecimal price, int stockQuantity, int categoryId, String imageUrl, String discountType, BigDecimal discountValue, LocalDate discountStart, LocalDate discountEnd, LocalDateTime createDateTime) {
-        this.productID = productID;
+    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, String discountType, BigDecimal discountValue, LocalDate discountStart, LocalDate discountEnd, LocalDateTime createDateTime) {
+        this.productId = productId;
         this.name = name;
         this.description = description;
         this.price = price;
         this.stockQuantity = stockQuantity;
-        this.categoryId = categoryId;
+        this.category = category;
         this.imageUrl = imageUrl;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -48,11 +48,11 @@ public class Product {
     }
 
     public int getProductID() {
-        return productID;
+        return productId;
     }
 
-    public void setProductID(int productID) {
-        this.productID = productID;
+    public void setProductID(int productId) {
+        this.productId = productId;
     }
 
     public String getName() {
@@ -87,12 +87,12 @@ public class Product {
         this.stockQuantity = stockQuantity;
     }
 
-    public int getCategoryId() {
-        return categoryId;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
+    public void setCategoryId(Category categoryId) {
+        this.category = categoryId;
     }
 
     public String getImageUrl() {
@@ -145,6 +145,6 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product{" + "product=" + productID + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + categoryId + ", imageUrl=" + imageUrl + ", discountType=" + discountType + ", discountValue=" + discountValue + ", discountStart=" + discountStart + ", discountEnd=" + discountEnd + ", createDateTime=" + createDateTime + '}';
+        return "Product{" + "product=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + category + ", imageUrl=" + imageUrl + ", discountType=" + discountType + ", discountValue=" + discountValue + ", discountStart=" + discountStart + ", discountEnd=" + discountEnd + ", createDateTime=" + createDateTime + '}';
     }
 }

@@ -55,13 +55,14 @@ public class LogoutServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession();
 
         if (session != null) {
             session.invalidate(); // Xoá toàn bộ session
         }
 
         // Forward nội bộ đến trang JSP nằm trong WEB-INF
-        response.sendRedirect(request.getContextPath() + "/home");
+        request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+
     } 
 }

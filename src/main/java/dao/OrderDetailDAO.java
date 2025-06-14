@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import model.Order;
@@ -21,55 +20,59 @@ import model.Product;
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-public class OrderDetailDAO {
+public class OrderDetailDAO extends JDBCUtil {
 
     // Create new OrderDetail and return generated ID
-    public int createOrderDetail(OrderDetail orderDetail) {
+    public boolean createOrderDetail(OrderDetail orderDetail) {
         String sql = "INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
+        Object[] params = {
+            orderDetail.getOrderDetailId(), orderDetail.getOrder().getOrderId(), orderDetail.getProduct().getProductID(),
+            orderDetail.getQuantity(), orderDetail.getPrice()
+        };
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-
-            statement.setInt(1, orderDetail.getOrder().getOrderId());
-            statement.setInt(2, orderDetail.getProduct().getProductID());
-            statement.setInt(3, orderDetail.getQuantity());
-            statement.setBigDecimal(4, orderDetail.getPrice());
-
-            int affectedRows = statement.executeUpdate();
-
-            if (affectedRows == 0) {
-                return -1;
-            }
-
-            try ( ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                }
-            }
-            return -1;
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
-            return -1;
+            return false;
         }
     }
 
     // Get OrderDetail by ID
     public OrderDetail getOrderDetailById(int orderDetailId) {
-        String sql = "SELECT * FROM order_details WHERE order_detail_id = ?";
+        String sql = "SELECT \n"
+                + "	od.order_detail_id,\n"
+                + "	od.order_id,\n"
+                + "	od.product_id,\n"
+                + "	od.quantity,\n"
+                + "	od.price,\n"
+                + "	p.product_id,\n"
+                + "	p.name,\n"
+                + "	p.discount_end,\n"
+                + "	p.image_url,\n"
+                + "	p.description,\n"
+                + "	p.price,\n"
+                + "	p.sold_quantity\n"
+                + "FROM OrderDetails od\n"
+                + "JOIN Orders o ON o.order_id = od.order_id\n"
+                + "JOIN Products p ON p.product_id = od.product_id\n"
+                + "WHERE od.order_detail_id = ?;";
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql)) {
+        try {
+            Object[] params = {orderDetailId};
 
-            statement.setInt(1, orderDetailId);
-            try ( ResultSet rs = statement.executeQuery()) {
-                ProductDAO productDAO = new ProductDAO();
-                OrderDAO orderDAO = new OrderDAO();
-
+            try ( ResultSet rs = execSelectQuery(sql, params)) {
                 if (rs.next()) {
-                    Product product = productDAO.getProductById(rs.getInt("order_detail_id"));
-                    Order order = orderDAO.getOrderById(rs.getInt("order_id"));
+                    Product product = new Product();
+                    product.setProductID(rs.getInt("order_id"));
+                    
+                    Order order = new Order();
+                    order.setOrderId(rs.getInt("order_id"));
+                    
                     int orderDetailID = rs.getInt("order_detail_id");
                     int quantity = rs.getInt("quantity");
                     BigDecimal pice = rs.getBigDecimal("price");
-                    
+
                     return new OrderDetail(orderDetailID, order, product, quantity, pice);
                 }
             }
@@ -82,35 +85,43 @@ public class OrderDetailDAO {
     // Get all OrderDetails for an order
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
         List<OrderDetail> list = new ArrayList<>();
-        String sql = "SELECT od.*, p.product_id, p.name, p.image_url, p.description, p.price AS product_price "
-                + "FROM order_details od "
-                + "JOIN products p ON od.product_id = p.product_id "
-                + "WHERE od.order_id = ?";
+        String sql = "SELECT \n"
+                + "	od.order_detail_id,\n"
+                + "	od.order_id,\n"
+                + "	od.product_id,\n"
+                + "	od.quantity,\n"
+                + "	od.price,\n"
+                + "	p.product_id,\n"
+                + "	p.name,\n"
+                + "	p.discount_end,\n"
+                + "	p.image_url,\n"
+                + "	p.description,\n"
+                + "	p.price,\n"
+                + "	p.sold_quantity\n"
+                + "FROM OrderDetails od\n"
+                + "JOIN Orders o ON o.order_id = od.order_id\n"
+                + "JOIN Products p ON p.product_id = od.product_id\n"
+                + "WHERE o.orderId = ?;";
 
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        try {
+            Object[] params = {orderId};
 
-            ps.setInt(1, orderId);
-            ResultSet rs = ps.executeQuery();
+            try ( ResultSet rs = execSelectQuery(sql, params)) {
+                if (rs.next()) {
+                    Product product = new Product();
+                    product.setProductID(rs.getInt("order_id"));
 
-            while (rs.next()) {
-                // Tạo Product
-                ProductDAO productDAO = new ProductDAO();
-                OrderDAO orderDAO = new OrderDAO();
-                Product product = productDAO.getProductById(rs.getInt("product_id"));
-                Order order = orderDAO.getOrderById(rs.getInt("order_id"));
-                
-                // Tạo OrderDetail
-                OrderDetail od = new OrderDetail();
-                od.setOrderDetailId(rs.getInt("order_detail_id"));
-                od.setOrder(order);
-                od.setProduct(product);
-                od.setQuantity(rs.getInt("quantity"));
-                od.setPrice(rs.getBigDecimal("price"));
-                od.setProduct(product);  // Gán product vào
+                    Order order = new Order();
+                    order.setOrderId(rs.getInt("order_id"));
 
-                list.add(od);
+                    int orderDetailID = rs.getInt("order_detail_id");
+                    int quantity = rs.getInt("quantity");
+                    BigDecimal pice = rs.getBigDecimal("price");
+
+                    list.add(new OrderDetail(orderDetailID, order, product, quantity, pice));
+                }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return list;
@@ -120,15 +131,11 @@ public class OrderDetailDAO {
     public boolean updateOrderDetail(OrderDetail orderDetail) {
         String sql = "UPDATE order_details SET order_id = ?, product_id = ?, quantity = ?, price = ? WHERE order_detail_id = ?";
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, orderDetail.getOrderId());
-            statement.setInt(2, orderDetail.getProductId());
-            statement.setInt(3, orderDetail.getQuantity());
-            statement.setBigDecimal(4, orderDetail.getPrice());
-            statement.setInt(5, orderDetail.getOrderDetailId());
-
-            return statement.executeUpdate() > 0;
+        try {
+            Object[] params = {
+                orderDetail.getProduct().getProductID(), orderDetail.getQuantity(), orderDetail.getPrice(), orderDetail.getOrderDetailId()
+            };
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -139,10 +146,8 @@ public class OrderDetailDAO {
     public boolean deleteOrderDetail(int orderDetailId) {
         String sql = "DELETE FROM order_details WHERE order_detail_id = ?";
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, orderDetailId);
-            return statement.executeUpdate() > 0;
+        try {
+            return execQuery(sql, null) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -153,10 +158,11 @@ public class OrderDetailDAO {
     public int countAllOrderDetails() {
         String sql = "SELECT COUNT(*) FROM order_details";
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql);  ResultSet resultSet = statement.executeQuery()) {
+        try {
+            ResultSet rs = execSelectQuery(sql);
 
-            if (resultSet.next()) {
-                return resultSet.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -167,43 +173,44 @@ public class OrderDetailDAO {
     // Get all OrderDetails
     public List<OrderDetail> getAllOrderDetails() {
         String sql = "SELECT * FROM order_details";
-        List<OrderDetail> orderDetails = new ArrayList<>();
+        List<OrderDetail> list = new ArrayList<>();
 
-        try ( Connection connection = JDBCUtil.getConnection();  PreparedStatement statement = connection.prepareStatement(sql);  ResultSet resultSet = statement.executeQuery()) {
+        try {
+            ResultSet rs = execSelectQuery(sql);
+            Product product = new Product();
+            product.setProductID(rs.getInt("order_id"));
 
-            while (resultSet.next()) {
-                OrderDetail orderDetail = new OrderDetail();
-                orderDetail.setOrderDetailId(resultSet.getInt("order_detail_id"));
-                orderDetail.setOrderId(resultSet.getInt("order_id"));
-                orderDetail.setProductId(resultSet.getInt("product_id"));
-                orderDetail.setQuantity(resultSet.getInt("quantity"));
-                orderDetail.setPrice(resultSet.getBigDecimal("price"));
-                orderDetails.add(orderDetail);
+            Order order = new Order();
+            order.setOrderId(rs.getInt("order_id"));
+
+            while (rs.next()) {
+                list.add(new OrderDetail(rs.getInt("order_detail_id"), order, product, rs.getInt("quantity"), rs.getBigDecimal("price")));
+
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return orderDetails;
-    }
-
-    public List<OrderDetail> getOrderDetailsByUserId(int orderId) {
-        List<OrderDetail> list = new ArrayList<>();
-        String sql = "SELECT od.*, p.name FROM OrderDetails od JOIN Products p ON od.product_id = p.product_id WHERE od.order_id = ?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, orderId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                OrderDetail od = new OrderDetail();
-                od.setOrderId(orderId);
-                od.setOrderId(rs.getInt("order_id"));
-                od.setProductId(rs.getInt("product_id"));
-                od.setQuantity(rs.getInt("quantity"));
-                od.setPrice(rs.getBigDecimal("price"));
-                list.add(od);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return list;
     }
+
+//    public List<OrderDetail> getOrderDetailsByUserId(int orderId) {
+//        List<OrderDetail> list = new ArrayList<>();
+//        String sql = "SELECT od.*, p.name FROM OrderDetails od JOIN Products p ON od.product_id = p.product_id WHERE od.order_id = ?";
+//        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, orderId);
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                OrderDetail od = new OrderDetail();
+//                od.setOrderId(orderId);
+//                od.setOrderId(rs.getInt("order_id"));
+//                od.setProductId(rs.getInt("product_id"));
+//                od.setQuantity(rs.getInt("quantity"));
+//                od.setPrice(rs.getBigDecimal("price"));
+//                list.add(od);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return list;
+//    }
 }

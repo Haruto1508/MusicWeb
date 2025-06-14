@@ -91,7 +91,7 @@ public class ProfileServlet extends HttpServlet {
         switch (view) {
             case "order":
                 OrderDAO orderDAO = new OrderDAO();
-                List<Order> orders = orderDAO.getOrdersByUserId(user.getUserId());
+                List<Order> orders = orderDAO.getOrderByUserId(user.getUserId());
                 System.out.println("có");
                 request.setAttribute("orders", orders);
                 break;
@@ -135,13 +135,11 @@ public class ProfileServlet extends HttpServlet {
         String fullName = request.getParameter("full_name");
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
 
         User user = (User) request.getSession().getAttribute("user");
         user.setFullName(fullName);
         user.setEmail(email);
         user.setPhone(phone);
-        user.setAddress(address);
 
         UserDAO userDAO = new UserDAO();
 

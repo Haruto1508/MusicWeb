@@ -5,53 +5,29 @@
 package dao;
 
 import db.JDBCUtil;
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import model.Category;
 import model.Product;
 
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-public class ProductDAO {
+public class ProductDAO extends JDBCUtil {
 
     public boolean insert(Product product) {
         String sql = "INSERT INTO Products(name, description, price, stock_quantity, category_id, image_url, discount_type, discount_value, discount_start, discount_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, product.getName());
-            ps.setString(2, product.getDescription());
-            ps.setBigDecimal(3, product.getPrice());
-            ps.setInt(4, product.getStockQuantity());
-            ps.setInt(5, product.getCategoryId());
-            ps.setString(6, product.getImageUrl());
-            // Xử lý các trường discount có thể null
-            if (product.getDiscountType() != null) {
-                ps.setString(7, product.getDiscountType());
-            } else {
-                ps.setNull(7, Types.NVARCHAR);
-            }
-            ps.setBigDecimal(8, product.getDiscountValue());
-            // Chuyển đổi LocalDate -> java.sql.Date
-            if (product.getDiscountStart() != null) {
-                ps.setDate(9, Date.valueOf(product.getDiscountStart()));
-            } else {
-                ps.setNull(9, Types.DATE);
-            }
+        try {
+            Object[] params = {
+                product.getName(), product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl(), product.getDiscountType(), product.getDiscountValue(), product.getDiscountStart(), product.getDiscountEnd()
+            };
 
-            if (product.getDiscountEnd() != null) {
-                ps.setDate(10, Date.valueOf(product.getDiscountEnd()));
-            } else {
-                ps.setNull(10, Types.DATE);
-            }
-            ps.executeUpdate();
-            return true;
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -60,55 +36,42 @@ public class ProductDAO {
 
     public boolean update(Product product) {
         String sql = "UPDATE Products SET name=?, description=?, price=?, stock_quantity=?, category_id=?, image_url=?, discount_type=?, discount_value=?, discount_start=?, discount_end=? WHERE product_id=?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, product.getName());
-            ps.setString(2, product.getDescription());
-            ps.setBigDecimal(3, product.getPrice());
-            ps.setInt(4, product.getStockQuantity());
-            ps.setInt(5, product.getCategoryId());
-            ps.setString(6, product.getImageUrl());
-            if (product.getDiscountType() != null) {
-                ps.setString(7, product.getDiscountType());
-            } else {
-                ps.setNull(7, Types.NVARCHAR);
-            }
-            ps.setBigDecimal(8, product.getDiscountValue());
-            if (product.getDiscountStart() != null) {
-                ps.setDate(9, Date.valueOf(product.getDiscountStart()));
-            } else {
-                ps.setNull(9, Types.DATE);
-            }
-
-            if (product.getDiscountEnd() != null) {
-                ps.setDate(10, Date.valueOf(product.getDiscountEnd()));
-            } else {
-                ps.setNull(10, Types.DATE);
-            }
-            ps.setInt(11, product.getProductID());
-            ps.executeUpdate();
-            return true;
+        
+        try {
+            Object[] params = {
+                product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl(), product.getDiscountType(), product.getDiscountValue(), product.getDiscountStart(), product.getDiscountEnd(), product.getName()
+            };
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public void delete(int productId) {
+    public boolean delete(int productId) {
         String sql = "DELETE FROM Products WHERE product_id=?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, productId);
-            ps.executeUpdate();
+        Object[] params = {productId};
+
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     public Product getProductById(int productId) {
-        String sql = "SELECT * FROM Products WHERE product_id=?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "SELECT * ,\n"
+                + "	c.category_id,\n"
+                + "	c.description,\n"
+                + "	c.name\n"
+                + "FROM Products p\n"
+                + "JOIN Categories c ON c.category_id = p.category_id\n"
+                + "WHERE p.product_id = ?;";
+        Object[] params = {productId};
 
-            ps.setInt(1, productId);
-            ResultSet rs = ps.executeQuery();
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
 
             if (rs.next()) {
                 // Xử lý các trường date có thể null
@@ -124,13 +87,15 @@ public class ProductDAO {
                     discountEnd = discountEndDate.toLocalDate();
                 }
 
+                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+
                 return new Product(
                         rs.getInt("product_id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         rs.getBigDecimal("price"),
                         rs.getInt("stock_quantity"),
-                        rs.getInt("category_id"),
+                        category,
                         rs.getString("image_url"),
                         rs.getString("discount_type"),
                         rs.getBigDecimal("discount_value"),
@@ -147,17 +112,26 @@ public class ProductDAO {
 
     public List<Product> getAll() {
         List<Product> list = new ArrayList<>();
-        String sql = "SELECT * FROM Products";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
+        String sql = "SELECT * ,\n"
+                + "	c.category_id,\n"
+                + "	c.description,\n"
+                + "	c.name\n"
+                + "FROM Products p\n"
+                + "JOIN Categories c ON c.category_id = p.category_id\n"
+                + "WHERE p.product_id = ?;";
+        try {
+            ResultSet rs = execSelectQuery(sql);
+
             while (rs.next()) {
+                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+
                 Product product = new Product(
                         rs.getInt("product_id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         rs.getBigDecimal("price"),
                         rs.getInt("stock_quantity"),
-                        rs.getInt("category_id"),
+                        category,
                         rs.getString("image_url"),
                         rs.getString("discount_type"),
                         rs.getBigDecimal("discount_value"),
@@ -175,22 +149,28 @@ public class ProductDAO {
 
     public List<Product> getProductsByCategory(int categoryId) {
         List<Product> products = new ArrayList<>();
+        Object[] params = {categoryId};
+        String sql = "SELECT * ,\n"
+                + "	c.category_id,\n"
+                + "	c.description,\n"
+                + "	c.name\n"
+                + "FROM Products p\n"
+                + "JOIN Categories c ON c.category_id = p.category_id\n"
+                + "WHERE c.category_id = ?;";
 
-        String sql = "SELECT * FROM Products WHERE category_id = ?";
-
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, categoryId);
-            ResultSet rs = stmt.executeQuery();
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
 
             while (rs.next()) {
+                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+
                 Product product = new Product(
                         rs.getInt("product_id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         rs.getBigDecimal("price"),
                         rs.getInt("stock_quantity"),
-                        rs.getInt("category_id"),
+                        category,
                         rs.getString("image_url"),
                         rs.getString("discount_type"),
                         rs.getBigDecimal("discount_value"),
@@ -209,24 +189,22 @@ public class ProductDAO {
 
     public List<Product> getProductsDemo(int categoryId, int limit) {
         List<Product> products = new ArrayList<>();
-
+        Object[] params = {categoryId, limit};
         String sql = "SELECT * FROM products WHERE category_id = ? LIMIT ?";
 
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, categoryId);
-            stmt.setInt(2, limit);
-
-            ResultSet rs = stmt.executeQuery();
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
 
             while (rs.next()) {
+                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+
                 Product product = new Product(
                         rs.getInt("product_id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         rs.getBigDecimal("price"),
                         rs.getInt("stock_quantity"),
-                        rs.getInt("category_id"),
+                        category,
                         rs.getString("image_url"),
                         rs.getString("discount_type"),
                         rs.getBigDecimal("discount_value"),
@@ -245,26 +223,27 @@ public class ProductDAO {
 
     public List<Product> getOrderHistoryByUserId(int userID) {
         List<Product> productList = new ArrayList<>();
+        Object[] params = {userID};
+
         String sql = "SELECT DISTINCT p.product_id, p.name, p.description, p.price, p.image_url "
                 + "FROM Orders o "
                 + "JOIN OrderDetails od ON o.order_id = od.order_id "
                 + "JOIN Products p ON od.product_id = p.product_id "
                 + "WHERE o.user_id = ?";
 
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, userID);
-            try ( ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Product product = new Product();
-                    product.setProductID(rs.getInt("product_id"));
-                    product.setName(rs.getString("name"));
-                    product.setDescription(rs.getString("description"));
-                    product.setPrice(rs.getBigDecimal("price"));
-                    product.setImageUrl(rs.getString("image_url"));
-                    productList.add(product);
-                }
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
+            
+            while (rs.next()) {
+                Product product = new Product();
+                product.setProductID(rs.getInt("product_id"));
+                product.setName(rs.getString("name"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getBigDecimal("price"));
+                product.setImageUrl(rs.getString("image_url"));
+                productList.add(product);
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }

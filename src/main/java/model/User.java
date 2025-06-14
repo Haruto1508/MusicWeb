@@ -18,8 +18,7 @@ public class User {
     private String email;
     private String password;
     private String phone;
-    private String address;
-    private String role; // "customer" hoặc "admin"
+    private Role role; // "customer" hoặc "admin"
     private String account;
     private LocalDateTime createDateTime;
     private String imageUrl;
@@ -30,12 +29,10 @@ public class User {
     }
 
     // constructor to insert user to db
-    public User(String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime, String gender, LocalDate birthdate) {
+    public User(String fullName, String email, String phone, Role role, String account, LocalDateTime createDateTime, String gender, LocalDate birthdate) {
         this.fullName = fullName;
         this.email = email;
-        this.password = password;
         this.phone = phone;
-        this.address = address;
         this.role = role;
         this.account = account;
         this.createDateTime = createDateTime;
@@ -44,13 +41,11 @@ public class User {
     }
 
     // constructor to get user from db
-    public User(int userId, String fullName, String email, String password, String phone, String address, String role, String account, LocalDateTime createDateTime, String imageUrl, String gender, LocalDate birthdate) {
+    public User(int userId, String fullName, String password, String phone, String address, Role role, String account, LocalDateTime createDateTime, String imageUrl, String gender, LocalDate birthdate) {
         this.userId = userId;
         this.fullName = fullName;
-        this.email = email;
         this.password = password;
         this.phone = phone;
-        this.address = address;
         this.role = role;
         this.account = account;
         this.createDateTime = createDateTime;
@@ -67,7 +62,7 @@ public class User {
         this.imageUrl = imageUrl;
     }
 
-    public int getUserId() {
+     public int getUserId() {
         return userId;
     }
 
@@ -107,19 +102,11 @@ public class User {
         this.phone = phone;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
@@ -157,6 +144,6 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" + "userId=" + userId + ", fullName=" + fullName + ", email=" + email + ", password=" + password + ", phone=" + phone + ", address=" + address + ", role=" + role + ", account=" + account + ", createDateTime=" + createDateTime + ", imageUrl=" + imageUrl + ", gender=" + gender + ", birthdate=" + birthdate + '}';
+        return "User{" + "userId=" + userId + ", fullName=" + fullName + ", email=" + email + ", password=" + password + ", phone=" + phone + ", role=" + role + ", account=" + account + ", createDateTime=" + createDateTime + ", imageUrl=" + imageUrl + ", gender=" + gender + ", birthdate=" + birthdate + '}';
     }
 }

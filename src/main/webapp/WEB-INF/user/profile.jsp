@@ -16,7 +16,7 @@
         <!-- Link Header -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.header.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.profile.css">
-        
+
         <!-- Link Footer -->
 
     </head>
@@ -37,16 +37,19 @@
                         <ul>
                             <li><a href="${pageContext.request.contextPath}/account?view=info" 
                                    class="${param.view == 'info' or empty param.view ? 'active' : ''}">
-                                    <i class="fas fa-user-circle"></i> Information</a></li>
+                                    <i class="fas fa-user-circle"></i> Thông tin tài khoản</a></li>
+                            <li><a href="${pageContext.request.contextPath}/account?view=address" 
+                                   class="${param.view == 'address' ? 'active' : ''}">
+                                    <i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=order" 
                                    class="${param.view == 'order' ? 'active' : ''}">
-                                    <i class="fas fa-box"></i> Order</a></li>
+                                    <i class="fas fa-box"></i> Đơn hàng</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=cart" 
                                    class="${param.view == 'cart' ? 'active' : ''}">
-                                    <i class="fas fa-shopping-cart"></i> Cart</a></li>
+                                    <i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=setting" 
                                    class="${param.view == 'setting' ? 'active' : ''}">
-                                    <i class="fas fa-cog"></i> Setting</a></li>
+                                    <i class="fas fa-cog"></i> Cài đặt</a></li>
                         </ul>
                     </div>
                 </div>
@@ -54,6 +57,9 @@
                     <c:choose>
                         <c:when test="${param.view == 'info' or empty param.view}">
                             <jsp:include page="/WEB-INF/user/info.jsp" />
+                        </c:when>
+                        <c:when test="${param.view == 'address'}">
+                            <jsp:include page="/WEB-INF/user/address.jsp" />
                         </c:when>
                         <c:when test="${param.view == 'cart'}">
                             <jsp:include page="/WEB-INF/user/cart.jsp" />

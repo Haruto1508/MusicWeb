@@ -14,7 +14,7 @@
         <c:when test="${not empty carts}">
             <div class="list-group">
                 <c:forEach var="cart" items="${carts}">
-                    <div class="row cart-item align-items-center">
+                    <div class="row cart-item align-items-center shadow-sm">
                         <div class="col-md-2 text-center">
                             <img src="${cart.product.imageUrl}" alt="${cart.product.name}">
                         </div>
@@ -24,8 +24,8 @@
                             <p class="mb-1 text-muted">Số lượng: ${cart.quantity}</p>
                         </div>
                         <div class="col-md-4 text-end cart-buttons">
-                            <a href="product-detail?productId=${cart.product.productId}" class="btn btn-outline-primary btn-sm">🔍 Xem chi tiết</a>
-                            <a href="checkout?productId=${cart.product.productId}" class="btn btn-success btn-sm">💳 Mua ngay</a>
+                            <a href="#" class="btn btn-outline-primary btn-sm">🔍 Xem chi tiết</a>
+                            <a href="#" class="btn btn-success btn-sm">💳 Mua ngay</a>
                         </div>
                     </div>
                 </c:forEach>

@@ -5,59 +5,43 @@
 package dao;
 
 import db.JDBCUtil;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.Role;
 import model.User;
 
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-public class UserDAO {
+public class UserDAO extends JDBCUtil {
 
     public boolean insert(User user) {
-        String sql = "INSERT INTO Users(full_name, email, password, phone, address, role, gender, birthdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "INSERT INTO Users(full_name, email, password, phone, gender, birthdate, account) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        Object[] params = {
+            user.getFullName(), user.getEmail(), user.getPassword(), user.getPhone(), user.getGender(), user.getBirthdate(), user.getAccount()
+        };
 
-            ps.setString(1, user.getFullName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPassword());
-            ps.setString(4, user.getPhone());
-            ps.setString(5, user.getAddress());
-            ps.setString(6, user.getRole());
-            ps.setString(7, user.getGender());
-            ps.setDate(8, java.sql.Date.valueOf(user.getBirthdate()));
-            ps.setInt(9, user.getUserId());
-            ps.executeUpdate();
-
-            return true;
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
     public boolean update(User user) {
-        String sql = "UPDATE Users SET full_name=?, email=?, password=?, phone=?, address=?, role=?, gender=?, birthdate=? WHERE user_id=?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "UPDATE Users SET full_name=?, email=?, password=?, phone=?, role=?, gender=?, birthdate=? WHERE user_id=?";
+        Object[] params = {
+            user.getFullName(), user.getEmail(), user.getPassword(), user.getRole().getId(), user.getGender(), user.getBirthdate()
+        };
 
-            ps.setString(1, user.getFullName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPassword());
-            ps.setString(4, user.getPhone());
-            ps.setString(5, user.getAddress());
-            ps.setString(6, user.getRole());
-            ps.setInt(7, user.getUserId());
-            ps.setDate(8, java.sql.Date.valueOf(user.getBirthdate()));
-            ps.setInt(9, user.getUserId());
-            ps.executeUpdate();
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
 
-            return true;
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -66,11 +50,10 @@ public class UserDAO {
 
     public boolean delete(int userId) {
         String sql = "DELETE FROM Users WHERE user_id=?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        Object[] params = {userId};
 
-            ps.setInt(1, userId);
-            ps.executeUpdate();
-            return true;
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -78,26 +61,33 @@ public class UserDAO {
     }
 
     public User getUserById(int userId) {
-        String sql = "SELECT * FROM Users WHERE user_id=?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "select *,\n"
+                + "	r.name,\n"
+                + "	r.description\n"
+                + "FROM Users u \n"
+                + "LEFT JOIN Roles r ON r.role_id = u.role_id\n"
+                + "WHERE u.user_id = ?";
+        Object[] params = {userId};
 
-            ps.setInt(1, userId);
-            ResultSet rs = ps.executeQuery();
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
+
             if (rs.next()) {
-                return new User(
-                        rs.getInt("user_id"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getString("phone"),
-                        rs.getString("address"),
-                        rs.getString("role_id"),
-                        rs.getString("account"),
-                        rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getString("image_url"),
-                        rs.getString("gender"),
-                        rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null
-                );
+                Role role = new Role(rs.getInt("role_id"), rs.getString("name"), rs.getString("description"));
+
+                User user = new User();
+                user.setAccount(rs.getString("account"));
+                user.setFullName(rs.getString("full_name"));
+                user.setPhone(rs.getString("phone"));
+                user.setEmail(rs.getString("email"));
+                user.setCreateDateTime(rs.getTimestamp("created_at").toLocalDateTime());
+                user.setImageUrl(rs.getString("image_url"));
+                user.setGender(rs.getString("gender"));
+                user.setRole(role);
+                user.setUserId(rs.getInt("user_id"));
+                user.setBirthdate(rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null);
+
+                return user;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,25 +97,28 @@ public class UserDAO {
 
     public List<User> getAll() {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM Users";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "select *,\n"
+                + "	r.name,\n"
+                + "	r.description\n"
+                + "FROM Users u \n"
+                + "LEFT JOIN Roles r ON r.role_id = u.role_id\n"
+                + "WHERE u.user_id = ?";
+        try {
+            ResultSet rs = execSelectQuery(sql);
 
-            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                User user = new User(
-                        rs.getInt("user_id"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getString("phone"),
-                        rs.getString("address"),
-                        rs.getString("role_id"),
-                        rs.getString("account"),
-                        rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getString("image_url"),
-                        rs.getString("gender"),
-                        rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null
-                );
+                Role role = new Role(rs.getInt("role_id"), rs.getString("name"), rs.getString("description"));
+                User user = new User();
+                user.setAccount(rs.getString("account"));
+                user.setFullName(rs.getString("full_name"));
+                user.setPhone(rs.getString("phone"));
+                user.setEmail(rs.getString("email"));
+                user.setCreateDateTime(rs.getTimestamp("created_at").toLocalDateTime());
+                user.setImageUrl(rs.getString("image_url"));
+                user.setGender(rs.getString("gender"));
+                user.setRole(role);
+                user.setUserId(rs.getInt("user_id"));
+                user.setBirthdate(rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null);
 
                 list.add(user);
             }
@@ -135,49 +128,33 @@ public class UserDAO {
         return list;
     }
 
-    public boolean isLogin(String login, String password) {
-        String sql = "SELECT * FROM Users WHERE (email = ? OR account = ?) AND password = ?";
-        User user = null;
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, login);
-            ps.setString(2, login);
-            ps.setString(3, password);
-
-            try ( ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     public User getUserLogin(String login, String password) {
-        String sql = "SELECT * FROM Users WHERE (email = ? OR account = ?) AND password = ?";
+        String sql = "select *,\n"
+                + "	r.name,\n"
+                + "	r.description\n"
+                + "FROM Users u \n"
+                + "LEFT JOIN Roles r ON r.role_id = u.role_id\n"
+                + "WHERE (email = ? OR account = ?) AND password = ?";
+        Object[] params = {login, login, password};
         User user = null;
 
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql);) {
-            ps.setString(1, login);
-            ps.setString(2, login);
-            ps.setString(3, password);
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
 
-            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                user = new User(
-                        rs.getInt("user_id"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getString("phone"),
-                        rs.getString("address"),
-                        rs.getString("role_id"),
-                        rs.getString("account"),
-                        rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getString("image_url"),
-                        rs.getString("gender"),
-                        rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null
-                );
+                Role role = new Role(rs.getInt("role_id"), rs.getString("name"), rs.getString("description"));
+                user = new User();
+
+                user.setAccount(rs.getString("account"));
+                user.setFullName(rs.getString("full_name"));
+                user.setPhone(rs.getString("phone"));
+                user.setEmail(rs.getString("email"));
+                user.setCreateDateTime(rs.getTimestamp("created_at").toLocalDateTime());
+                user.setImageUrl(rs.getString("image_url"));
+                user.setGender(rs.getString("gender"));
+                user.setRole(role);
+                user.setUserId(rs.getInt("user_id"));
+                user.setBirthdate(rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -185,27 +162,34 @@ public class UserDAO {
         return user;
     }
 
-    public boolean isUsernameTaken(String account, String phone) {
-        String sql = "SELECT username FROM users WHERE account = ? or phone = ?";
-        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, account);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next(); // Nếu có kết quả -> đã tồn tại
+    public User isUsernameTaken(String account, String phone, String email) {
+        String sql = "SELECT * FROM Users WHERE account = ? OR phone = ? OR email = ?";
+        Object[] params = {account, phone, email};
+        User user = null;
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
+
+            if (rs.next()) {
+                user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                user.setAccount(rs.getString("account"));
+                user.setEmail(rs.getString("email"));
+                user.setPhone(rs.getString("phone"));
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return false;
+        return user;
     }
 
     public static void main(String[] args) {
         UserDAO u = new UserDAO();
 
-        List<User> user = u.getAll();
+        User uss = u.isUsernameTaken("atri", "0939472086", "atri@gmail.com");
 
-        for (User us : user) {
-            System.out.println(us.toString());
-        }
+        System.out.println(uss.toString());
     }
 
 }

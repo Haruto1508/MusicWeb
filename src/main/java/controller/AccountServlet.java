@@ -4,6 +4,7 @@
  */
 package controller;
 
+import dao.AddressDAO;
 import dao.CartDAO;
 import dao.OrderDAO;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import model.Address;
 import model.Cart;
 import model.Order;
 import model.User;
@@ -24,7 +26,7 @@ import model.User;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 @WebServlet(name = "AccountServlet", urlPatterns = {"/account"})
-public class AccountDispacherServlet extends HttpServlet {
+public class AccountServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -74,27 +76,37 @@ public class AccountDispacherServlet extends HttpServlet {
         User user = null;
         if (session != null) {
             user = (User) session.getAttribute("user");
-        }
 
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/path?page=login");
-            return;
+            if (user == null) {
+                response.sendRedirect(request.getContextPath() + "/path?page=login");
+                return;
+            }
+            
+            System.out.println("ID " + user.getUserId());
         }
 
         switch (view) {
             case "info":
 
                 break;
-
+            case "address":
+                AddressDAO addressDAO = new AddressDAO();
+                
+                List<Address> addresses = addressDAO.getAddressesByUserId(user.getUserId());
+                request.setAttribute("addresses", addresses);
+                break;
             case "cart":
                 CartDAO cartDAO = new CartDAO();
 
                 List<Cart> carts = cartDAO.getCartByUserId(user.getUserId());
+                for(Cart c : carts) {
+                    System.out.println(c.toString());
+                }
                 request.setAttribute("carts", carts);
                 break;
             case "order":
                 OrderDAO orderDAO = new OrderDAO();
-                List<Order> orders = orderDAO.getOrdersByUserId(user.getUserId());
+                List<Order> orders = orderDAO.getOrderByUserId(user.getUserId());
                 System.out.println("có");
                 request.setAttribute("orders", orders);
                 break;
@@ -107,7 +119,7 @@ public class AccountDispacherServlet extends HttpServlet {
                 throw new AssertionError();
         }
 
-        request.setAttribute("user", user); 
+        request.setAttribute("user", user);
         request.setAttribute("view", view);
         request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
 

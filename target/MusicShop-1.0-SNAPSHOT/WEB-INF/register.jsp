@@ -109,10 +109,15 @@
                 <div class="register-logo">
                     <i class="fa-solid fa-music"></i> MusicShop
                 </div>
-                <!-- Hiển thị thông báo lỗi -->
+                <!-- Error message display at top -->
                 <c:if test="${not empty error}">
                     <div class="alert alert-danger mt-3">
                         ${error}
+                    </div>
+                </c:if>
+                <c:if test="${not empty registerError}">
+                    <div class="alert alert-danger mt-3">
+                        ${registerError}
                     </div>
                 </c:if>
                 <form id="registerForm" action="${pageContext.request.contextPath}/register" method="post">
@@ -120,42 +125,70 @@
                         <label for="fullname" class="form-label">FullName</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
-                            <input type="text" class="form-control" id="fullname" name="full_name" placeholder="Enter fullname" pattern="^[a-zA-Z\s]{3,}$" title="Họ và tên phải có ít nhất 3 ký tự và chỉ chứa chữ cái và khoảng trắng" required>
+                            <input type="text" class="form-control" id="fullname" name="full_name" 
+                                   placeholder="Enter Full Name" pattern="^[a-zA-Z\s]{3,}$" 
+                                   title="Họ và tên phải có ít nhất 3 ký tự và chỉ chứa chữ cái và khoảng trắng" 
+                                   value="${full_name}" required>
                         </div>
                         <div id="fullnameError" class="error-message"></div>
                     </div>
+
                     <div class="mb-3">
                         <label for="username" class="form-label">Account</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-regular fa-user"></i></span>
-                            <input type="text" class="form-control" id="username" name="userName" placeholder="Enter account" pattern="^[a-zA-Z0-9_]{3,20}$" title="Tên đăng nhập phải từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới" required>
+                            <input type="text" class="form-control ${not empty usernameError ? 'is-invalid' : ''}" 
+                                   id="username" name="account" placeholder="Enter account" 
+                                   pattern="^[a-zA-Z0-9_]{3,20}$" 
+                                   title="Tên đăng nhập phải từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới" 
+                                   value="${account}" required>
                         </div>
+                        <c:if test="${not empty accountError}">
+                            <div id="usernameError" class="error-message">${accountError}</div>
+                        </c:if>
                         <div id="usernameHelp" class="form-text">Account is unique.</div>
-                        <div id="usernameError" class="error-message"></div>
                     </div>
+
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Nhập đúng định dạng email (ví dụ: example@domain.com)">
+                            <input type="email" class="form-control ${not empty emailError ? 'is-invalid' : ''}" 
+                                   id="email" name="email" placeholder="Enter email" 
+                                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                   title="Nhập đúng định dạng email (ví dụ: example@domain.com)"
+                                   value="${email}">
                         </div>
-                        <div id="emailError" class="error-message"></div>
+                        <c:if test="${not empty emailError}">
+                            <div id="emailError" class="error-message">${emailError}</div>
+                        </c:if>
                     </div>
+
                     <div class="mb-3">
                         <label for="phone" class="form-label">Phone</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
-                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone" pattern="^0[0-9]{9,10}$" title="Số điện thoại phải bắt đầu bằng số 0 và có 10-11 chữ số">
+                            <input type="tel" class="form-control ${not empty phoneError ? 'is-invalid' : ''}" 
+                                   id="phone" name="phone" placeholder="Enter phone" 
+                                   pattern="^0[0-9]{9,10}$" 
+                                   title="Số điện thoại phải bắt đầu bằng số 0 và có 10-11 chữ số"
+                                   value="${phone}">
                         </div>
-                        <div id="phoneError" class="error-message"></div>
+                        <c:if test="${not empty phoneError}">
+                            <div id="phoneError" class="error-message">${phoneError}</div>
+                        </c:if>
                     </div>
+
                     <div class="mb-3">
-                        <label for="address" class="form-label">Address</label>
+                        <label class="form-label">Gender</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="fa-solid fa-location-dot"></i></span>
-                            <input type="text" class="form-control" id="address" name="address" placeholder="Enter address">
+                            <span class="input-group-text"><i class="fa-solid fa-venus-mars"></i></span>
+                            <select class="form-select" name="gender" required>
+                                <option value="male" ${param.gender eq 'male' ? 'selected' : ''}>Male</option>
+                                <option value="female" ${gender eq 'female' ? 'selected' : ''}>Female</option>
+                                <option value="other" ${gender eq 'other' ? 'selected' : ''}>Other</option>
+                            </select>
                         </div>
-                        <div id="addressError" class="error-message"></div>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
@@ -165,7 +198,7 @@
                         </div>
                         <div id="passwordError" class="error-message"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100" disabled><i class="fa-solid fa-user-plus me-2"></i>Register</button>
+                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-user-plus me-2"></i>Register</button>
                     <div class="text-center mt-3">
                         <span class="form-text">Already have an account? <a href="${pageContext.request.contextPath}/path?page=login">Login</a></span>
                     </div>
@@ -177,6 +210,23 @@
             const registerForm = document.getElementById('registerForm');
             const submitButton = registerForm.querySelector('button[type="submit"]');
 
+            // Function to update submit button state
+            function updateSubmitButtonState() {
+                const allValid = areAllFieldsValid() && areAllRequiredFieldsFilled();
+                submitButton.disabled = !allValid;
+            }
+
+            // Function to check if all required fields are filled
+            function areAllRequiredFieldsFilled() {
+                const requiredInputs = registerForm.querySelectorAll('[required]');
+                for (const input of requiredInputs) {
+                    if (!input.value.trim()) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
             // Hàm kiểm tra và hiển thị lỗi
             function validateField(fieldId, pattern, errorMessageId, errorMessage) {
                 const input = document.getElementById(fieldId);
@@ -185,15 +235,22 @@
                 input.addEventListener('input', function () {
                     if (!input.value.match(pattern)) {
                         errorDiv.textContent = errorMessage;
-                        input.classList.add('is-invalid'); // Thêm class báo lỗi cho input
+                        input.classList.add('is-invalid');
                     } else {
                         errorDiv.textContent = '';
-                        input.classList.remove('is-invalid'); // Xóa class báo lỗi
+                        input.classList.remove('is-invalid');
                     }
-                    updateSubmitButtonState(); // Cập nhật trạng thái nút submit
+                    updateSubmitButtonState();
                 });
+
+                // Initial check
+                if (input.value && !input.value.match(pattern)) {
+                    errorDiv.textContent = errorMessage;
+                    input.classList.add('is-invalid');
+                }
             }
 
+            // Initialize validation for all fields
             validateField('fullname', /^[a-zA-Z\s]{3,}$/, 'fullnameError', 'Họ và tên phải có ít nhất 3 ký tự và chỉ chứa chữ cái và khoảng trắng');
             validateField('username', /^[a-zA-Z0-9_]{3,20}$/, 'usernameError', 'Tên đăng nhập phải từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới');
             validateField('email', /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'emailError', 'Nhập đúng định dạng email (ví dụ: example@domain.com)');
@@ -203,8 +260,17 @@
             // Hàm kiểm tra xem tất cả các trường đã hợp lệ hay chưa
             function areAllFieldsValid() {
                 const invalidInputs = registerForm.querySelectorAll('.is-invalid');
-                return invalidInputs.length === 0; // Trả về true nếu không có input nào có class 'is-invalid'
+                return invalidInputs.length === 0;
             }
+
+            // Initial button state check
+            updateSubmitButtonState();
+
+            // Add event listeners for all required fields
+            const requiredInputs = registerForm.querySelectorAll('[required]');
+            requiredInputs.forEach(input => {
+                input.addEventListener('input', updateSubmitButtonState);
+            });
         </script>
     </body>
 </html>

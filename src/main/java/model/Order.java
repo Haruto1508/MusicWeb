@@ -20,7 +20,7 @@ public class Order {
     private String status;  // pending, processing, shipped, delivered, cancelled
     private BigDecimal totalAmount;
     private String shippingAddress;
-    private Integer discountId; // có thể null
+    private Discount discount; // có thể null
     private BigDecimal discountAmount;
 
     private List<OrderDetail> orderDetails;
@@ -28,15 +28,19 @@ public class Order {
     public Order() {
     }
 
-    public Order(int orderId, User user, LocalDateTime orderDate, String status, BigDecimal totalAmount, String shippingAddress, Integer discountId, BigDecimal discountAmount) {
+    public Order(int orderId, User user, LocalDateTime orderDate, String status, BigDecimal totalAmount, String shippingAddress, Discount discount, BigDecimal discountAmount) {
         this.orderId = orderId;
         this.user = user;
         this.orderDate = orderDate;
         this.status = status;
         this.totalAmount = totalAmount;
         this.shippingAddress = shippingAddress;
-        this.discountId = discountId;
+        this.discount = discount;
         this.discountAmount = discountAmount;
+    }
+    
+    public Order(int orderId) {
+        this.orderId = orderId;
     }
 
     public List<OrderDetail> getOrderDetails() {
@@ -59,7 +63,7 @@ public class Order {
         return user;
     }
 
-    public void setUser(User userId) {
+    public void setUser(User user) {
         this.user = user;
     }
 
@@ -95,12 +99,12 @@ public class Order {
         this.shippingAddress = shippingAddress;
     }
 
-    public Integer getDiscountId() {
-        return discountId;
+    public Discount getDiscount() {
+        return discount;
     }
 
-    public void setDiscountId(Integer discountId) {
-        this.discountId = discountId;
+    public void setDiscountId(Discount discount) {
+        this.discount = discount;
     }
 
     public BigDecimal getDiscountAmount() {
@@ -113,6 +117,6 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", shippingAddress=" + shippingAddress + ", discountId=" + discountId + ", discountAmount=" + discountAmount + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", shippingAddress=" + shippingAddress + ", discountId=" + discount + ", discountAmount=" + discountAmount + '}';
     }
 }

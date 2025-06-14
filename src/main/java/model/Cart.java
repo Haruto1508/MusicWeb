@@ -19,8 +19,7 @@ public class Cart {
     private LocalDateTime addDate;
 
 
-    public Cart() {
-    }
+    public Cart() {}
 
     public Cart(int cartID, User user, Product product, int quantity, LocalDateTime addDate) {
         this.cartID = cartID;
@@ -82,5 +81,4 @@ public class Cart {
     public String toString() {
         return "Cart{" + "cartID=" + cartID + ", user=" + user + ", product=" + product + ", quantity=" + quantity + ", addDate=" + addDate + '}';
     }
-
 }

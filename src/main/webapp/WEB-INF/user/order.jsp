@@ -1,6 +1,5 @@
 <%-- 
-<<<<<<< HEAD
-   Document   : newjsp
+   Document   : order
    Created on : May 24, 2025, 5:14:18 PM
    Author     : Nguyen Hoang Thai Vinh - CE190384
 --%>

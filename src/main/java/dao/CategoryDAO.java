@@ -5,8 +5,6 @@
 package dao;
 
 import db.JDBCUtil;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,15 +15,13 @@ import model.Category;
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-public class CategoryDAO {
+public class CategoryDAO extends JDBCUtil{
     public boolean insert(Category category) {
         String sql = "INSERT INTO Categories(name, description) VALUES (?, ?)";
-        try (Connection conn = JDBCUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, category.getName());
-            ps.setString(2, category.getDescription());
-            ps.executeUpdate();
-            
-            return true;
+        Object[] params = {category.getName(), category.getDescription()};
+        
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -34,33 +30,33 @@ public class CategoryDAO {
 
     public boolean update(Category category) {
         String sql = "UPDATE Categories SET name=?, description=? WHERE category_id=?";
-        try (Connection conn = JDBCUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, category.getName());
-            ps.setString(2, category.getDescription());
-            ps.setInt(3, category.getCategoryId());
-            ps.executeUpdate();
-            return true;
+        Object[] params = {category.getName(), category.getDescription(), category.getCategoryId()};
+
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public void delete(int categoryId) {
+    public boolean delete(int categoryId) {
         String sql = "DELETE FROM Categories WHERE category_id=?";
-        try (Connection conn = JDBCUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, categoryId);
-            ps.executeUpdate();
+        Object[] params = {categoryId};
+        try {
+            return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-    public Category getById(int categoryId) {
+    public Category getCategoryById(int categoryId) {
         String sql = "SELECT * FROM Categories WHERE category_id=?";
-        try (Connection conn = JDBCUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, categoryId);
-            ResultSet rs = ps.executeQuery();
+        Object[] params = {categoryId};
+        try {
+            ResultSet rs = execSelectQuery(sql, params);
+           
             if (rs.next()) {
                 return new Category(
                         rs.getInt("category_id"),
@@ -77,8 +73,10 @@ public class CategoryDAO {
     public List<Category> getAll() {
         List<Category> list = new ArrayList<>();
         String sql = "SELECT * FROM Categories";
-        try (Connection conn = JDBCUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
+        
+        try {
+            ResultSet rs = execSelectQuery(sql);
+            
             while (rs.next()) {
                 Category category = new Category(
                         rs.getInt("category_id"),

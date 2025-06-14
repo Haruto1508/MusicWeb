@@ -5,6 +5,7 @@
 package controller;
 
 import dao.UserDAO;
+import hashpw.MD5PasswordHasher;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -48,21 +49,6 @@ public class LoginServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
     /**
      * Handles the HTTP <code>POST</code> method.
      *
@@ -76,38 +62,37 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         String userInfo = request.getParameter("info");
         String password = request.getParameter("password");
-
-        System.out.println(userInfo);
-        System.out.println(password);
+        String hashPasswod = MD5PasswordHasher.hashPassword(password);
         UserDAO userDAO = new UserDAO();
 
-        boolean isLogin = userDAO.isLogin(userInfo, password);
+        User loginUser = userDAO.getUserLogin(userInfo, hashPasswod);
 
-        if (isLogin) {
+        if (loginUser != null) {
             HttpSession session = request.getSession();
-            User user = userDAO.getUserLogin(userInfo, password);
 
-            session.setAttribute("user", user);
-            session.setAttribute("message", "Welcome " + user.getAccount());
-            response.sendRedirect(request.getContextPath() + "/home");
-            System.out.println("Login successful");
+            // check user role
+            int roleId = loginUser.getRole().getId();
+            
+            if (roleId == 2) { // Admin
+//                response.sendRedirect(request.getContextPath() + "/admin/manager");
+                request.getRequestDispatcher("/WEB-INF/admin/manager.jsp").forward(request, response);
+            } else if (roleId == 1) { // User
+//                response.sendRedirect(request.getContextPath() + "/user/home");
+                session.setAttribute("user", loginUser);
+                session.setAttribute("message", "Welcome " + loginUser.getAccount());
+                response.sendRedirect(request.getContextPath() + "/home");
+                System.out.println("Login successful"); 
+//                request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
+            } else {
+                // Nếu role không rõ ràng, logout
+                session.invalidate();
+                response.sendRedirect(request.getContextPath() + "/logout");
+            }
         } else {
             request.setAttribute("info", userInfo);
             request.setAttribute("error", "User name or password is incorrect.");
             request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
             System.out.println("Login fail");//delete all files
-            //con cu
         }
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

@@ -90,8 +90,13 @@ public class HomeServlet extends HttpServlet {
         // Xử lý user session
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
+        
+        if (user == null) {
+            request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+            return;
+        }
+        
         request.setAttribute("user", user);
-
         request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
     }
 }
