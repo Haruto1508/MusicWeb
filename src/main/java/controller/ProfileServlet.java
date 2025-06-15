@@ -19,7 +19,6 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Cart;
 import model.Order;
-import model.Product;
 import model.User;
 
 /**
@@ -95,12 +94,6 @@ public class ProfileServlet extends HttpServlet {
                 System.out.println("có");
                 request.setAttribute("orders", orders);
                 break;
-//            case "order":
-//                ProductDAO productDAO = new ProductDAO();
-//                List<Product> history = productDAO.getOrderHistoryByUserId(user.getUserId());
-//                request.setAttribute("history", history);
-//                break;
-
             case "cart":
                 CartDAO cartDAO = new CartDAO();
 

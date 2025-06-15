@@ -50,6 +50,19 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+    }
+
+    /**
      * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
@@ -72,7 +85,7 @@ public class LoginServlet extends HttpServlet {
 
             // check user role
             int roleId = loginUser.getRole().getId();
-            
+
             if (roleId == 2) { // Admin
 //                response.sendRedirect(request.getContextPath() + "/admin/manager");
                 request.getRequestDispatcher("/WEB-INF/admin/manager.jsp").forward(request, response);
@@ -81,7 +94,7 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("user", loginUser);
                 session.setAttribute("message", "Welcome " + loginUser.getAccount());
                 response.sendRedirect(request.getContextPath() + "/home");
-                System.out.println("Login successful"); 
+                System.out.println("Login successful");
 //                request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
             } else {
                 // Nếu role không rõ ràng, logout
