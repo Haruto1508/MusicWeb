@@ -25,47 +25,45 @@ public class AdminAuthFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        HttpSession session = httpServletRequest.getSession(false);
-        String contextPath = httpServletRequest.getContextPath();
-        String requestURI = httpServletRequest.getRequestURI();
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse res = (HttpServletResponse) response;
 
-        // Bỏ qua login và các tài nguyên tĩnh
-        if (requestURI.contains("/login") || requestURI.contains("/css") || requestURI.contains("/js") || requestURI.contains("/img")) {
+        HttpSession session = req.getSession(false);
+        String uri = req.getRequestURI();
+        String context = req.getContextPath();
+
+        // Bỏ qua login và tài nguyên tĩnh
+        if (uri.contains("/login") || uri.contains("/logout")
+                || uri.contains("/css") || uri.contains("/js") || uri.contains("/img")) {
             chain.doFilter(request, response);
             return;
         }
-        
-        // check for login
+
+        // Kiểm tra đăng nhập
         if (session == null || session.getAttribute("user") == null) {
-            httpServletResponse.sendRedirect(contextPath + "/login");
+            res.sendRedirect(context + "/login");
             return;
         }
 
-        // check role
+        // Ngăn cache
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setDateHeader("Expires", 0);
+
+        // Phân quyền
         User user = (User) session.getAttribute("user");
         int roleId = user.getRole().getId();
-        String role;
-        if (roleId == 2) { // roleId 2 for admin
-            role = "admin";
-        } else { // roleId 1 for user
-            role = "user";
-        }
-        
-        // access admin page but not an admin
-        if (requestURI.startsWith(contextPath + "/admin") && !"admin".equals(role)) {
-            httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+
+        if (uri.startsWith(context + "/admin") && roleId != 2) {
+            res.sendRedirect(context + "/403.jsp"); // hoặc sendError nếu thích
             return;
         }
 
-        // access user page but not an user
-        if (requestURI.startsWith(contextPath + "/user") && !("user".equals(role) || "admin".equals(role))) {
-            httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+        if (uri.startsWith(context + "/user") && (roleId != 1 && roleId != 2)) {
+            res.sendRedirect(context + "/403.jsp");
             return;
         }
-        
-        // access if valid 
+
         chain.doFilter(request, response);
     }
 }
