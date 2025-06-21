@@ -6,7 +6,6 @@ package model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384

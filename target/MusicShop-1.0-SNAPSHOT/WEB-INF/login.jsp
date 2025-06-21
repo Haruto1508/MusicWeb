@@ -132,7 +132,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Đăng nhập</button>
                     <div class="text-center mt-3">
-                        <span class="form-text">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/path?page=register ">Đăng ký</a></span>
+                        <span class="form-text">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/path?page=register">Đăng ký</a></span>
                     </div>
                 </form>
             </div>

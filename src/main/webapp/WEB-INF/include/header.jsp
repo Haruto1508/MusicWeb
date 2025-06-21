@@ -9,14 +9,14 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/path?page=home"><i class="fa-solid fa-music"></i> MusicShop</a>
+        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/home"><i class="fa-solid fa-music"></i> MusicShop</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item">
-                    <a class="nav-link active fw-semibold" href="${pageContext.request.contextPath}/path?page=home">Trang chủ</a>
+                    <a class="nav-link active fw-semibold" href="${pageContext.request.contextPath}/home">Trang chủ</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle fw-semibold" href="#" id="productDropdown" role="button"
@@ -48,7 +48,7 @@
                     <ul class="dropdown-menu" aria-labelledby="accountDropdown">
                         <c:choose>
                             <c:when test="${not empty user}">
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/path?page=profile">Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=info">Tài khoản</a></li>
                                 <li><a class="dropdown-item" href="#">Lịch sử mua hàng</a></li>
                                 <li><hr class="dropdown-divider"> </li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Đăng xuất</a></li>

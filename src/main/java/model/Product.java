@@ -21,18 +21,12 @@ public class Product {
     private int stockQuantity;
     private Category category;
     private String imageUrl;
-
-    private String discountType;  // "percentage", "fixed", hoặc null
-    private BigDecimal discountValue;
-    private LocalDate discountStart;
-    private LocalDate discountEnd;
-
     private LocalDateTime createDateTime;
-    
+
     public Product() {
     }
 
-    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, String discountType, BigDecimal discountValue, LocalDate discountStart, LocalDate discountEnd, LocalDateTime createDateTime) {
+    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime) {
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -40,10 +34,6 @@ public class Product {
         this.stockQuantity = stockQuantity;
         this.category = category;
         this.imageUrl = imageUrl;
-        this.discountType = discountType;
-        this.discountValue = discountValue;
-        this.discountStart = discountStart;
-        this.discountEnd = discountEnd;
         this.createDateTime = createDateTime;
     }
 
@@ -103,38 +93,6 @@ public class Product {
         this.imageUrl = imageUrl;
     }
 
-    public String getDiscountType() {
-        return discountType;
-    }
-
-    public void setDiscountType(String discountType) {
-        this.discountType = discountType;
-    }
-
-    public BigDecimal getDiscountValue() {
-        return discountValue;
-    }
-
-    public void setDiscountValue(BigDecimal discountValue) {
-        this.discountValue = discountValue;
-    }
-
-    public LocalDate getDiscountStart() {
-        return discountStart;
-    }
-
-    public void setDiscountStart(LocalDate discountStart) {
-        this.discountStart = discountStart;
-    }
-
-    public LocalDate getDiscountEnd() {
-        return discountEnd;
-    }
-
-    public void setDiscountEnd(LocalDate discountEnd) {
-        this.discountEnd = discountEnd;
-    }
-
     public LocalDateTime getCreateDateTime() {
         return createDateTime;
     }
@@ -145,6 +103,6 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product{" + "product=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + category + ", imageUrl=" + imageUrl + ", discountType=" + discountType + ", discountValue=" + discountValue + ", discountStart=" + discountStart + ", discountEnd=" + discountEnd + ", createDateTime=" + createDateTime + '}';
+        return "Product{" + "product=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + '}';
     }
 }

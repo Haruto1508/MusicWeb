@@ -7,7 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="container py-5" style="min-height: 85vh;">
+<div class="container">
     <div class="mx-auto">
         <!-- Header -->
         <div class="text-center mb-4">

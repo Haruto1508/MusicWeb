@@ -47,7 +47,7 @@ public class MD5PasswordHasher {
         }
     }
 
-    public static boolean checkPassword(String username, String inputPassword, String storedHashedPassword) {
+    public static boolean checkPassword(String inputPassword, String storedHashedPassword) {
         // Băm mật khẩu người dùng nhập vào
         String hashedInputPassword = hashPassword(inputPassword);
 

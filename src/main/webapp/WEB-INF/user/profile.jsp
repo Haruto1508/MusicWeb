@@ -25,7 +25,7 @@
         <%@include file="/WEB-INF/include/header.jsp" %>
 
         <!-- Content -->
-        <div class="container-fluid info-box">
+        <div class="container info-box">
             <div class="row">
                 <div class="col-md-4">
                     <div class="sidebar">
@@ -50,6 +50,9 @@
                             <li><a href="${pageContext.request.contextPath}/account?view=setting" 
                                    class="${param.view == 'setting' ? 'active' : ''}">
                                     <i class="fas fa-cog"></i> Cài đặt</a></li>
+                            <li><a href="${pageContext.request.contextPath}/account?view=changePassword" 
+                                   class="${param.view == 'changePassword' ? 'active' : ''}">
+                                    <i class="fas fa-lock"></i> Đổi mật khẩu</a></li> 
                         </ul>
                     </div>
                 </div>
@@ -69,6 +72,9 @@
                         </c:when>
                         <c:when test="${param.view == 'setting'}">
                             <jsp:include page="/WEB-INF/user/setting.jsp" />
+                        </c:when>
+                        <c:when test="${param.view == 'changePassword'}">
+                            <jsp:include page="/WEB-INF/user/passwordChange.jsp" />
                         </c:when>
                     </c:choose>
                 </div>

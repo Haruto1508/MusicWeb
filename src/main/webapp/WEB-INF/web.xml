@@ -5,7 +5,7 @@
     </welcome-file-list>
     <session-config>
         <session-timeout>
-            1000
+            100
         </session-timeout>
     </session-config>
 </web-app>

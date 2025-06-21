@@ -6,8 +6,8 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<div class="container my-5">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.cart.css"/>
+<div class="container">
     <h2 class="mb-4">🛒 Giỏ hàng của bạn</h2>
 
     <c:choose>

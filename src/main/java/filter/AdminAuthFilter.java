@@ -46,23 +46,23 @@ public class AdminAuthFilter implements Filter {
         }
 
         // Ngăn cache
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
-        res.setDateHeader("Expires", 0);
-
-        // Phân quyền
-        User user = (User) session.getAttribute("user");
-        int roleId = user.getRole().getId();
-
-        if (uri.startsWith(context + "/admin") && roleId != 2) {
-            res.sendRedirect(context + "/403.jsp"); // hoặc sendError nếu thích
-            return;
-        }
-
-        if (uri.startsWith(context + "/user") && (roleId != 1 && roleId != 2)) {
-            res.sendRedirect(context + "/403.jsp");
-            return;
-        }
+//        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+//        res.setHeader("Pragma", "no-cache");
+//        res.setDateHeader("Expires", 0);
+//
+//        // Phân quyền
+//        User user = (User) session.getAttribute("user");
+//        int roleId = user.getRole().getId();
+//
+//        if (uri.startsWith(context + "/admin") && roleId != 2) {
+//            res.sendRedirect(context + "/403.jsp"); // hoặc sendError nếu thích
+//            return;
+//        }
+//
+//        if (uri.startsWith(context + "/user") && (roleId != 1 && roleId != 2)) {
+//            res.sendRedirect(context + "/403.jsp");
+//            return;
+//        }
 
         chain.doFilter(request, response);
     }

@@ -7,14 +7,22 @@ package controller;
 import dao.AddressDAO;
 import dao.CartDAO;
 import dao.OrderDAO;
+import dao.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
+import java.io.File;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import model.Address;
 import model.Cart;
@@ -26,6 +34,7 @@ import model.User;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 @WebServlet(name = "AccountServlet", urlPatterns = {"/account"})
+
 public class AccountServlet extends HttpServlet {
 
     /**
@@ -66,62 +75,74 @@ public class AccountServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String view = request.getParameter("view");
-
-        if (view == null) {
-            view = "info";
-        }
-
         HttpSession session = request.getSession(false);
         User user = null;
         if (session != null) {
             user = (User) session.getAttribute("user");
-
             if (user == null) {
-                response.sendRedirect(request.getContextPath() + "/path?page=login");
+                response.sendRedirect(request.getContextPath() + "/login");
                 return;
             }
-            
-            System.out.println("ID " + user.getUserId());
+        } else {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String view = request.getParameter("view");
+        if (view == null) {
+            view = "info";
         }
 
         switch (view) {
             case "info":
-
+                int currentYear = LocalDate.now().getYear();
+                DateTimeFormatter textFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String birthdateInputValue = user.getBirthdate() != null ? user.getBirthdate().format(inputFormatter) : "";
+                String birthdateTextValue = user.getBirthdate() != null ? user.getBirthdate().format(textFormatter) : "";
+                request.setAttribute("birthdateInputValue", birthdateInputValue);
+                request.setAttribute("birthdateTextValue", birthdateTextValue);
+                request.setAttribute("currentYear", currentYear);
+                request.setAttribute("user", user);
                 break;
             case "address":
                 AddressDAO addressDAO = new AddressDAO();
-                
                 List<Address> addresses = addressDAO.getAddressesByUserId(user.getUserId());
+                if (addresses == null) {
+                    request.setAttribute("error", "Cannot load addresses");
+                    addresses = new ArrayList<>();
+                }
                 request.setAttribute("addresses", addresses);
                 break;
             case "cart":
                 CartDAO cartDAO = new CartDAO();
-
                 List<Cart> carts = cartDAO.getCartByUserId(user.getUserId());
-                for(Cart c : carts) {
-                    System.out.println(c.toString());
+                if (carts == null) {
+                    request.setAttribute("error", "Cannot load cart");
+                    carts = new ArrayList<>();
                 }
                 request.setAttribute("carts", carts);
                 break;
             case "order":
                 OrderDAO orderDAO = new OrderDAO();
                 List<Order> orders = orderDAO.getOrderByUserId(user.getUserId());
-                System.out.println("có");
+                if (orders == null) {
+                    request.setAttribute("error", "Cannot load orders");
+                    orders = new ArrayList<>();
+                }
                 request.setAttribute("orders", orders);
                 break;
             case "setting":
                 break;
             case "password":
                 break;
-
             default:
-                throw new AssertionError();
+                view = "info";
+                request.setAttribute("error", "Invalid view parameter");
+                break;
         }
 
-        request.setAttribute("user", user);
         request.setAttribute("view", view);
         request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
-
     }
 }

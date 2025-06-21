@@ -17,12 +17,13 @@ import java.util.logging.Logger;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 public class JDBCUtil {
+
     private Connection conn;
     private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=MusicShop;encrypt=true;trustServerCertificate=true";
     private static final String DB_USER = "sa";
     private static final String BD_PASSWORD = "15082005";
 
-    public JDBCUtil () {
+    public JDBCUtil() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             this.conn = DriverManager.getConnection(DB_URL, DB_USER, BD_PASSWORD);
@@ -32,11 +33,11 @@ public class JDBCUtil {
             Logger.getLogger(JDBCUtil.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public Connection getConnection() {
         return conn;
     }
-    
+
     public static void closeConnection(Connection connect) {
         if (connect != null) {
             try {
@@ -48,33 +49,47 @@ public class JDBCUtil {
             }
         }
     }
-    
-    public ResultSet execSelectQuery(String query, Object[] params) throws  SQLException {
+
+    public ResultSet execSelectQuery(String query, Object[] params) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(query);
-        
+
         if (params != null) {
-            for(int i=0; i<params.length; i++) {
-                ps.setObject(i+1, params[i]);
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
             }
         }
-        
+
         return ps.executeQuery();
     }
-    
-    public ResultSet execSelectQuery(String query) throws  SQLException {
+
+    public ResultSet execSelectQuery(String query) throws SQLException {
         return this.execSelectQuery(query, null);
     }
-    
-    public int execQuery(String query, Object[] params) throws  SQLException {
+
+    public int execQuery(String query, Object[] params) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(query);
-        
+
         if (params != null) {
-            for(int i=0; i<params.length; i++) {
-                ps.setObject(i+1, params[i]);
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
             }
         }
-        
+
         return ps.executeUpdate();
+    }
+
+    public ResultSet execInsertWithGeneratedKeys(String query, Object[] params) throws SQLException {
+        PreparedStatement ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+        }
+
+        ps.executeUpdate();
+
+        return ps.getGeneratedKeys();
     }
 
 }

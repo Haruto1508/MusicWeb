@@ -21,10 +21,10 @@ import model.Product;
 public class ProductDAO extends JDBCUtil {
 
     public boolean insert(Product product) {
-        String sql = "INSERT INTO Products(name, description, price, stock_quantity, category_id, image_url, discount_type, discount_value, discount_start, discount_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Products(name, description, price, stock_quantity, category_id, image_url) VALUES (?, ?, ?, ?, ?, ?)";
         try {
             Object[] params = {
-                product.getName(), product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl(), product.getDiscountType(), product.getDiscountValue(), product.getDiscountStart(), product.getDiscountEnd()
+                product.getName(), product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl()
             };
 
             return execQuery(sql, params) > 0;
@@ -35,11 +35,11 @@ public class ProductDAO extends JDBCUtil {
     }
 
     public boolean update(Product product) {
-        String sql = "UPDATE Products SET name=?, description=?, price=?, stock_quantity=?, category_id=?, image_url=?, discount_type=?, discount_value=?, discount_start=?, discount_end=? WHERE product_id=?";
+        String sql = "UPDATE Products SET name=?, description=?, price=?, stock_quantity=?, category_id=?, image_url=?, discount_type=? WHERE product_id=?";
         
         try {
             Object[] params = {
-                product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl(), product.getDiscountType(), product.getDiscountValue(), product.getDiscountStart(), product.getDiscountEnd(), product.getName()
+                product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl(), product.getName()
             };
             return execQuery(sql, params) > 0;
         } catch (SQLException e) {
@@ -97,10 +97,6 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getString("discount_type"),
-                        rs.getBigDecimal("discount_value"),
-                        discountStart,
-                        discountEnd,
                         rs.getTimestamp("created_at").toLocalDateTime()
                 );
             }
@@ -133,10 +129,6 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getString("discount_type"),
-                        rs.getBigDecimal("discount_value"),
-                        rs.getDate("discount_start") != null ? rs.getDate("discount_start").toLocalDate() : null,
-                        rs.getDate("discount_end") != null ? rs.getDate("discount_end").toLocalDate() : null,
                         rs.getTimestamp("created_at").toLocalDateTime()
                 );
                 list.add(product);
@@ -172,10 +164,6 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getString("discount_type"),
-                        rs.getBigDecimal("discount_value"),
-                        rs.getDate("discount_start") != null ? rs.getDate("discount_start").toLocalDate() : null,
-                        rs.getDate("discount_end") != null ? rs.getDate("discount_end").toLocalDate() : null,
                         rs.getTimestamp("created_at").toLocalDateTime()
                 );
                 products.add(product);
@@ -206,10 +194,7 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getString("discount_type"),
-                        rs.getBigDecimal("discount_value"),
-                        rs.getDate("discount_start") != null ? rs.getDate("discount_start").toLocalDate() : null,
-                        rs.getDate("discount_end") != null ? rs.getDate("discount_end").toLocalDate() : null,
+                     
                         rs.getTimestamp("created_at").toLocalDateTime()
                 );
                 products.add(product);
@@ -249,4 +234,7 @@ public class ProductDAO extends JDBCUtil {
         }
         return productList;
     }
+    
+//    public Product getDetailByProductId(int id) {
+//    }
 }

@@ -97,7 +97,7 @@ public class RegisterServlet extends HttpServlet {
         }
 
         UserDAO userDAO = new UserDAO();
-        User existUser = userDAO.isUsernameTaken(account, phone, email);
+        User existUser = userDAO.isUserTaken(account, phone, email);
         boolean hasError = false;
 
         // Check for duplicates separately

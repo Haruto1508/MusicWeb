@@ -7,6 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
     response.sendRedirect(request.getContextPath() + "/home");
+//request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
 %>
 <!DOCTYPE html>
 <html>

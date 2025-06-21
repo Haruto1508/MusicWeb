@@ -12,8 +12,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
+import model.User;
 
 /**
  *
@@ -60,6 +62,20 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        User user = null;
+        if (session != null) {
+            user = (User) session.getAttribute("user");
+
+            if (user == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+        } else {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         String page = request.getParameter("page");
 
         switch (page) {
@@ -71,9 +87,6 @@ public class DispatcherServlet extends HttpServlet {
                 break;
             case "home":
                 forwardHome(request, response);
-                break;
-            case "profile":
-                forwardProfile(request, response);
                 break;
             case "guitar":
                 forwardGuitarPage(request, response);
@@ -87,8 +100,6 @@ public class DispatcherServlet extends HttpServlet {
             case "accessory":
                 forwardAccessoryPage(request, response);
                 break;
-            case "info":
-                forwardUserInfo(request, response);
             default:
                 throw new AssertionError();
         }
@@ -96,19 +107,15 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     protected void forwardLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 
     protected void forwardRegister(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/register");
     }
 
     protected void forwardHome(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
-    }
-
-    protected void forwardProfile(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/user/profile.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/home");
     }
 
     protected void forwardGuitarPage(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -145,9 +152,5 @@ public class DispatcherServlet extends HttpServlet {
 
         request.setAttribute("accessories", accessories);
         request.getRequestDispatcher("WEB-INF/collections/accessory.jsp").forward(request, response);
-    }
-    
-    protected void forwardUserInfo(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        request.getRequestDispatcher("/WEB-INF/collections/violin.jsp").forward(request, response);
     }
 }
