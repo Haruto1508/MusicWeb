@@ -1,4 +1,3 @@
-filter\AdminAuthFilter.class
 dao\OrderDAO.class
 model\OrderDetail.class
 model\Cart.class
@@ -11,18 +10,21 @@ controller\AccountServlet.class
 model\Role.class
 model\Discount.class
 model\Product.class
+controller\UpdateUserServlet.class
 dao\UserDAO.class
 controller\UserServlet.class
 dao\AddressDAO.class
 controller\ProfileServlet.class
 model\User.class
 controller\LoginServlet.class
+controller\ProductServlet.class
 db\JDBCUtil.class
 controller\DispatcherServlet.class
 dao\RoleDAO.class
 dao\OrderDetailDAO.class
 hashpw\MD5PasswordHasher.class
 model\Order.class
+controller\ChangePassword.class
 model\Category.class
 controller\LogoutServlet.class
 controller\RegisterServlet.class

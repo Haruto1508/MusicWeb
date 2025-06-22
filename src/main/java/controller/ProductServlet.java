@@ -62,9 +62,6 @@ public class ProductServlet extends HttpServlet {
                 
                 break;
                 
-            case ""
-            default:
-                throw new AssertionError();
         }
     } 
 

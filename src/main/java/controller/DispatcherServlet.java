@@ -62,29 +62,29 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User user = null;
-        if (session != null) {
-            user = (User) session.getAttribute("user");
-
-            if (user == null) {
-                response.sendRedirect(request.getContextPath() + "/login");
-                return;
-            }
-        } else {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
         String page = request.getParameter("page");
 
         switch (page) {
             case "login":
                 forwardLogin(request, response);
-                break;
+                return;
             case "register":
                 forwardRegister(request, response);
-                break;
+                return;
+        }
+
+        // Các trang còn lại yêu cầu đăng nhập
+        HttpSession session = request.getSession(false);
+        User user = null;
+        if (session != null) {
+            user = (User) session.getAttribute("user");
+        }
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        switch (page) {
             case "home":
                 forwardHome(request, response);
                 break;
@@ -100,8 +100,6 @@ public class DispatcherServlet extends HttpServlet {
             case "accessory":
                 forwardAccessoryPage(request, response);
                 break;
-            default:
-                throw new AssertionError();
         }
 
     }
@@ -151,6 +149,6 @@ public class DispatcherServlet extends HttpServlet {
         List<Product> accessories = productDAO.getProductsByCategory(4);
 
         request.setAttribute("accessories", accessories);
-        request.getRequestDispatcher("WEB-INF/collections/accessory.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/collections/accessory.jsp").forward(request, response);
     }
 }

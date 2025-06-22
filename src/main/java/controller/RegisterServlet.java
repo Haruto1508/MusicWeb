@@ -61,7 +61,7 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        request.getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
     }
 
     /**
@@ -92,62 +92,78 @@ public class RegisterServlet extends HttpServlet {
         // Validate required fields
         if (name == null || account == null || email == null || phone == null || password == null) {
             request.setAttribute("error", "Please fill in all information!");
-            request.getRequestDispatcher("WEB-INF/register.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
             return;
         }
 
-        UserDAO userDAO = new UserDAO();
-        User existUser = userDAO.isUserTaken(account, phone, email);
+        // Gán lại để giữ giá trị nếu có lỗi
+        request.setAttribute("full_name", name);
+        request.setAttribute("account", account);
+        request.setAttribute("email", email);
+        request.setAttribute("phone", phone);
+        request.setAttribute("gender", gender);
+
         boolean hasError = false;
 
-        // Check for duplicates separately
-        if (existUser != null) {
-            if (existUser.getAccount().equals(account)) {
-                request.removeAttribute("accountError");
-                request.setAttribute("accountError", "Account name already exists");
-                hasError = true;
-            }
+        // Regex kiểm tra
+        if (name == null || !name.matches("^[a-zA-Z\\s]{3,}$")) {
+            request.setAttribute("fullnameError", "Họ tên phải từ 3 ký tự trở lên, chỉ chứa chữ cái và khoảng trắng.");
+            hasError = true;
+        }
 
-            if (existUser.getEmail().equals(email)) {
-                request.removeAttribute("emailError");
-                request.setAttribute("emailError", "Email has been registered");
-                hasError = true;
-            }
+        if (account == null || !account.matches("^[a-zA-Z0-9_]{3,20}$")) {
+            request.setAttribute("accountError", "Tên đăng nhập phải từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới.");
+            hasError = true;
+        }
 
-            if (existUser.getPhone().equals(phone)) {
-                request.removeAttribute("phoneError");
-                request.setAttribute("phoneError", "Phone number already in use");
-                hasError = true;
-            }
-        
+        if (email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+            request.setAttribute("emailError", "Email không đúng định dạng.");
+            hasError = true;
+        }
+
+        if (phone == null || !phone.matches("^0[0-9]{9,10}$")) {
+            request.setAttribute("phoneError", "Số điện thoại phải bắt đầu bằng 0 và có 10-11 chữ số.");
+            hasError = true;
+        }
+
+        if (password == null || !password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")) {
+            request.setAttribute("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+            hasError = true;
         }
 
         if (hasError) {
-            // Preserve input values
-            request.setAttribute("full_name", name);
-            request.setAttribute("account", account);
-            request.setAttribute("email", email);
-            request.setAttribute("phone", phone);
-            request.setAttribute("gender", gender);
-
             request.getRequestDispatcher("WEB-INF/register.jsp").forward(request, response);
             return;
         }
 
-        // Create new user
+        // Kiểm tra trùng dữ liệu
+        UserDAO dao = new UserDAO();
+        User existUser = dao.isUserTaken(account, phone, email);
+
+        if (existUser != null) {
+            if (existUser.getAccount().equals(account)) {
+                request.setAttribute("accountError", "Tài khoản đã tồn tại.");
+            }
+            if (existUser.getEmail().equals(email)) {
+                request.setAttribute("emailError", "Email đã được sử dụng.");
+            }
+            if (existUser.getPhone().equals(phone)) {
+                request.setAttribute("phoneError", "Số điện thoại đã được đăng ký.");
+            }
+            request.getRequestDispatcher("WEB-INF/register.jsp").forward(request, response);
+            return;
+        }
+
+        // Nếu hợp lệ thì tạo user
         User user = new User();
         user.setFullName(name);
         user.setAccount(account);
-        user.setPhone(phone);
         user.setEmail(email);
+        user.setPhone(phone);
         user.setGender(gender);
+        user.setPassword(MD5PasswordHasher.hashPassword(password));
 
-        // Hash password before saving (using BCrypt for example)
-        String hashedPassword = MD5PasswordHasher.hashPassword(password);
-        user.setPassword(hashedPassword);
-
-        if (userDAO.insert(user)) {
-            // Optionally auto-login after registration
+        if (dao.insert(user)) {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             response.sendRedirect(request.getContextPath() + "/home");

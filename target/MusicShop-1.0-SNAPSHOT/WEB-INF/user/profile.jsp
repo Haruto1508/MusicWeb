@@ -36,45 +36,45 @@
                         <hr>
                         <ul>
                             <li><a href="${pageContext.request.contextPath}/account?view=info" 
-                                   class="${param.view == 'info' or empty param.view ? 'active' : ''}">
+                                   class="${ view == 'info' or empty  view ? 'active' : ''}">
                                     <i class="fas fa-user-circle"></i> Thông tin tài khoản</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=address" 
-                                   class="${param.view == 'address' ? 'active' : ''}">
+                                   class="${ view == 'address' ? 'active' : ''}">
                                     <i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=order" 
-                                   class="${param.view == 'order' ? 'active' : ''}">
+                                   class="${ view == 'order' ? 'active' : ''}">
                                     <i class="fas fa-box"></i> Đơn hàng</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=cart" 
-                                   class="${param.view == 'cart' ? 'active' : ''}">
+                                   class="${ view == 'cart' ? 'active' : ''}">
                                     <i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=setting" 
-                                   class="${param.view == 'setting' ? 'active' : ''}">
+                                   class="${ view == 'setting' ? 'active' : ''}">
                                     <i class="fas fa-cog"></i> Cài đặt</a></li>
-                            <li><a href="${pageContext.request.contextPath}/account?view=changePassword" 
-                                   class="${param.view == 'changePassword' ? 'active' : ''}">
+                            <li><a href="${pageContext.request.contextPath}/account?view=password" 
+                                   class="${ view == 'password' ? 'active' : ''}">
                                     <i class="fas fa-lock"></i> Đổi mật khẩu</a></li> 
                         </ul>
                     </div>
                 </div>
                 <div class="col-md-8">
                     <c:choose>
-                        <c:when test="${param.view == 'info' or empty param.view}">
+                        <c:when test="${ view == 'info' or empty  view}">
                             <jsp:include page="/WEB-INF/user/info.jsp" />
                         </c:when>
-                        <c:when test="${param.view == 'address'}">
+                        <c:when test="${ view == 'address'}">
                             <jsp:include page="/WEB-INF/user/address.jsp" />
                         </c:when>
-                        <c:when test="${param.view == 'cart'}">
+                        <c:when test="${ view == 'cart'}">
                             <jsp:include page="/WEB-INF/user/cart.jsp" />
                         </c:when>
-                        <c:when test="${param.view == 'order'}">
+                        <c:when test="${ view == 'order'}">
                             <jsp:include page="/WEB-INF/user/order.jsp" />
                         </c:when>
-                        <c:when test="${param.view == 'setting'}">
+                        <c:when test="${ view == 'setting'}">
                             <jsp:include page="/WEB-INF/user/setting.jsp" />
                         </c:when>
-                        <c:when test="${param.view == 'changePassword'}">
-                            <jsp:include page="/WEB-INF/user/passwordChange.jsp" />
+                        <c:when test="${ view == 'password'}">
+                            <jsp:include page="/WEB-INF/user/password.jsp" />
                         </c:when>
                     </c:choose>
                 </div>

@@ -87,15 +87,13 @@ public class LoginServlet extends HttpServlet {
             int roleId = loginUser.getRole().getId();
 
             if (roleId == 2) { // Admin
-//                response.sendRedirect(request.getContextPath() + "/admin/manager");
                 request.getRequestDispatcher("/WEB-INF/admin/manager.jsp").forward(request, response);
             } else if (roleId == 1) { // User
-//                response.sendRedirect(request.getContextPath() + "/user/home");
                 session.setAttribute("user", loginUser);
                 session.setAttribute("message", "Welcome " + loginUser.getAccount());
+                System.out.println("Login successful");        
+                System.out.println(loginUser.getPassword());
                 response.sendRedirect(request.getContextPath() + "/home");
-                System.out.println("Login successful");
-//                request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
             } else {
                 // Nếu role không rõ ràng, logout
                 session.invalidate();

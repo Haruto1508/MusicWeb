@@ -13,12 +13,7 @@
         <i class="fa fa-lock"></i>
     </div>
     <h2 class="mb-4 text-center mt-4" style="color:#8b5cf6;">Đổi mật khẩu</h2>
-    <form id="changePasswordForm" action="${pageContext.request.contextPath}/change-password" method="post" autocomplete="off">
-        <div id="errorMsg" class="error-message">
-            <c:if test="${not empty error}">
-                ${error}
-            </c:if>
-        </div>
+    <form id="changePasswordForm" action="change-password" method="post">
         <div class="mb-3">
             <label for="oldPw" class="form-label">Mật khẩu hiện tại</label>
             <input type="password" class="form-control" id="oldPw" name="oldPw" placeholder="Nhập mật khẩu hiện tại" required>
@@ -29,9 +24,9 @@
         <div class="mb-3">
             <label for="newPw" class="form-label">Mật khẩu mới</label>
             <input type="password" class="form-control" id="newPw" name="newPw" placeholder="Nhập mật khẩu mới" required>
-            <div class="form-text">
-                Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
-            </div>
+            <c:if test="${not empty newPwError}">
+                <div class="text-danger">${newPwError}</div>
+            </c:if>
         </div>
         <div class="mb-3">
             <label for="confirmPw" class="form-label">Xác nhận mật khẩu mới</label>
@@ -49,25 +44,29 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Demo kiểm tra xác nhận mật khẩu mới
-    document.querySelector('form').addEventListener('submit', function (e) {
-        var newPass = document.getElementById('newPassword').value;
-        var confirmPass = document.getElementById('confirmPassword').value;
-        var errorMsg = document.getElementById('errorMsg');
-        errorMsg.style.display = 'none';
-        errorMsg.textContent = '';
+    function showToast(message, isSuccess = true) {
+        const toastElement = document.getElementById('toastNotification');
+        const toastMessage = document.getElementById('toastMessage');
 
-        if (!isValidPassword(newPass)) {
-            e.preventDefault();
-            errorMsg.textContent = 'Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!';
-            errorMsg.style.display = 'block';
-            return;
-        }
-        if (newPass !== confirmPass) {
-            e.preventDefault();
-            errorMsg.textContent = 'Mật khẩu mới và xác nhận mật khẩu không khớp!';
-            errorMsg.style.display = 'block';
-            return;
-        }
-    });
+        // Đặt màu nền dựa vào trạng thái
+        toastElement.classList.remove('bg-success', 'bg-danger');
+        toastElement.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
+
+        toastMessage.textContent = message;
+
+        const bsToast = new bootstrap.Toast(toastElement, {
+            delay: 3000, // Tự ẩn sau 1 giây
+            animation: true
+        });
+
+        bsToast.show();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+    <c:if test="${message eq 'true'}">
+    showToast("Cập nhật mật khẩu thành công!", true);
+    </c:if>
+    <c:if test="${message eq 'false'}">
+    showToast("Cập nhật mật khẩu thất bại. Vui lòng thử lại.", false);
+    </c:if>
 </script>

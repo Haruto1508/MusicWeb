@@ -130,6 +130,7 @@ public class AccountServlet extends HttpServlet {
                     request.setAttribute("error", "Cannot load orders");
                     orders = new ArrayList<>();
                 }
+                
                 request.setAttribute("orders", orders);
                 break;
             case "setting":

@@ -86,6 +86,7 @@ public class UserDAO extends JDBCUtil {
 
                 User user = new User();
                 user.setAccount(rs.getString("account"));
+                user.setPassword(rs.getString("password"));
                 user.setFullName(rs.getString("full_name"));
                 user.setPhone(rs.getString("phone"));
                 user.setEmail(rs.getString("email"));
@@ -119,6 +120,7 @@ public class UserDAO extends JDBCUtil {
                 Role role = new Role(rs.getInt("role_id"), rs.getString("name"), rs.getString("description"));
                 User user = new User();
                 user.setAccount(rs.getString("account"));
+                user.setPassword("password");
                 user.setFullName(rs.getString("full_name"));
                 user.setPhone(rs.getString("phone"));
                 user.setEmail(rs.getString("email"));
@@ -155,7 +157,7 @@ public class UserDAO extends JDBCUtil {
                 user = new User();
 
                 user.setAccount(rs.getString("account"));
-                user.setPassword("password");
+                user.setPassword(rs.getString("password"));
                 user.setFullName(rs.getString("full_name"));
                 user.setPhone(rs.getString("phone"));
                 user.setEmail(rs.getString("email"));
@@ -229,8 +231,8 @@ public class UserDAO extends JDBCUtil {
     }
     
     public boolean updatePasswordByUserId(String password, int id) {
-        String sql = "UPDATE Users"
-                + "SET password = ?"
+        String sql = "UPDATE Users\n"
+                + "SET password = ?\n"
                 + "WHERE user_id = ?";
         
         Object[] params = {password, id};
@@ -247,9 +249,10 @@ public class UserDAO extends JDBCUtil {
     public static void main(String[] args) {
         UserDAO u = new UserDAO();
 
-        User uss = u.getUserById(1);
+        User uss = u.getUserLogin("ramcute", "ed218e06b885297d0750b65be5e4041e");
 
         System.out.println(uss.toString());
+        System.out.println(uss.getPassword());
     }
 
 }
