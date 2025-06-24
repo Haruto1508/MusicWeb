@@ -101,6 +101,7 @@ public class LoginServlet extends HttpServlet {
             }
         } else {
             request.setAttribute("info", userInfo);
+            request.removeAttribute("error");
             request.setAttribute("error", "User name or password is incorrect.");
             request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
             System.out.println("Login fail");//delete all files

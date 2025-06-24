@@ -6,7 +6,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.changePassword.css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.changePasswor.css"/>
 
 <div class="change-password-container">
     <div class="icon-lock">
@@ -42,20 +42,17 @@
         </c:if>
     </form>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function showToast(message, isSuccess = true) {
         const toastElement = document.getElementById('toastNotification');
         const toastMessage = document.getElementById('toastMessage');
 
-        // Đặt màu nền dựa vào trạng thái
         toastElement.classList.remove('bg-success', 'bg-danger');
         toastElement.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
-
         toastMessage.textContent = message;
 
         const bsToast = new bootstrap.Toast(toastElement, {
-            delay: 3000, // Tự ẩn sau 1 giây
+            delay: 3000,
             animation: true
         });
 
@@ -63,10 +60,11 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-    <c:if test="${message eq 'true'}">
-    showToast("Cập nhật mật khẩu thành công!", true);
-    </c:if>
-    <c:if test="${message eq 'false'}">
-    showToast("Cập nhật mật khẩu thất bại. Vui lòng thử lại.", false);
-    </c:if>
-</script>
+        <c:if test="${message eq 'true'}">
+            showToast("Cập nhật mật khẩu thành công!", true);
+        </c:if>
+        <c:if test="${message eq 'false'}">
+            showToast("Cập nhật mật khẩu thất bại. Vui lòng thử lại.", false);
+        </c:if>
+    }); // ✅ BẠN BỊ THIẾU DÒNG NÀY
+</script> <!-- ✅ ĐỪNG QUÊN ĐÓNG -->
