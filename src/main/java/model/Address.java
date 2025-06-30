@@ -18,6 +18,8 @@ public class Address {
     private String type;
     private boolean isDefault;
 
+    public Address() {}
+    
     public Address(int addressId, User user, String street, String ward, String district, String city, String type, boolean isDefault) {
         this.addressId = addressId;
         this.user = user;

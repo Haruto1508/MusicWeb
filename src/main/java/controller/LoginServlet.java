@@ -73,9 +73,11 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String userInfo = request.getParameter("info");
-        String password = request.getParameter("password");
+        String userInfo = request.getParameter("info").trim();
+        String password = request.getParameter("password").trim();
         String hashPasswod = MD5PasswordHasher.hashPassword(password);
+        System.out.println(userInfo);
+        System.out.println(hashPasswod);
         UserDAO userDAO = new UserDAO();
 
         User loginUser = userDAO.getUserLogin(userInfo, hashPasswod);

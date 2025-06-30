@@ -29,7 +29,7 @@
                                             </span>
                                         </p>
                                     </div>
-                                    <a href="order-detail?orderId=${order.orderId}" class="btn btn-outline-primary btn-sm">
+                                    <a href="${pageContext.request.contextPath}/product?id=${order.orderId}" class="btn btn-outline-primary btn-sm">
                                         Chi tiết
                                     </a>
                                 </div>

@@ -90,7 +90,7 @@ public class ChangePassword extends HttpServlet {
         String oldPassword = request.getParameter("oldPw");
         String newPassword = request.getParameter("newPw");
         String confirmPassword = request.getParameter("confirmPw");
-        
+
         System.out.println(oldPassword);
         System.out.println(newPassword);
         System.out.println(confirmPassword);
@@ -103,6 +103,7 @@ public class ChangePassword extends HttpServlet {
             System.out.println(user.getPassword());
             request.removeAttribute("oldPwError");
             request.setAttribute("oldPwError", "Mật khẩu cũ không chính xác!");
+            request.setAttribute("updateFail", "Thay đổi mật khẩu thất bại!");
             request.setAttribute("view", "password");
             request.getRequestDispatcher("/WEB-INF/user/profile.jsp").forward(request, response);
             return;  // quan trọng: phải return sau forward
@@ -112,6 +113,7 @@ public class ChangePassword extends HttpServlet {
         if (!newPassword.equals(confirmPassword)) {
             request.removeAttribute("confirmPwError");
             request.setAttribute("confirmPwError", "Mật khẩu nhập lại không chính xác!");
+            request.setAttribute("updateFail", "Thay đổi mật khẩu thất bại!");
             request.setAttribute("view", "password");
             request.getRequestDispatcher("/WEB-INF/user/profile.jsp").forward(request, response);
             return;
@@ -120,6 +122,7 @@ public class ChangePassword extends HttpServlet {
         if (!newPassword.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")) {
             request.removeAttribute("newPwError");
             request.setAttribute("newPwError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+            request.setAttribute("updateFail", "Thay đổi mật khẩu thất bại!");
             request.setAttribute("view", "password");
             request.getRequestDispatcher("/WEB-INF/user/profile.jsp").forward(request, response);
             return;
@@ -129,13 +132,11 @@ public class ChangePassword extends HttpServlet {
         boolean isUpdatePw = new UserDAO().updatePasswordByUserId(newHashPw, user.getUserId());
 
         if (isUpdatePw) {
-            user.setPassword(newHashPw);  // update password trong session user
-            session.setAttribute("user", user);  // update lại session
-            request.removeAttribute("isUpdate");
-            request.setAttribute("isUpdate", "Thay đổi mật khẩu thành công!");
+            user.setPassword(newHashPw);
+            session.setAttribute("user", user);
+            request.setAttribute("updateSuccess", "Thay đổi mật khẩu thành công!");
         } else {
-            request.removeAttribute("isUpdate");
-            request.setAttribute("isUpdate", "Thay đổi mật khẩu thất bại!");
+            request.setAttribute("updateFail", "Thay đổi mật khẩu thất bại!");
         }
 
         request.setAttribute("view", "password");

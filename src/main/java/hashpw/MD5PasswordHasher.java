@@ -57,9 +57,10 @@ public class MD5PasswordHasher {
 
     public static void main(String[] args) {
         String password = "123";
-        String hashedPassword = hashPassword("ram12345");
+        String hashedPassword = hashPassword("Ram12345@");
 
-        System.out.println("Password gốc: " + password);
+        System.out.println("Password gốc: ed218e06b885297d0750b65be5e4041e");
         System.out.println("Password đã mã hóa MD5: " + hashedPassword);
+        System.out.println(hashedPassword.equals(hashedPassword));
     }
 }

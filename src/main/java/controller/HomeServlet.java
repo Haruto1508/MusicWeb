@@ -12,10 +12,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
-import model.User;
 
 /**
  *
@@ -71,6 +69,7 @@ public class HomeServlet extends HttpServlet {
             List<Product> pianos = productDAO.getProductsByCategory(2);
             List<Product> violins = productDAO.getProductsByCategory(3);
 
+            System.out.println("lay duoc");
             // Lưu vào ServletContext
             getServletContext().setAttribute("guitars", guitars);
             getServletContext().setAttribute("pianos", pianos);

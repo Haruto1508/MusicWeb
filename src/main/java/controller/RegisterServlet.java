@@ -75,11 +75,6 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Clear existing session
-        HttpSession currentSession = request.getSession(false);
-        if (currentSession != null) {
-            currentSession.invalidate();
-        }
 
         // Get parameters with null checks
         String name = request.getParameter("full_name");
@@ -106,28 +101,33 @@ public class RegisterServlet extends HttpServlet {
         boolean hasError = false;
 
         // Regex kiểm tra
-        if (name == null || !name.matches("^[a-zA-Z\\s]{3,}$")) {
-            request.setAttribute("fullnameError", "Họ tên phải từ 3 ký tự trở lên, chỉ chứa chữ cái và khoảng trắng.");
+        if (name == null || !name.matches("^[\\p{L}\\s]{3,}$")) {
+            request.setAttribute("fullnameError", "Họ tên phải từ 3 ký tự trở lên, không chứa ký tự đặc biệt hoặc số.");
+            System.out.println("fullnameError");
             hasError = true;
         }
 
         if (account == null || !account.matches("^[a-zA-Z0-9_]{3,20}$")) {
             request.setAttribute("accountError", "Tên đăng nhập phải từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới.");
+            System.out.println("accountError");
             hasError = true;
         }
 
         if (email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             request.setAttribute("emailError", "Email không đúng định dạng.");
+            System.out.println("emailError");
             hasError = true;
         }
 
         if (phone == null || !phone.matches("^0[0-9]{9,10}$")) {
             request.setAttribute("phoneError", "Số điện thoại phải bắt đầu bằng 0 và có 10-11 chữ số.");
+            System.out.println("phoneError");
             hasError = true;
         }
 
         if (password == null || !password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")) {
             request.setAttribute("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+            System.out.println("passwordError");
             hasError = true;
         }
 

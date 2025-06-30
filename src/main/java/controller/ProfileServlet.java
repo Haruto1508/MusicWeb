@@ -6,7 +6,6 @@ package controller;
 
 import dao.CartDAO;
 import dao.OrderDAO;
-import dao.ProductDAO;
 import dao.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;

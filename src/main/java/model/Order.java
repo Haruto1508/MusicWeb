@@ -19,24 +19,28 @@ public class Order {
     private LocalDateTime orderDate;
     private String status;  // pending, processing, shipped, delivered, cancelled
     private BigDecimal totalAmount;
-    private String shippingAddress;
     private Discount discount; // có thể null
     private BigDecimal discountAmount;
+    private String orderPhone;
+    private String receiverName;
+    private Address address;
 
     private List<OrderDetail> orderDetails;
 
     public Order() {
     }
 
-    public Order(int orderId, User user, LocalDateTime orderDate, String status, BigDecimal totalAmount, String shippingAddress, Discount discount, BigDecimal discountAmount) {
+    public Order(int orderId, User user, LocalDateTime orderDate, String status, BigDecimal totalAmount, Discount discount, BigDecimal discountAmount, String orderPhone, String receiverName, Address address) {
         this.orderId = orderId;
         this.user = user;
         this.orderDate = orderDate;
         this.status = status;
         this.totalAmount = totalAmount;
-        this.shippingAddress = shippingAddress;
         this.discount = discount;
         this.discountAmount = discountAmount;
+        this.orderPhone = orderPhone;
+        this.receiverName =receiverName;
+        this.address = address;
     }
     
     public Order(int orderId) {
@@ -91,14 +95,6 @@ public class Order {
         this.totalAmount = totalAmount;
     }
 
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
     public Discount getDiscount() {
         return discount;
     }
@@ -115,8 +111,32 @@ public class Order {
         this.discountAmount = discountAmount;
     }
 
+    public String getOrderPhone() {
+        return orderPhone;
+    }
+
+    public void setOrderPhone(String orderPhone) {
+        this.orderPhone = orderPhone;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", shippingAddress=" + shippingAddress + ", discountId=" + discount + ", discountAmount=" + discountAmount + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", orderPhone=" + orderPhone + ", receiverName=" + receiverName + ", address=" + address + ", orderDetails=" + orderDetails + '}';
     }
 }

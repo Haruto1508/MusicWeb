@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class JDBCUtil {
 
     private Connection conn;
-    private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=MusicShop;encrypt=true;trustServerCertificate=true";
+    private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=MusicShop;encrypt=true;trustServerCertificate=true;useUnicode=true;characterEncoding=UTF-8";
     private static final String DB_USER = "sa";
     private static final String BD_PASSWORD = "15082005";
 

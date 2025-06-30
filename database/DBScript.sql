@@ -37,7 +37,7 @@ GO
 -- ADDRESS TABLE
 CREATE TABLE Address (
     address_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT,
+    user_id INT NOT NULL,
     street NVARCHAR(255) NOT NULL,
     ward NVARCHAR(100),
     district NVARCHAR(100),
@@ -108,8 +108,6 @@ CREATE TABLE Products (
 );
 GO
 
-CREATE TABLE 
-
 -- PRODUCT IMAGES TABLE
 CREATE TABLE ProductImages (
     image_id INT PRIMARY KEY IDENTITY(1,1),
@@ -129,10 +127,12 @@ CREATE TABLE Orders (
     order_date DATETIME DEFAULT GETDATE(),
     status NVARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
     total_amount DECIMAL(15,3) NOT NULL,
-    shipping_address NVARCHAR(MAX) NOT NULL,
-    shipping_phone NVARCHAR(20),
     discount_id INT,
+	order_phone NVARCHAR(20),
+	receiver_name NVARCHAR(255),
     discount_amount DECIMAL(15,3) DEFAULT 0,
+	address_id INT,
+	FOREIGN KEY (address_id) REFERENCES Address(address_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id)
 );
@@ -245,112 +245,88 @@ VALUES
 ('Piano', 'Các loại đàn Piano'),
 ('Violin', 'Các loại đàn Violin');
 GO
-
--- Insert Subcategories
-INSERT INTO Subcategories (name, category_id)
-VALUES 
-('Guitar Classic', 1),
-('Guitar Acoustic', 1),
-('Piano Điện', 2),
-('Violin 4/4', 3);
-GO
-
--- Insert Brands
+ -- Insert Brands
 INSERT INTO Brands (brand_name)
 VALUES 
 ('Yamaha'),
-('Taylor');
+('Fender'),
+('Gibson'),
+('Casio'),
+('Roland');
 GO
 
 -- Insert Discounts
-INSERT INTO Discounts (code, description, discount_type, discount_value, start_date, end_date, is_active)
-VALUES 
-('DISCOUNT10', 'Giảm giá 10% cho Guitar', 'percentage', 10, '2025-06-01', '2025-06-30', 1),
-('FIXED500', 'Giảm giá 500k cho Guitar', 'fixed', 500000, '2025-06-01', '2025-06-30', 1),
-('DISCOUNT5', 'Giảm giá 5% cho Piano', 'percentage', 5, '2025-06-01', '2025-06-30', 1),
-('FIXED200', 'Giảm giá 200k cho Violin', 'fixed', 200000, '2025-06-01', '2025-06-30', 1);
+INSERT INTO Discounts (code, description, discount_type, discount_value, start_date, end_date, minimum_order_value, usage_limit)
+VALUES
+('DISC10', 'Giảm 10% cho đơn hàng đầu tiên', 'percentage', 10, '2025-01-01', '2025-12-31', 100000, 100),
+('FIX50', 'Giảm 50k cho đơn hàng trên 500k', 'fixed', 50000, '2025-06-01', '2025-12-31', 500000, 200);
+GO
+
+-- Insert Subcategories
+INSERT INTO Subcategories (name, category_id)
+VALUES
+('Electric Guitar', (SELECT category_id FROM Categories WHERE name = 'Guitar')),
+('Acoustic Guitar', (SELECT category_id FROM Categories WHERE name = 'Guitar')),
+('Grand Piano', (SELECT category_id FROM Categories WHERE name = 'Piano')),
+('Upright Piano', (SELECT category_id FROM Categories WHERE name = 'Piano')),
+('Classical Violin', (SELECT category_id FROM Categories WHERE name = 'Violin'));
 GO
 
 -- Insert Products
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, discount_id)
+INSERT INTO Products (discount_id, name, description, price, stock_quantity, category_id, brand_id, image_url)
 VALUES
-('Guitar Classic Yamaha C40', N'Đàn guitar cổ điển phổ biến cho người mới bắt đầu', 2500000, 10, 1, 1, 'img/guitar1.jpg', 1),
-('Guitar Acoustic Taylor GS Mini', N'Đàn cao cấp với chất lượng âm thanh tuyệt vời', 14500000, 5, 1, 2, 'img/guitar2.jpg', 2),
-('Piano Điện Yamaha P45', N'Đàn piano điện phù hợp cho người học và biểu diễn tại nhà', 11000000, 7, 2, 1, 'img/piano1.jpg', 3),
-('Violin Yamaha V3SKA', N'Violin kích thước 4/4 dành cho người mới', 5500000, 15, 3, 1, 'img/violin1.jpg', 4);
+(NULL, 'Yamaha Acoustic Guitar FG800', 'Đàn Guitar Acoustic Yamaha FG800 chất lượng cao.', 5000000, 10, (SELECT category_id FROM Categories WHERE name = 'Guitar'), (SELECT brand_id FROM Brands WHERE brand_name = 'Yamaha'), 'yamaha_fg800.png'),
+(1, 'Fender Stratocaster Electric Guitar', 'Đàn Guitar điện Fender Stratocaster.', 15000000, 5, (SELECT category_id FROM Categories WHERE name = 'Guitar'), (SELECT brand_id FROM Brands WHERE brand_name = 'Fender'), 'fender_stratocaster.png'),
+(NULL, 'Casio Digital Piano', 'Đàn Piano điện Casio với nhiều tính năng.', 8000000, 8, (SELECT category_id FROM Categories WHERE name = 'Piano'), (SELECT brand_id FROM Brands WHERE brand_name = 'Casio'), 'casio_dp.png');
 GO
 
--- Insert ProductImages
+-- Insert Product Images
 INSERT INTO ProductImages (product_id, image_url, caption, is_primary)
 VALUES
-(1, 'img/guitar1.jpg', N'Hình ảnh chính của Guitar Yamaha C40', 1),
-(1, 'img/guitar1_side.jpg', N'Hình ảnh bên hông của Guitar Yamaha C40', 0),
-(1, 'img/guitar1_detail.jpg', N'Hình ảnh chi tiết của Guitar Yamaha C40', 0),
-(2, 'img/guitar2.jpg', N'Hình ảnh chính của Guitar Taylor GS Mini', 1),
-(2, 'img/guitar2_back.jpg', N'Hình ảnh mặt sau của Guitar Taylor GS Mini', 0),
-(3, 'img/piano1.jpg', N'Hình ảnh chính của Piano Yamaha P45', 1),
-(4, 'img/violin1.jpg', N'Hình ảnh chính của Violin Yamaha V3SKA', 1),
-(4, 'img/violin1_closeup.jpg', N'Hình ảnh cận cảnh của Violin Yamaha V3SKA', 0);
-GO
-
--- Insert Address
-INSERT INTO Address (user_id, type, street, ward, district, city, is_default)
-VALUES 
-(1, N'Nhà riêng', N'12A Hòa Bình', N'Phường Hiệp Tân', N'Quận Tân Phú', N'TP. HCM', 1),
-(1, N'Văn phòng', N'123 Nguyễn Huệ', N'Phường Bến Nghé', N'Quận 1', N'TP. HCM', 1),
-(1, N'Nhà riêng', N'456 Lê Lợi', N'Phường 1', N'Quận 3', N'TP. HCM', 1),
-(1, N'Nhà riêng', N'789 Mậu Thân', N'Phường 3', N'Vĩnh Long', N'Vĩnh Long', 1);
-GO
-
--- Insert Reviews
-INSERT INTO Reviews (product_id, user_id, rating, comment)
-VALUES
-(1, 1, 5, N'Đàn rất dễ chơi và phù hợp cho người mới bắt đầu!'),
-(2, 1, 4, N'Âm thanh tốt nhưng giá hơi cao.');
+((SELECT product_id FROM Products WHERE name = 'Yamaha Acoustic Guitar FG800'), 'yamaha_fg800_1.png', 'Hình chính', 1),
+((SELECT product_id FROM Products WHERE name = 'Fender Stratocaster Electric Guitar'), 'fender_strat_1.png', 'Hình chính', 1),
+((SELECT product_id FROM Products WHERE name = 'Casio Digital Piano'), 'casio_dp_1.png', 'Hình chính', 1);
 GO
 
 -- Insert Orders
-INSERT INTO Orders (user_id, order_date, total_amount, shipping_address, shipping_phone, discount_id, discount_amount)
-VALUES 
-(1, '2025-06-17', 2250000, N'123 Đường ABC, Hà Nội', '0901234567', 1, 250000),
-(1, '2025-06-17', 2500000, N'789 Mậu Thân, Vĩnh Long', '0934567890', NULL, 0),
-(1, '2025-06-17', 3500000, N'789 Mậu Thân, Vĩnh Long', '0934567890', NULL, 0);
+INSERT INTO Orders (user_id, total_amount, order_phone, receiver_name, address_id)
+VALUES
+(1, 15000000, '0936541245', 'Nguyễn Văn Ram', NULL); -- Địa chỉ chưa có, để NULL tạm
 GO
 
--- Insert OrderDetails
+-- Insert Order Details
 INSERT INTO OrderDetails (order_id, product_id, quantity, price)
-VALUES 
-(1, 1, 1, 2250000),
-(2, 1, 1, 2500000),
-(3, 3, 1, 3500000);
+VALUES
+((SELECT TOP 1 order_id FROM Orders ORDER BY order_id DESC), (SELECT product_id FROM Products WHERE name = 'Fender Stratocaster Electric Guitar'), 1, 15000000);
 GO
 
 -- Insert Carts
 INSERT INTO Carts (user_id, product_id, quantity)
 VALUES
-(1, 2, 1),
-(1, 3, 1),
-(1, 1, 2),
-(1, 4, 2);
+(1, (SELECT product_id FROM Products WHERE name = 'Yamaha Acoustic Guitar FG800'), 1);
+GO
+
+-- Insert Reviews
+INSERT INTO Reviews (product_id, user_id, rating, comment)
+VALUES
+((SELECT product_id FROM Products WHERE name = 'Yamaha Acoustic Guitar FG800'), 1, 5, 'Đàn rất tốt, âm thanh tuyệt vời!'),
+((SELECT product_id FROM Products WHERE name = 'Fender Stratocaster Electric Guitar'), 1, 4, 'Đàn đẹp nhưng giá hơi cao.');
 GO
 
 -- Insert Payments
 INSERT INTO Payments (order_id, amount, payment_method, status)
-VALUES 
-(1, 2250000, 'credit_card', 'paid'),
-(2, 2500000, 'cod', 'unpaid');
+VALUES
+((SELECT TOP 1 order_id FROM Orders ORDER BY order_id DESC), 15000000, 'credit_card', 'paid');
 GO
 
 -- Insert Shipping
 INSERT INTO Shipping (order_id, shipping_method, tracking_number, shipped_date, estimated_delivery)
-VALUES 
-(1, N'Giao hàng nhanh', 'GHN123456', '2025-06-18', '2025-06-20'),
-(2, N'Giao hàng tiết kiệm', 'GHTK789012', '2025-06-19', '2025-06-22');
+VALUES
+((SELECT TOP 1 order_id FROM Orders ORDER BY order_id DESC), 'Giao hàng nhanh', 'TRK123456789', GETDATE(), DATEADD(day, 5, GETDATE()));
 GO
 
--- Insert DiscountUsers
+-- Insert DiscountUsers (the usage of discounts by users)
 INSERT INTO DiscountUsers (discount_id, user_id)
-VALUES 
-(1, 1),
-(2, 1);
+VALUES
+((SELECT discount_id FROM Discounts WHERE code = 'DISC10'), 1);
 GO

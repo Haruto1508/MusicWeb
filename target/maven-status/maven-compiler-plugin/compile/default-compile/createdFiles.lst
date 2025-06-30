@@ -21,6 +21,7 @@ controller\ProductServlet.class
 db\JDBCUtil.class
 controller\DispatcherServlet.class
 dao\RoleDAO.class
+model\Brand.class
 dao\OrderDetailDAO.class
 hashpw\MD5PasswordHasher.class
 model\Order.class

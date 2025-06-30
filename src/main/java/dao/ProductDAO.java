@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import model.Brand;
 import model.Category;
 import model.Product;
 
@@ -36,7 +37,7 @@ public class ProductDAO extends JDBCUtil {
 
     public boolean update(Product product) {
         String sql = "UPDATE Products SET name=?, description=?, price=?, stock_quantity=?, category_id=?, image_url=?, discount_type=? WHERE product_id=?";
-        
+
         try {
             Object[] params = {
                 product.getDescription(), product.getPrice(), product.getStockQuantity(), product.getCategory().getCategoryId(), product.getImageUrl(), product.getName()
@@ -64,9 +65,12 @@ public class ProductDAO extends JDBCUtil {
         String sql = "SELECT * ,\n"
                 + "	c.category_id,\n"
                 + "	c.description,\n"
-                + "	c.name\n"
+                + "	c.name,\n"
+                + "     b.brand_id,\n"
+                + "     b.brand_name\n"
                 + "FROM Products p\n"
-                + "JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Brand b ON b.brand_id = p.brand_id"
                 + "WHERE p.product_id = ?;";
         Object[] params = {productId};
 
@@ -88,6 +92,7 @@ public class ProductDAO extends JDBCUtil {
                 }
 
                 Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+                Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
 
                 return new Product(
                         rs.getInt("product_id"),
@@ -97,7 +102,8 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getTimestamp("created_at").toLocalDateTime()
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        brand
                 );
             }
         } catch (SQLException e) {
@@ -111,15 +117,18 @@ public class ProductDAO extends JDBCUtil {
         String sql = "SELECT * ,\n"
                 + "	c.category_id,\n"
                 + "	c.description,\n"
-                + "	c.name\n"
+                + "	c.name,\n"
+                + "     b.brand_id,\n"
+                + "     b.brand_name\n"
                 + "FROM Products p\n"
-                + "JOIN Categories c ON c.category_id = p.category_id\n"
-                + "WHERE p.product_id = ?;";
+                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Brand b ON b.brand_id = p.brand_i";
         try {
             ResultSet rs = execSelectQuery(sql);
 
             while (rs.next()) {
                 Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+                Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
 
                 Product product = new Product(
                         rs.getInt("product_id"),
@@ -129,7 +138,8 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getTimestamp("created_at").toLocalDateTime()
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        brand
                 );
                 list.add(product);
             }
@@ -142,12 +152,16 @@ public class ProductDAO extends JDBCUtil {
     public List<Product> getProductsByCategory(int categoryId) {
         List<Product> products = new ArrayList<>();
         Object[] params = {categoryId};
+
         String sql = "SELECT * ,\n"
                 + "	c.category_id,\n"
                 + "	c.description,\n"
-                + "	c.name\n"
+                + "	c.name,\n"
+                + "     b.brand_id,\n"
+                + "     b.brand_name\n"
                 + "FROM Products p\n"
-                + "JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
                 + "WHERE c.category_id = ?;";
 
         try {
@@ -155,6 +169,7 @@ public class ProductDAO extends JDBCUtil {
 
             while (rs.next()) {
                 Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+                Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
 
                 Product product = new Product(
                         rs.getInt("product_id"),
@@ -164,7 +179,8 @@ public class ProductDAO extends JDBCUtil {
                         rs.getInt("stock_quantity"),
                         category,
                         rs.getString("image_url"),
-                        rs.getTimestamp("created_at").toLocalDateTime()
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        brand
                 );
                 products.add(product);
             }
@@ -175,37 +191,35 @@ public class ProductDAO extends JDBCUtil {
         return products;
     }
 
-    public List<Product> getProductsDemo(int categoryId, int limit) {
-        List<Product> products = new ArrayList<>();
-        Object[] params = {categoryId, limit};
-        String sql = "SELECT * FROM products WHERE category_id = ? LIMIT ?";
-
-        try {
-            ResultSet rs = execSelectQuery(sql, params);
-
-            while (rs.next()) {
-                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
-
-                Product product = new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getBigDecimal("price"),
-                        rs.getInt("stock_quantity"),
-                        category,
-                        rs.getString("image_url"),
-                     
-                        rs.getTimestamp("created_at").toLocalDateTime()
-                );
-                products.add(product);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return products;
-    }
-
+//    public List<Product> getProductsDemo(int categoryId, int limit) {
+//        List<Product> products = new ArrayList<>();
+//        Object[] params = {categoryId, limit};
+//        String sql = "SELECT * FROM products WHERE category_id = ? LIMIT ?";
+//
+//        try {
+//            ResultSet rs = execSelectQuery(sql, params);
+//
+//            while (rs.next()) {
+//                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+//
+//                Product product = new Product(
+//                        rs.getInt("product_id"),
+//                        rs.getString("name"),
+//                        rs.getString("description"),
+//                        rs.getBigDecimal("price"),
+//                        rs.getInt("stock_quantity"),
+//                        category,
+//                        rs.getString("image_url"),
+//                        rs.getTimestamp("created_at").toLocalDateTime()
+//                );
+//                products.add(product);
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return products;
+//    }
     public List<Product> getOrderHistoryByUserId(int userID) {
         List<Product> productList = new ArrayList<>();
         Object[] params = {userID};
@@ -218,10 +232,10 @@ public class ProductDAO extends JDBCUtil {
 
         try {
             ResultSet rs = execSelectQuery(sql, params);
-            
+
             while (rs.next()) {
                 Product product = new Product();
-                product.setProductID(rs.getInt("product_id"));
+                product.setProductId(rs.getInt("product_id"));
                 product.setName(rs.getString("name"));
                 product.setDescription(rs.getString("description"));
                 product.setPrice(rs.getBigDecimal("price"));
@@ -234,7 +248,4 @@ public class ProductDAO extends JDBCUtil {
         }
         return productList;
     }
-    
-//    public Product getDetailByProductId(int id) {
-//    }
 }

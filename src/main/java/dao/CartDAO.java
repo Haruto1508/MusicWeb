@@ -29,7 +29,7 @@ public class CartDAO extends JDBCUtil {
         String sql = "INSERT INTO Carts (userID, productID, quantity, addDate) VALUES (?, ?, ?, ?)";
         Object[] params = {
             cart.getUser().getUserId(),
-            cart.getProduct().getProductID(),
+            cart.getProduct().getProductId(),
             cart.getQuantity(),
             Timestamp.valueOf(cart.getAddDate())
         };
@@ -46,7 +46,7 @@ public class CartDAO extends JDBCUtil {
         String sql = "UPDATE Carts SET userID=?, productID=?, quantity=?, addDate=? WHERE cartID=?";
         Object[] params = {
             cart.getUser().getUserId(),
-            cart.getProduct().getProductID(),
+            cart.getProduct().getProductId(),
             cart.getQuantity(),
             Timestamp.valueOf(cart.getAddDate()),
             cart.getCartID()
@@ -88,7 +88,7 @@ public class CartDAO extends JDBCUtil {
                 user.setUserId(rs.getInt("user_id"));
 
                 Product product = new Product();
-                product.setProductID(rs.getInt("prodcut_id"));
+                product.setProductId(rs.getInt("product_id"));
 
                 int id = rs.getInt("cartID");
                 int quantity = rs.getInt("quantity");
@@ -122,7 +122,7 @@ public class CartDAO extends JDBCUtil {
                 user.setUserId(rs.getInt("user_id"));
 
                 Product product = new Product();
-                product.setProductID(rs.getInt("product_id"));
+                product.setProductId(rs.getInt("product_id"));
 
                 int quantity = rs.getInt("quantity");
                 LocalDateTime adDateTime = rs.getTimestamp("added_at").toLocalDateTime();

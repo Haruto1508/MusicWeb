@@ -27,6 +27,7 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\db\JDBCUtil.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\ChangePassword.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\DispatcherServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\UpdateUserServlet.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\Brand.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\HomeServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\UserServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\LoginServlet.java

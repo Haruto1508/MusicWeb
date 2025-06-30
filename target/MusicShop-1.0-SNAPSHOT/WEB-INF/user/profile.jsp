@@ -14,11 +14,10 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
         <!-- Link Header -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.header.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.profile.css">
-
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header.css">
         <!-- Link Footer -->
-
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/footer.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.profile.css">
     </head>
     <body>
         <!-- Header -->
@@ -80,7 +79,9 @@
                 </div>
             </div>
         </div>
-
+        <!-- Footer -->
+        <%@ include file="/WEB-INF/include/footer.jsp" %>
+        <%@ include file="/WEB-INF/include/update-toast.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

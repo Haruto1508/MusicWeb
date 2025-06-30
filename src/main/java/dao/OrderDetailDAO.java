@@ -6,8 +6,6 @@ package dao;
 
 import db.JDBCUtil;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,7 +24,7 @@ public class OrderDetailDAO extends JDBCUtil {
     public boolean createOrderDetail(OrderDetail orderDetail) {
         String sql = "INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
         Object[] params = {
-            orderDetail.getOrderDetailId(), orderDetail.getOrder().getOrderId(), orderDetail.getProduct().getProductID(),
+            orderDetail.getOrderDetailId(), orderDetail.getOrder().getOrderId(), orderDetail.getProduct().getProductId(),
             orderDetail.getQuantity(), orderDetail.getPrice()
         };
 
@@ -64,7 +62,7 @@ public class OrderDetailDAO extends JDBCUtil {
             try ( ResultSet rs = execSelectQuery(sql, params)) {
                 if (rs.next()) {
                     Product product = new Product();
-                    product.setProductID(rs.getInt("order_id"));
+                    product.setProductId(rs.getInt("order_id"));
                     
                     Order order = new Order();
                     order.setOrderId(rs.getInt("order_id"));
@@ -109,7 +107,7 @@ public class OrderDetailDAO extends JDBCUtil {
             try ( ResultSet rs = execSelectQuery(sql, params)) {
                 if (rs.next()) {
                     Product product = new Product();
-                    product.setProductID(rs.getInt("order_id"));
+                    product.setProductId(rs.getInt("order_id"));
 
                     Order order = new Order();
                     order.setOrderId(rs.getInt("order_id"));
@@ -133,7 +131,7 @@ public class OrderDetailDAO extends JDBCUtil {
 
         try {
             Object[] params = {
-                orderDetail.getProduct().getProductID(), orderDetail.getQuantity(), orderDetail.getPrice(), orderDetail.getOrderDetailId()
+                orderDetail.getProduct().getProductId(), orderDetail.getQuantity(), orderDetail.getPrice(), orderDetail.getOrderDetailId()
             };
             return execQuery(sql, params) > 0;
         } catch (SQLException e) {
@@ -178,7 +176,7 @@ public class OrderDetailDAO extends JDBCUtil {
         try {
             ResultSet rs = execSelectQuery(sql);
             Product product = new Product();
-            product.setProductID(rs.getInt("order_id"));
+            product.setProductId(rs.getInt("order_id"));
 
             Order order = new Order();
             order.setOrderId(rs.getInt("order_id"));

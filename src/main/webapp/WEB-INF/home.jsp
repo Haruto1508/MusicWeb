@@ -17,9 +17,11 @@
         <title>Music Shop - Trang chủ</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
         <!-- Link Header -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.header.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header.css">
         <!-- Link Footer -->
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/footer.css">
         <!-- Link CSS -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css"/>
     </head>
@@ -105,71 +107,20 @@
 
         <!-- Featured products (CSS thuần card) -->
         <section class="container">
-            <h2 class="text-center fw-bold mb-4">Sản phẩm nổi bật</h2>
-            <div class="home-card-row">
-                <div class="home-col">
-                    <div class="home-card">
-                        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80"
-                             alt="Guitar Acoustic" class="home-card-img">
-                        <div>
-                            <h5 class="home-card-title">Guitar Acoustic Yamaha F310</h5>
-                            <p class="home-card-text">Âm thanh ấm áp, phù hợp cho người mới bắt đầu và biểu diễn chuyên
-                                nghiệp.</p>
-                            <div class="home-card-bottom">
-                                <span class="home-card-price">2.500.000đ</span>
-                                <a href="#" class="home-card-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="home-col">
-                    <div class="home-card">
-                        <img src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"
-                             alt="Piano điện" class="home-card-img">
-                        <div>
-                            <h5 class="home-card-title">Piano Điện Casio PX-160</h5>
-                            <p class="home-card-text">Thiết kế nhỏ gọn, phím cảm ứng lực, âm thanh chân thực.</p>
-                            <div class="home-card-bottom">
-                                <span class="home-card-price">12.000.000đ</span>
-                                <a href="#" class="home-card-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="home-col">
-                    <div class="home-card">
-                        <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=400&q=80"
-                             alt="Trống điện tử" class="home-card-img">
-                        <div>
-                            <h5 class="home-card-title">Trống Điện Roland TD-1K</h5>
-                            <p class="home-card-text">Bộ trống điện tử nhỏ gọn, phù hợp luyện tập tại nhà, nhiều chế độ âm
-                                thanh.</p>
-                            <div class="home-card-bottom">
-                                <span class="home-card-price">8.500.000đ</span>
-                                <a href="#" class="home-card-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Guitar Section -->
-        <section class="container">
             <h1 class="text-center fw-bold mb-4">Guitar</h1>
             <div class="home-card-row">
                 <c:choose>
                     <c:when test="${not empty guitars}">
                         <c:forEach var="guitar" items="${guitars}">
                             <div class="home-col">
-                                <div class="home-card">
-                                    <img src="${guitar.imageUrl}" alt="guitar" class="home-card-img">
-                                    <div>
-                                        <h5 class="home-card-title">${guitar.name}</h5>
-                                        <p class="home-card-text">${guitar.description}</p>
-                                        <div class="home-card-bottom">
-                                            <span class="home-card-price">${guitar.price}đ</span>
-                                            <a href="#" class="home-card-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
+                                <div class="product-card">
+                                    <img src="${guitar.imageUrl}" alt="${guitar.name}" class="product-img">
+                                    <div class="product-body">
+                                        <h5 class="product-title">${guitar.name}</h5>
+                                        <p class="product-desc">${guitar.description}</p>
+                                        <div class="product-footer">
+                                            <span class="product-price">${guitar.price}đ</span>
+                                            <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
                                         </div>
                                     </div>
                                 </div>
@@ -183,22 +134,21 @@
             </div>
         </section>
 
-        <!-- Violin Section -->
         <section class="container">
-            <h1 class="text-center fw-bold mb-4">Viloin</h1>
+            <h1 class="text-center fw-bold mb-4">Violin</h1>
             <div class="home-card-row">
                 <c:choose>
                     <c:when test="${not empty violins}">
                         <c:forEach var="violin" items="${violins}">
                             <div class="home-col">
-                                <div class="home-card">
-                                    <img src="${violin.imageUrl}" alt="guitar" class="home-card-img">
-                                    <div>
-                                        <h5 class="home-card-title">${violin.name}</h5>
-                                        <p class="home-card-text">${violin.description}</p>
-                                        <div class="home-card-bottom">
-                                            <span class="home-card-price">${violin.price}đ</span>
-                                            <a href="#" class="home-card-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
+                                <div class="product-card">
+                                    <img src="${violin.imageUrl}" alt="${violin.name}" class="product-img">
+                                    <div class="product-body">
+                                        <h5 class="product-title">${violin.name}</h5>
+                                        <p class="product-desc">${violin.description}</p>
+                                        <div class="product-footer">
+                                            <span class="product-price">${violin.price}đ</span>
+                                            <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
                                         </div>
                                     </div>
                                 </div>
@@ -212,7 +162,6 @@
             </div>
         </section>
 
-        <!-- Piano Section -->
         <section class="container">
             <h1 class="text-center fw-bold mb-4">Piano</h1>
             <div class="home-card-row">
@@ -220,14 +169,17 @@
                     <c:when test="${not empty pianos}">
                         <c:forEach var="piano" items="${pianos}">
                             <div class="home-col">
-                                <div class="home-card">
-                                    <img src="${piano.imageUrl}" alt="guitar" class="home-card-img">
-                                    <div>
-                                        <h5 class="home-card-title">${piano.name}</h5>
-                                        <p class="home-card-text">${piano.description}</p>
-                                        <div class="home-card-bottom">
-                                            <span class="home-card-price">${piano.price}đ</span>
-                                            <a href="#" class="home-card-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
+                                <div class="product-card">
+                                    <img src="${piano.imageUrl}" alt="${piano.name}" class="product-img">
+                                    <div class="product-body">
+                                        <h5 class="product-title">${piano.name}</h5>
+                                        <p class="product-desc">${piano.description}</p>
+                                        <div class="product-footer d-flex justify-content-between align-items-center">
+                                            <span class="product-price">${piano.price}đ</span>
+                                            <div class="d-flex gap-2">
+                                                <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
+                                                <a href="${pageContext.request.contextPath}/product?id=${piano.productId}" class="product-btn"><i class="fa-solid fa-credit-card"></i> Mua</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

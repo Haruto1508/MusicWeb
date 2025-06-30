@@ -5,7 +5,6 @@
 package model;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -22,11 +21,12 @@ public class Product {
     private Category category;
     private String imageUrl;
     private LocalDateTime createDateTime;
+    private Brand brand;
 
     public Product() {
     }
 
-    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime) {
+    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, Brand brand) {
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -35,14 +35,7 @@ public class Product {
         this.category = category;
         this.imageUrl = imageUrl;
         this.createDateTime = createDateTime;
-    }
-
-    public int getProductID() {
-        return productId;
-    }
-
-    public void setProductID(int productId) {
-        this.productId = productId;
+        this.brand = brand;
     }
 
     public String getName() {
@@ -81,8 +74,8 @@ public class Product {
         return category;
     }
 
-    public void setCategoryId(Category categoryId) {
-        this.category = categoryId;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public String getImageUrl() {
@@ -101,8 +94,24 @@ public class Product {
         this.createDateTime = createDateTime;
     }
 
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public Brand getBrand() {
+        return brand;
+    }
+
+    public void setBrand(Brand brand) {
+        this.brand = brand;
+    }
+
     @Override
     public String toString() {
-        return "Product{" + "product=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", categoryId=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + '}';
+        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + '}';
     }
 }

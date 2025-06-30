@@ -44,9 +44,15 @@ public class UserDAO extends JDBCUtil {
     }
 
     public boolean update(User user) {
-        String sql = "UPDATE Users SET full_name=?, email=?, phone=?, gender=?, birthdate=? WHERE user_id=?";
+        String sql = "UPDATE Users SET account=?, full_name=?, email=?, phone=?, gender=?, birthdate=? WHERE user_id=?";
         Object[] params = {
-            user.getFullName(), user.getEmail(), user.getPhone(), user.getGender(), user.getBirthdate(), user.getUserId()
+            user.getAccount(),
+            user.getFullName(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getGender(),
+            user.getBirthdate(),
+            user.getUserId()
         };
 
         try {
@@ -229,20 +235,53 @@ public class UserDAO extends JDBCUtil {
         }
         return user;
     }
-    
+
     public boolean updatePasswordByUserId(String password, int id) {
         String sql = "UPDATE Users\n"
                 + "SET password = ?\n"
                 + "WHERE user_id = ?";
-        
+
         Object[] params = {password, id};
-        
+
         try {
             return execQuery(sql, params) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
+        return false;
+    }
+
+    public boolean isAccountTaken(String account, int currentUserId) {
+        String sql = "SELECT 1 FROM Users WHERE account = ? AND user_id != ?";
+        Object[] params = {account, currentUserId};
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isEmailTaken(String email, int currentUserId) {
+        String sql = "SELECT 1 FROM Users WHERE email = ? AND user_id != ?";
+        Object[] params = {email, currentUserId};
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isPhoneTaken(String phone, int currentUserId) {
+        String sql = "SELECT 1 FROM Users WHERE phone = ? AND user_id != ?";
+        Object[] params = {phone, currentUserId};
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 

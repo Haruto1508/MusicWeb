@@ -71,6 +71,64 @@
                     </div>
                 </c:otherwise>
             </c:choose>
+
+             
+        </div>
+        
+        <div class="row g-4">
+            <button type="button" class="btn btn-primary ms-4" data-bs-toggle="modal" data-bs-target="#editModal"> Thêm địa chỉ </button>
         </div>
     </div>
 </div>
+
+<!-- Modal chỉnh sửa Address -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="Crud">
+                <input type="hidden" name="action" value="edit">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Địa chỉ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editId" class="form-label">Đường</label>
+                        <input type="text" class="form-control" id="editId" name="id" readonly> 
+                    </div>
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Phường</label>
+                        <input type="text" class="form-control" id="editName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Quận</label>
+                        <input type="text" class="form-control" id="editName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Thành phố</label>
+                        <input type="text" class="form-control" id="editName" name="name" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bỏ</button>
+                    <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editArtist(id, name) {
+        // Đặt giá trị vào input trong modal
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+    }
+
+    function confirmDelete(id) {
+        if (confirm("Are you sure you want to delete this artist?")) {
+            window.location.href = '${pageContext.request.contextPath}/Crud?action=delete&id=' + id;
+        }
+    }
+</script>
