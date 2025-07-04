@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.order.css"/>
 
 <div class="container">
-    <h2 class="mb-4">🧾 Đơn hàng của bạn</h2>
+    <h2 class="mb-4">🧾 Your Orders</h2>
 
     <c:choose>
         <c:when test="${not empty orders}">
@@ -20,17 +20,17 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div>
-                                        <h5 class="card-title mb-1">🆔 Mã đơn: <strong>${order.orderId}</strong></h5>
-                                        <p class="mb-0">📅 Ngày: ${order.orderDate}</p>
-                                        <p class="mb-0">💰 Tổng: <strong>${order.totalAmount} VNĐ</strong></p>
-                                        <p class="mb-0">📦 Trạng thái: 
-                                            <span class="badge bg-${order.status == 'Đã giao' ? 'success' : order.status == 'Đang xử lý' ? 'warning' : 'secondary'}">
-                                                ${order.status}
+                                        <h5 class="card-title mb-1">🆔 Order ID: <strong>${order.orderId}</strong></h5>
+                                        <p class="mb-0">📅 Day: ${order.orderDate}</p>
+                                        <p class="mb-0">💰 Total: <strong>${order.totalAmount} VNĐ</strong></p>  
+                                        <p class="mb-0">📦 Status:
+                                            <span class="badge bg-${badgeClass}">
+                                                ${statusText}
                                             </span>
                                         </p>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/product?id=${order.orderId}" class="btn btn-outline-primary btn-sm">
-                                        Chi tiết
+                                    <a href="${pageContext.request.contextPath}/order?id=${order.orderId}" class="btn btn-outline-primary btn-sm">
+                                        View detail
                                     </a>
                                 </div>
 
@@ -52,7 +52,7 @@
         </c:when>
         <c:otherwise>
             <div class="alert alert-info text-center" role="alert">
-                🛒 Bạn chưa có đơn hàng nào!
+                🛒 You have no orders yet!
             </div>
         </c:otherwise>
     </c:choose>

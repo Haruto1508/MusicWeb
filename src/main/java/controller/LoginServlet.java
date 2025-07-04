@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,6 +60,20 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Lấy cookie nếu có để tự động điền username
+        Cookie[] cookies = request.getCookies();
+        String savedUserAccount = null;
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("userAccount".equals(cookie.getName())) {
+                    savedUserAccount = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        request.setAttribute("savedUserAccount", savedUserAccount);
         request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
     }
 
@@ -73,40 +88,56 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String userInfo = request.getParameter("info").trim();
-        String password = request.getParameter("password").trim();
-        String hashPasswod = MD5PasswordHasher.hashPassword(password);
-        System.out.println(userInfo);
-        System.out.println(hashPasswod);
-        UserDAO userDAO = new UserDAO();
+        String userInfo = request.getParameter("info");
+        String password = request.getParameter("password");
+        String rememberMe = request.getParameter("rememberMe");
 
-        User loginUser = userDAO.getUserLogin(userInfo, hashPasswod);
+        if (userInfo != null) {
+            userInfo = userInfo.trim();
+        }
+        if (password != null) {
+            password = password.trim();
+        }
+
+        String hashPassword = MD5PasswordHasher.hashPassword(password);
+        UserDAO userDAO = new UserDAO();
+        User loginUser = userDAO.getUserLogin(userInfo, hashPassword);
 
         if (loginUser != null) {
             HttpSession session = request.getSession();
 
-            // check user role
-            int roleId = loginUser.getRole().getId();
+            if ("on".equals(rememberMe)) {
+                // Tạo cookie lưu lại account (username)
+                Cookie userCookie = new Cookie("userAccount", loginUser.getAccount());
+                userCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                userCookie.setPath(request.getContextPath());
+                response.addCookie(userCookie);
+            } else {
+                // Xóa cookie nếu tồn tại
+                Cookie userCookie = new Cookie("userAccount", "");
+                userCookie.setMaxAge(0);
+                userCookie.setPath(request.getContextPath());
+                response.addCookie(userCookie);
+            }
 
-            if (roleId == 2) { // Admin
+            // Đặt session user
+            session.setAttribute("user", loginUser);
+            session.setAttribute("message", "Welcome " + loginUser.getAccount());
+
+            // Phân quyền
+            int roleId = loginUser.getRole().getId();
+            if (roleId == 1) { // Admin
                 request.getRequestDispatcher("/WEB-INF/admin/manager.jsp").forward(request, response);
-            } else if (roleId == 1) { // User
-                session.setAttribute("user", loginUser);
-                session.setAttribute("message", "Welcome " + loginUser.getAccount());
-                System.out.println("Login successful");        
-                System.out.println(loginUser.getPassword());
+            } else if (roleId == 2) { // User
                 response.sendRedirect(request.getContextPath() + "/home");
             } else {
-                // Nếu role không rõ ràng, logout
                 session.invalidate();
                 response.sendRedirect(request.getContextPath() + "/logout");
             }
         } else {
             request.setAttribute("info", userInfo);
-            request.removeAttribute("error");
             request.setAttribute("error", "User name or password is incorrect.");
             request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
-            System.out.println("Login fail");//delete all files
         }
     }
 }

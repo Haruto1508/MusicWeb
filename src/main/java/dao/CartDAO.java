@@ -123,6 +123,8 @@ public class CartDAO extends JDBCUtil {
 
                 Product product = new Product();
                 product.setProductId(rs.getInt("product_id"));
+                product.setName(rs.getString("name"));
+                product.setPrice(rs.getBigDecimal("price"));
 
                 int quantity = rs.getInt("quantity");
                 LocalDateTime adDateTime = rs.getTimestamp("added_at").toLocalDateTime();

@@ -12,33 +12,33 @@
     <div class="icon-lock">
         <i class="fa fa-lock"></i>
     </div>
-    <h2 class="mb-4 text-center mt-4" style="color:#8b5cf6;">Đổi mật khẩu</h2>
+    <h2 class="mb-4 text-center mt-4" style="color:#8b5cf6;">Change password</h2>
 
     <form id="changePasswordForm" action="change-password" method="post">
         <div class="mb-3">
-            <label for="oldPw" class="form-label">Mật khẩu hiện tại</label>
-            <input type="password" class="form-control" id="oldPw" name="oldPw" placeholder="Nhập mật khẩu hiện tại" required>
+            <label for="oldPw" class="form-label">Current Password</label>
+            <input type="password" class="form-control" id="oldPw" name="oldPw" placeholder="Enter current password" required>
             <c:if test="${not empty oldPwError}">
                 <div class="text-danger mt-1">${oldPwError}</div>
             </c:if>
         </div>
 
         <div class="mb-3">
-            <label for="newPw" class="form-label">Mật khẩu mới</label>
-            <input type="password" class="form-control" id="newPw" name="newPw" placeholder="Nhập mật khẩu mới" required>
+            <label for="newPw" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newPw" name="newPw" placeholder="Enter new Password" required>
             <c:if test="${not empty newPwError}">
                 <div class="text-danger mt-1">${newPwError}</div>
             </c:if>
         </div>
 
         <div class="mb-3">
-            <label for="confirmPw" class="form-label">Xác nhận mật khẩu mới</label>
-            <input type="password" class="form-control" id="confirmPw" name="confirmPw" placeholder="Nhập lại mật khẩu mới" required>
+            <label for="confirmPw" class="form-label">Confirm new password</label>
+            <input type="password" class="form-control" id="confirmPw" name="confirmPw" placeholder="Re-enter new password" required>
             <c:if test="${not empty confirmPwError}">
                 <div class="text-danger mt-1">${confirmPwError}</div>
             </c:if>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100 mt-2">Đổi mật khẩu</button>
+        <button type="submit" class="btn btn-primary w-100 mt-2">Change password</button>
     </form>
 </div>

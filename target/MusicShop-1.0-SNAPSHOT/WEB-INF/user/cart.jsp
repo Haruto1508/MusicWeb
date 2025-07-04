@@ -8,7 +8,7 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.cart.css"/>
 <div class="container">
-    <h2 class="mb-4">🛒 Giỏ hàng của bạn</h2>
+    <h2 class="mb-4">🛒 Your Cart</h2>
 
     <c:choose>
         <c:when test="${not empty carts}">
@@ -20,12 +20,12 @@
                         </div>
                         <div class="col-md-6">
                             <h5 class="mb-1">${cart.product.name}</h5>
-                            <p class="mb-1 text-muted">Giá: ${cart.product.price} VNĐ</p>
-                            <p class="mb-1 text-muted">Số lượng: ${cart.quantity}</p>
+                            <p class="mb-1 text-muted">Price: ${cart.product.price} VNĐ</p>
+                            <p class="mb-1 text-muted">Quantity: ${cart.quantity}</p>
                         </div>
                         <div class="col-md-4 text-end cart-buttons">
-                            <a href="#" class="btn btn-outline-primary btn-sm">🔍 Xem chi tiết</a>
-                            <a href="#" class="btn btn-success btn-sm">💳 Mua ngay</a>
+                            <a href="${pageContext.request.contextPath}/product?id=${cart.product.productId}" class="btn btn-outline-primary btn-sm">🔍 See details</a>
+                            <a href="${pageContext.request.contextPath}/product?id=${cart.product.productId}" class="btn btn-success btn-sm">💳 Buy now</a>
                         </div>
                     </div>
                 </c:forEach>
@@ -33,18 +33,18 @@
 
             <!-- Tổng tiền -->
             <div class="mt-4 text-end">
-                <p class="cart-total">Tổng tiền: 
+                <p class="cart-total">Total amount: 
                     <strong>
-                        <c:out value="${totalPrice}" /> VNĐ
+                        <c:out value="${total}" /> VNĐ
                     </strong>
                 </p>
-                <a href="checkout-all" class="btn btn-primary">🧾 Thanh toán tất cả</a>
+                <a href="checkout-all" class="btn btn-primary">🧾 Pay all</a>
             </div>
         </c:when>
 
         <c:otherwise>
             <div class="alert alert-info text-center mt-5">
-                🛒 Giỏ hàng của bạn đang trống!
+                🛒 Your cart is empty!
             </div>
         </c:otherwise>
     </c:choose>

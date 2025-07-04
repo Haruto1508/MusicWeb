@@ -4,6 +4,7 @@
  */
 package model;
 
+import enums.DiscountType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -15,20 +16,20 @@ public class Discount {
     private int discountId;
     private String code;
     private String description;
-    private String discountType; // "percentage" hoặc "fixed"
+    private DiscountType  discountType; // "percentage" hoặc "fixed"
     private BigDecimal discountValue;
     private LocalDate startDate;
     private LocalDate endDate;
     private BigDecimal minimumOrderValue;
-    private Integer usageLimit;
+    private int usageLimit;
     private int usedCount;
     private boolean isActive;
 
     // Constructors
     public Discount() {}
     
-    public Discount(int discountId, String code, String description, String discountType, BigDecimal discountValue,
-                    LocalDate startDate, LocalDate endDate, BigDecimal minimumOrderValue, Integer usageLimit,
+    public Discount(int discountId, String code, String description, DiscountType discountType, BigDecimal discountValue,
+                    LocalDate startDate, LocalDate endDate, BigDecimal minimumOrderValue, int usageLimit,
                     int usedCount, boolean isActive) {
         this.discountId = discountId;
         this.code = code;
@@ -68,11 +69,11 @@ public class Discount {
         this.description = description;
     }
 
-    public String getDiscountType() {
+    public DiscountType getDiscountType() {
         return discountType;
     }
 
-    public void setDiscountType(String discountType) {
+    public void setDiscountType(DiscountType discountType) {
         this.discountType = discountType;
     }
 
@@ -108,11 +109,11 @@ public class Discount {
         this.minimumOrderValue = minimumOrderValue;
     }
 
-    public Integer getUsageLimit() {
+    public int getUsageLimit() {
         return usageLimit;
     }
 
-    public void setUsageLimit(Integer usageLimit) {
+    public void setUsageLimit(int usageLimit) {
         this.usageLimit = usageLimit;
     }
 
@@ -131,4 +132,10 @@ public class Discount {
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
+
+    @Override
+    public String toString() {
+        return "Discount{" + "discountId=" + discountId + ", code=" + code + ", description=" + description + ", discountType=" + discountType + ", discountValue=" + discountValue + ", startDate=" + startDate + ", endDate=" + endDate + ", minimumOrderValue=" + minimumOrderValue + ", usageLimit=" + usageLimit + ", usedCount=" + usedCount + ", isActive=" + isActive + '}';
+    }
+    
 }

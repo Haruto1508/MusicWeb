@@ -40,7 +40,7 @@ public class AddressDAO extends JDBCUtil {
                 + "	u.phone\n"
                 + "FROM Address a\n"
                 + "LEFT JOIN Users u ON u.user_id = a.user_id\n"
-                + "WHERE a.address_id = ?";
+                + "WHERE u.user_id = ?";
         try {
             Object[] params = {userId};
 
@@ -59,7 +59,9 @@ public class AddressDAO extends JDBCUtil {
                         rs.getString("district"),
                         rs.getString("city"),
                         rs.getString("type"),
-                        rs.getBoolean("is_default")
+                        rs.getBoolean("is_default"),
+                        rs.getString("receiver_phone"),
+                        rs.getString("receiver_name")
                 );
                 list.add(address);
             }
@@ -68,7 +70,6 @@ public class AddressDAO extends JDBCUtil {
         }
         return list;
     }
-
     public boolean update(Address address) {
         String sql = "UPDATE Address SET street = ?, ward = ?, district = ?, city = ?, type = ?, is_default = ? WHERE address_id = ?";
         Object[] params = {
@@ -124,7 +125,9 @@ public class AddressDAO extends JDBCUtil {
                         rs.getString("district"),
                         rs.getString("city"),
                         rs.getString("type"),
-                        rs.getBoolean("is_default")
+                        rs.getBoolean("is_default"),
+                        rs.getString("receiver_phone"),
+                        rs.getString("receiver_name")
                 );
             }
         } catch (SQLException e) {
@@ -134,12 +137,10 @@ public class AddressDAO extends JDBCUtil {
     }
     
     public static void main(String[] args) {
-        AddressDAO addressDAO = new AddressDAO();
+        List<Address> ad = new AddressDAO().getAddressesByUserId(2);
         
-        List<Address> a = addressDAO.getAddressesByUserId(1);
-        
-        for(Address ar : a){
-            System.out.println(ar.toString());
+        for(Address a : ad) {
+            System.out.println(a.toString());
         }
     }
 }

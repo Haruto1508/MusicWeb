@@ -5,6 +5,7 @@
 package dao;
 
 import db.JDBCUtil;
+import enums.Gender;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,14 +19,14 @@ import model.User;
  */
 public class UserDAO extends JDBCUtil {
 
-    public boolean insert(User user) {
+    public boolean insertUser(User user) {
         String sql = "INSERT INTO Users(full_name, email, password, phone, gender, birthdate, account) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Object[] params = {
             user.getFullName(),
             user.getEmail(),
             user.getPassword(),
             user.getPhone(),
-            user.getGender(),
+            user.getGender() != null ? user.getGender().name() : null,
             user.getBirthdate() != null ? java.sql.Date.valueOf(user.getBirthdate()) : null,
             user.getAccount()
         };
@@ -50,7 +51,7 @@ public class UserDAO extends JDBCUtil {
             user.getFullName(),
             user.getEmail(),
             user.getPhone(),
-            user.getGender(),
+            user.getGender() != null ? user.getGender().getGender() : null,
             user.getBirthdate(),
             user.getUserId()
         };
@@ -77,8 +78,8 @@ public class UserDAO extends JDBCUtil {
 
     public User getUserById(int userId) {
         String sql = "select *,\n"
-                + "	r.name,\n"
-                + "	r.description\n"
+                + "\tr.name,\n"
+                + "\tr.description\n"
                 + "FROM Users u \n"
                 + "LEFT JOIN Roles r ON r.role_id = u.role_id\n"
                 + "WHERE u.user_id = ?";
@@ -98,7 +99,7 @@ public class UserDAO extends JDBCUtil {
                 user.setEmail(rs.getString("email"));
                 user.setCreateDateTime(rs.getTimestamp("created_at").toLocalDateTime());
                 user.setImageUrl(rs.getString("image_url"));
-                user.setGender(rs.getString("gender"));
+                user.setGender(Gender.fromGender(rs.getInt("gender")));
                 user.setRole(role);
                 user.setUserId(rs.getInt("user_id"));
                 user.setBirthdate(rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null);
@@ -132,7 +133,7 @@ public class UserDAO extends JDBCUtil {
                 user.setEmail(rs.getString("email"));
                 user.setCreateDateTime(rs.getTimestamp("created_at").toLocalDateTime());
                 user.setImageUrl(rs.getString("image_url"));
-                user.setGender(rs.getString("gender"));
+                user.setGender(Gender.fromGender(rs.getInt("gender")));
                 user.setRole(role);
                 user.setUserId(rs.getInt("user_id"));
                 user.setBirthdate(rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null);
@@ -169,7 +170,7 @@ public class UserDAO extends JDBCUtil {
                 user.setEmail(rs.getString("email"));
                 user.setCreateDateTime(rs.getTimestamp("created_at").toLocalDateTime());
                 user.setImageUrl(rs.getString("image_url"));
-                user.setGender(rs.getString("gender"));
+                user.setGender(Gender.fromGender(rs.getInt("gender")));
                 user.setRole(role);
                 user.setUserId(rs.getInt("user_id"));
                 user.setBirthdate(rs.getDate("birthdate") != null ? rs.getDate("birthdate").toLocalDate() : null);
@@ -288,10 +289,9 @@ public class UserDAO extends JDBCUtil {
     public static void main(String[] args) {
         UserDAO u = new UserDAO();
 
-        User uss = u.getUserLogin("ramcute", "ed218e06b885297d0750b65be5e4041e");
-
-        System.out.println(uss.toString());
-        System.out.println(uss.getPassword());
+        User user = u.getUserById(2);
+        
+        System.out.println(user);
     }
 
 }

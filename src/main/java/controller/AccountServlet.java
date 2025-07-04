@@ -8,13 +8,13 @@ import dao.AddressDAO;
 import dao.CartDAO;
 import dao.OrderDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -32,32 +32,6 @@ import model.User;
 
 public class AccountServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet AccountServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet AccountServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -70,8 +44,11 @@ public class AccountServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         HttpSession session = request.getSession(false);
         User user = null;
+
+        // Kiểm tra đăng nhập
         if (session != null) {
             user = (User) session.getAttribute("user");
             if (user == null) {
@@ -88,53 +65,73 @@ public class AccountServlet extends HttpServlet {
             view = "info";
         }
 
+
+        // Xử lý theo view
         switch (view) {
             case "info":
+                // Định dạng ngày sinh
                 int currentYear = LocalDate.now().getYear();
                 DateTimeFormatter textFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                 DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                String birthdateInputValue = user.getBirthdate() != null ? user.getBirthdate().format(inputFormatter) : "";
-                String birthdateTextValue = user.getBirthdate() != null ? user.getBirthdate().format(textFormatter) : "";
+
+                String birthdateInputValue = user.getBirthdate() != null
+                        ? user.getBirthdate().format(inputFormatter)
+                        : "";
+                String birthdateTextValue = user.getBirthdate() != null
+                        ? user.getBirthdate().format(textFormatter)
+                        : "";
+
+                // Gán thông tin dùng chung
+                session.setAttribute("user", user);
+                request.setAttribute("currentYear", currentYear);
                 request.setAttribute("birthdateInputValue", birthdateInputValue);
                 request.setAttribute("birthdateTextValue", birthdateTextValue);
-                request.setAttribute("currentYear", currentYear);
-                request.setAttribute("user", user);
                 break;
+
             case "address":
                 AddressDAO addressDAO = new AddressDAO();
                 List<Address> addresses = addressDAO.getAddressesByUserId(user.getUserId());
                 if (addresses == null) {
-                    request.setAttribute("error", "Cannot load addresses");
                     addresses = new ArrayList<>();
+                    request.setAttribute("error", "Cannot load addresses");
                 }
-                request.setAttribute("addresses", addresses);
+                session.setAttribute("addresses", addresses);
                 break;
+
             case "cart":
                 CartDAO cartDAO = new CartDAO();
                 List<Cart> carts = cartDAO.getCartByUserId(user.getUserId());
-                if (carts == null) {
-                    request.setAttribute("error", "Cannot load cart");
+                BigDecimal total = BigDecimal.ZERO;
+                if (carts != null) {
+                    for (Cart c : carts) {
+                        total = total.add(c.getProduct().getPrice());
+                    }
+                } else {
                     carts = new ArrayList<>();
+                    request.setAttribute("error", "Cannot load cart");
                 }
-                request.setAttribute("carts", carts);
+                session.setAttribute("carts", carts);
+                request.setAttribute("total", total);
                 break;
+
             case "order":
                 OrderDAO orderDAO = new OrderDAO();
-                List<Order> orders = orderDAO.getOrderByUserId(user.getUserId());
+                List<Order> orders = orderDAO.getOrdersByUserId(user.getUserId());
                 if (orders == null) {
-                    request.setAttribute("error", "Cannot load orders");
                     orders = new ArrayList<>();
+                    request.setAttribute("error", "Cannot load orders");
                 }
-                
-                request.setAttribute("orders", orders);
+                session.setAttribute("orders", orders);
                 break;
+
             case "setting":
-                break;
             case "password":
+                // Nếu có view khác, xử lý tại đây
                 break;
+
             default:
-                view = "info";
                 request.setAttribute("error", "Invalid view parameter");
+                view = "info";
                 break;
         }
 

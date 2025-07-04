@@ -35,23 +35,23 @@
                         <hr>
                         <ul>
                             <li><a href="${pageContext.request.contextPath}/account?view=info" 
-                                   class="${ view == 'info' or empty  view ? 'active' : ''}">
-                                    <i class="fas fa-user-circle"></i> Thông tin tài khoản</a></li>
+                                   class="${ view == 'info' or empty  view ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                    <i class="fas fa-user-circle"></i> Profile</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=address" 
-                                   class="${ view == 'address' ? 'active' : ''}">
-                                    <i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
+                                   class="${ view == 'address' ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                    <i class="fas fa-map-marker-alt"></i> Address</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=order" 
-                                   class="${ view == 'order' ? 'active' : ''}">
-                                    <i class="fas fa-box"></i> Đơn hàng</a></li>
+                                   class="${ view == 'order' ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                    <i class="fas fa-box"></i> Order</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=cart" 
-                                   class="${ view == 'cart' ? 'active' : ''}">
-                                    <i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
+                                   class="${ view == 'cart' ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                    <i class="fas fa-shopping-cart"></i> Cart</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=setting" 
-                                   class="${ view == 'setting' ? 'active' : ''}">
-                                    <i class="fas fa-cog"></i> Cài đặt</a></li>
+                                   class="${ view == 'setting' ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                    <i class="fas fa-cog"></i> Setting</a></li>
                             <li><a href="${pageContext.request.contextPath}/account?view=password" 
-                                   class="${ view == 'password' ? 'active' : ''}">
-                                    <i class="fas fa-lock"></i> Đổi mật khẩu</a></li> 
+                                   class="${ view == 'password' ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                    <i class="fas fa-lock"></i> Change Password</a></li> 
                         </ul>
                     </div>
                 </div>
@@ -83,5 +83,7 @@
         <%@ include file="/WEB-INF/include/footer.jsp" %>
         <%@ include file="/WEB-INF/include/update-toast.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
     </body>
 </html>

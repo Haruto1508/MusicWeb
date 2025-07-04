@@ -4,6 +4,7 @@
  */
 package model;
 
+import enums.OrderStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,12 +18,10 @@ public class Order {
     private int orderId;
     private User user;
     private LocalDateTime orderDate;
-    private String status;  // pending, processing, shipped, delivered, cancelled
+    private OrderStatus status;  // pending, processing, shipped, delivered, cancelled
     private BigDecimal totalAmount;
     private Discount discount; // có thể null
     private BigDecimal discountAmount;
-    private String orderPhone;
-    private String receiverName;
     private Address address;
 
     private List<OrderDetail> orderDetails;
@@ -30,7 +29,7 @@ public class Order {
     public Order() {
     }
 
-    public Order(int orderId, User user, LocalDateTime orderDate, String status, BigDecimal totalAmount, Discount discount, BigDecimal discountAmount, String orderPhone, String receiverName, Address address) {
+    public Order(int orderId, User user, LocalDateTime orderDate, OrderStatus status, BigDecimal totalAmount, Discount discount, BigDecimal discountAmount, Address address) {
         this.orderId = orderId;
         this.user = user;
         this.orderDate = orderDate;
@@ -38,11 +37,9 @@ public class Order {
         this.totalAmount = totalAmount;
         this.discount = discount;
         this.discountAmount = discountAmount;
-        this.orderPhone = orderPhone;
-        this.receiverName =receiverName;
         this.address = address;
     }
-    
+
     public Order(int orderId) {
         this.orderId = orderId;
     }
@@ -78,15 +75,7 @@ public class Order {
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
     }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
+    
     public BigDecimal getTotalAmount() {
         return totalAmount;
     }
@@ -99,7 +88,7 @@ public class Order {
         return discount;
     }
 
-    public void setDiscountId(Discount discount) {
+    public void setDiscount(Discount discount) {
         this.discount = discount;
     }
 
@@ -111,22 +100,6 @@ public class Order {
         this.discountAmount = discountAmount;
     }
 
-    public String getOrderPhone() {
-        return orderPhone;
-    }
-
-    public void setOrderPhone(String orderPhone) {
-        this.orderPhone = orderPhone;
-    }
-
-    public String getReceiverName() {
-        return receiverName;
-    }
-
-    public void setReceiverName(String receiverName) {
-        this.receiverName = receiverName;
-    }
-
     public Address getAddress() {
         return address;
     }
@@ -135,8 +108,16 @@ public class Order {
         this.address = address;
     }
 
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+    
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", orderPhone=" + orderPhone + ", receiverName=" + receiverName + ", address=" + address + ", orderDetails=" + orderDetails + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", address=" + address + ", orderDetails=" + orderDetails + '}';
     }
 }

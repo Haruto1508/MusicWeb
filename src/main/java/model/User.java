@@ -4,6 +4,7 @@
  */
 package model;
 
+import enums.Gender;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 /**
@@ -21,14 +22,14 @@ public class User {
     private String account;
     private LocalDateTime createDateTime;
     private String imageUrl;
-    private String gender;
+    private Gender gender;
     private LocalDate birthdate;
 
     public User() {
     }
 
     // constructor to insert user to db
-    public User(String fullName, String email, String phone, Role role, String account, LocalDateTime createDateTime, String gender, LocalDate birthdate) {
+    public User(String fullName, String email, String phone, Role role, String account, LocalDateTime createDateTime, Gender gender, LocalDate birthdate) {
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
@@ -40,7 +41,7 @@ public class User {
     }
 
     // constructor to get user from db
-    public User(int userId, String fullName, String password, String phone, String address, Role role, String account, LocalDateTime createDateTime, String imageUrl, String gender, LocalDate birthdate) {
+    public User(int userId, String fullName, String password, String phone, String address, Role role, String account, LocalDateTime createDateTime, String imageUrl, Gender gender, LocalDate birthdate) {
         this.userId = userId;
         this.fullName = fullName;
         this.password = password;
@@ -125,11 +126,11 @@ public class User {
         this.createDateTime = createDateTime;
     }
 
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Gender gender) {
         this.gender = gender;
     }
 

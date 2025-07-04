@@ -88,10 +88,10 @@ public class ProfileServlet extends HttpServlet {
 
         switch (view) {
             case "order":
-                OrderDAO orderDAO = new OrderDAO();
-                List<Order> orders = orderDAO.getOrderByUserId(user.getUserId());
-                System.out.println("có");
-                request.setAttribute("orders", orders);
+//                OrderDAO orderDAO = new OrderDAO();
+//                List<Order> orders = orderDAO.getOrdersByUserId(user.getUserId());
+//                System.out.println("có");
+//                request.setAttribute("orders", orders);
                 break;
             case "cart":
                 CartDAO cartDAO = new CartDAO();

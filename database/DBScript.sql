@@ -226,3 +226,133 @@ CREATE INDEX idx_reviews_product_id ON Reviews(product_id);
 GO
 
 -- INSERT DATA
+
+INSERT INTO Roles (name, description)
+VALUES 
+('Admin', 'Administrator with full access'),
+('Customer', 'Regular customer user');
+
+-- USERS
+INSERT INTO Users (full_name, email, password, phone, role_id, gender, birthdate, account)
+VALUES 
+('Admin User', 'admin@example.com', 'admin123', '1234567890', 1, 1, '1985-01-01', 'adminuser'),
+('Rem', 'rem@gmail.com', '93a6be90e81a902c15ab3103e2990ecb', '0987654321', 2, 1, '1995-06-15', 'remcute');  -- user_id = 2
+
+-- CATEGORIES
+INSERT INTO Categories (name, description)
+VALUES 
+('Guitars', 'All kinds of guitars'),
+('Keyboards', 'Digital and analog keyboards');
+
+-- SUBCATEGORIES
+INSERT INTO Subcategories (name, category_id)
+VALUES 
+('Electric Guitars', 1),
+('Acoustic Guitars', 1),
+('Digital Keyboards', 2);
+
+-- BRANDS
+INSERT INTO Brands (brand_name)
+VALUES 
+('Yamaha'),
+('Fender'),
+('Roland');
+
+-- DISCOUNTS
+INSERT INTO Discounts (code, description, discount_type, discount_value, start_date, end_date, minimum_order_value, usage_limit)
+VALUES 
+('SUMMER10', '10% off for summer sale', 1, 10.0, '2025-06-01', '2025-08-01', 100.0, 100),
+('FIXED5', 'Flat 5$ discount', 2, 5.0, '2025-07-01', '2025-12-31', 50.0, 50);
+
+-- PRODUCTS
+INSERT INTO Products (discount_id, name, description, price, stock_quantity, category_id, brand_id, image_url)
+VALUES
+(1, 'Fender Stratocaster', 'Electric guitar from Fender', 499.99, 10, 1, 2, 'fender_strat.jpg'),
+(NULL, 'Yamaha Acoustic F310', 'Popular beginner acoustic guitar', 199.99, 25, 1, 1, 'yamaha_f310.jpg'),
+(2, 'Roland GO:KEYS', '61-key portable keyboard', 299.99, 15, 2, 3, 'roland_gokeys.jpg');
+
+-- ADDRESS for user_id = 2
+INSERT INTO Address (user_id, street, ward, district, city, type, is_default, receiver_name, receiver_phone)
+VALUES 
+(2, '123 Main St', 'Ward 5', 'District 1', 'Ho Chi Minh', 'Home', 1, 'John Doe', '0987654321');
+
+-- CART for user_id = 2
+INSERT INTO Carts (user_id, product_id, quantity)
+VALUES 
+(2, 1, 1),
+(2, 3, 2);
+
+-- ORDER for user_id = 2
+INSERT INTO Orders (user_id, order_date, status, total_amount, discount_id, discount_amount, address_id)
+VALUES 
+(2, GETDATE(), 2, 749.97, 2, 5.0, 1);  -- Order with 2 products, 1 discount
+
+-- ORDER DETAILS (assuming order_id = 1)
+INSERT INTO OrderDetails (order_id, product_id, quantity, price)
+VALUES 
+(1, 1, 1, 499.99),
+(1, 3, 1, 299.99);
+
+-- PAYMENTS
+INSERT INTO Payments (order_id, amount, payment_method, status)
+VALUES 
+(1, 744.97, 2, 1); -- COD, paid
+
+-- SHIPPING
+INSERT INTO Shipping (order_id, shipping_method, tracking_number, shipped_date, estimated_delivery)
+VALUES 
+(1, 'Standard Shipping', 'VN123456789', GETDATE(), DATEADD(DAY, 5, GETDATE()));
+
+-- REVIEWS by user_id = 2
+INSERT INTO Reviews (product_id, user_id, rating, comment)
+VALUES 
+(1, 2, 5, 'Amazing sound and quality!'),
+(3, 2, 4, 'Very portable and user-friendly.');
+
+-----------------------------
+INSERT INTO Orders (user_id, order_date, status, total_amount, discount_id, discount_amount, address_id)
+VALUES (2, '2025-06-20', 3, 499.99, NULL, 0, 1);  -- Đã giao
+
+INSERT INTO OrderDetails (order_id, product_id, quantity, price)
+VALUES (2, 1, 1, 499.99);
+
+INSERT INTO Payments (order_id, amount, payment_method, status)
+VALUES (2, 499.99, 1, 1); -- bank_transfer, paid
+
+INSERT INTO Shipping (order_id, shipping_method, tracking_number, shipped_date, estimated_delivery)
+VALUES (2, 'Express', 'EXP20250620', '2025-06-21', '2025-06-23');
+
+-- Đơn hàng 3
+INSERT INTO Orders (user_id, order_date, status, total_amount, discount_id, discount_amount, address_id)
+VALUES (2, '2025-07-01', 1, 199.99, NULL, 0, 1);  -- Đang chờ xử lý
+
+INSERT INTO OrderDetails (order_id, product_id, quantity, price)
+VALUES (3, 2, 1, 199.99);
+
+INSERT INTO Payments (order_id, amount, payment_method, status)
+VALUES (3, 199.99, 2, 2); -- COD, unpaid
+
+-- Đơn hàng 4
+INSERT INTO Orders (user_id, order_date, status, total_amount, discount_id, discount_amount, address_id)
+VALUES (2, '2025-06-15', 5, 299.99, NULL, 0, 1);  -- Đã huỷ
+
+INSERT INTO OrderDetails (order_id, product_id, quantity, price)
+VALUES (4, 3, 1, 299.99);
+
+INSERT INTO Payments (order_id, amount, payment_method, status)
+VALUES (4, 299.99, 2, 3); -- COD, failed
+
+-- Đơn hàng 5
+INSERT INTO Orders (user_id, order_date, status, total_amount, discount_id, discount_amount, address_id)
+VALUES (2, '2025-06-10', 4, 999.98, 1, 10.0, 1); -- Đã giao
+
+INSERT INTO OrderDetails (order_id, product_id, quantity, price)
+VALUES 
+(5, 1, 1, 499.99),
+(5, 3, 1, 299.99);
+
+INSERT INTO Payments (order_id, amount, payment_method, status)
+VALUES (5, 989.98, 1, 1); -- bank_transfer, paid
+
+INSERT INTO Shipping (order_id, shipping_method, tracking_number, shipped_date, estimated_delivery)
+VALUES (5, 'Standard Shipping', 'STD20250610', '2025-06-11', '2025-06-16');

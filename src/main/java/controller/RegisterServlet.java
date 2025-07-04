@@ -81,7 +81,6 @@ public class RegisterServlet extends HttpServlet {
         String account = request.getParameter("account");
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
-        String gender = request.getParameter("gender");
         String password = request.getParameter("password");
 
         // Validate required fields
@@ -96,7 +95,6 @@ public class RegisterServlet extends HttpServlet {
         request.setAttribute("account", account);
         request.setAttribute("email", email);
         request.setAttribute("phone", phone);
-        request.setAttribute("gender", gender);
 
         boolean hasError = false;
 
@@ -160,10 +158,9 @@ public class RegisterServlet extends HttpServlet {
         user.setAccount(account);
         user.setEmail(email);
         user.setPhone(phone);
-        user.setGender(gender);
         user.setPassword(MD5PasswordHasher.hashPassword(password));
 
-        if (dao.insert(user)) {
+        if (dao.insertUser(user)) {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             response.sendRedirect(request.getContextPath() + "/home");

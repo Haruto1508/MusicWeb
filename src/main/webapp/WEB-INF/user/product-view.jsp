@@ -26,7 +26,7 @@
                     <div class="product-detail">
                         <div class="row">
                             <div class="col-md-6 product-images">
-                                <span class="badge">Yêu thích</span>
+                                <span class="badge">Favourite</span>
                                 <img src="${pageContext.request.contextPath}/${product.imageUrl}" alt="${product.name}" class="product-main-image">
                                 <div class="product-thumbnail-images">
                                     <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80" alt="Guitar Acoustic">
@@ -42,73 +42,57 @@
                                     <i class="fa fa-star"></i>
                                     <i class="fa fa-star"></i>
                                     <i class="fa fa-star-half"></i>
-                                    (150 đánh giá)
+                                    (150 Rate)
                                 </div>
                                 <div class="price">
-                                    Giá: <strong>${product.price} đ</strong>
+                                    Price: <strong>${product.price} đ</strong>
                                 </div>
-                                <p class="text-muted">Số lượng trong kho: ${product.stockQuantity}</p>
+                                <p class="text-muted">Quantity in stock: ${product.stockQuantity}</p>
                                 <p>
-                                    Thương hiệu: <strong>${product.brand.name}</strong><br>
-                                    Danh mục: <strong>${product.category.name}</strong><br>
-                                    Ngày tạo: <strong>${product.createDateTime}</strong>
+                                    Brand: <strong>${product.brand.name}</strong><br>
+                                    Category: <strong>${product.category.name}</strong><br>
+                                    Date created: <strong>${product.createDateTime}</strong>
                                 </p>
                                 <div class="quantity">
-                                    <label>Số lượng:</label>
+                                    <label>Quantity:</label>
                                     <input type="number" class="form-control" value="1" min="1" max="${product.stockQuantity}">
                                 </div>
                                 <div class="actions mt-3">
                                     <button class="btn btn-danger add-to-cart" data-product-id="${product.productId}">
-                                        <i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng
+                                        <i class="fa fa-cart-plus"></i> Add to cart
                                     </button>
                                     <button class="btn btn-primary buy-now" data-bs-toggle="modal" data-bs-target="#orderModal">
-                                        <i class="fa fa-shopping-cart"></i> Mua ngay
+                                        <i class="fa fa-shopping-cart"></i> Buy now
                                     </button>
                                     <button class="btn btn-outline-secondary add-to-wishlist" data-product-id="${product.productId}">
-                                        <i class="fa fa-heart"></i> Yêu thích
+                                        <i class="fa fa-heart"></i> Favourite
                                     </button>
                                 </div>
                             </div>
                         </div>
                         <div class="product-description mt-5">
-                            <h2>Mô tả sản phẩm</h2>
+                            <h2>Product Description</h2>
                             <p>${product.description}</p>
                         </div>
 
                         <div class="product-reviews">
-                            <h2>Đánh giá sản phẩm</h2>
+                            <h2>Product Reviews</h2>
                             <!-- Thêm các đánh giá sản phẩm ở đây -->
                         </div>
                         <div class="product-related">
-                            <h2>Sản phẩm liên quan</h2>
+                            <h2>Related Products</h2>
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="card">
-                                        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=200&q=80" class="card-img-top" alt="Guitar">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Guitar Yamaha F310</h5>
-                                            <p class="card-text">2.500.000đ</p>
+                                <c:forEach var="product" items="${relatedList}">
+                                    <div class="col-md-3">
+                                        <div class="card">
+                                            <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=200&q=80" class="card-img-top" alt="Guitar">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${product.name}</h5>
+                                                <p class="card-text">${product.price}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card">
-                                        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=200&q=80" class="card-img-top" alt="Guitar">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Guitar Yamaha F310</h5>
-                                            <p class="card-text">2.500.000đ</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card">
-                                        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=200&q=80" class="card-img-top" alt="Guitar">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Guitar Yamaha F310</h5>
-                                            <p class="card-text">2.500.000đ</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                </c:forEach>
                             </div>
                         </div>
                     </div>
@@ -116,7 +100,7 @@
             </c:when>
             <c:otherwise>
                 <div>
-                    <h3>Sản phẩm không tồn tại!</h3>
+                    <h3>Product does not exist!</h3>
                 </div>
             </c:otherwise>
         </c:choose>
@@ -136,19 +120,19 @@
                                 <input type="text" class="form-control" id="name" placeholder="Nhập họ và tên" required>
                             </div>
                             <div class="mb-3">
-                                <label for="phone" class="form-label">Số điện thoại</label>
+                                <label for="phone" class="form-label">Number Phone</label>
                                 <input type="tel" class="form-control" id="phone" placeholder="Nhập số điện thoại" required>
                             </div>
                             <div class="mb-3">
-                                <label for="address" class="form-label">Địa chỉ</label>
+                                <label for="address" class="form-label">Address</label>
                                 <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ" required>
                             </div>
                             <div class="mb-3">
-                                <label for="payment" class="form-label">Phương thức thanh toán</label>
+                                <label for="payment" class="form-label">Payment method</label>
                                 <select class="form-select" id="payment">
-                                    <option>Thanh toán khi nhận hàng</option>
-                                    <option>Thẻ tín dụng</option>
-                                    <option>Ví điện tử</option>
+                                    <option>Cash on Delivery</option>
+                                    <option>Credit card</option>
+                                    <option>E-wallet</option>
                                 </select>
                             </div>
                         </form>

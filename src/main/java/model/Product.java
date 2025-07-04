@@ -22,11 +22,12 @@ public class Product {
     private String imageUrl;
     private LocalDateTime createDateTime;
     private Brand brand;
+    private Discount discount;
 
     public Product() {
     }
 
-    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, Brand brand) {
+    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, Brand brand, Discount discount) {
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -36,6 +37,7 @@ public class Product {
         this.imageUrl = imageUrl;
         this.createDateTime = createDateTime;
         this.brand = brand;
+        this.discount = discount;
     }
 
     public String getName() {
@@ -110,8 +112,16 @@ public class Product {
         this.brand = brand;
     }
 
+    public Discount getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(Discount discount) {
+        this.discount = discount;
+    }
+
     @Override
     public String toString() {
-        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + '}';
+        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + ", discount=" + discount + '}';
     }
 }

@@ -5,14 +5,15 @@
 package dao;
 
 import db.JDBCUtil;
+import enums.DiscountType;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import model.Brand;
 import model.Category;
+import model.Discount;
 import model.Product;
 
 /**
@@ -62,37 +63,29 @@ public class ProductDAO extends JDBCUtil {
     }
 
     public Product getProductById(int productId) {
-        String sql = "SELECT * ,\n"
-                + "	c.category_id,\n"
-                + "	c.description,\n"
-                + "	c.name,\n"
-                + "     b.brand_id,\n"
-                + "     b.brand_name\n"
-                + "FROM Products p\n"
-                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
-                + "LEFT JOIN Brand b ON b.brand_id = p.brand_id"
-                + "WHERE p.product_id = ?;";
+        String sql = "SELECT * \n"
+                + "  FROM Products p  \n"
+                + "  LEFT JOIN Categories c ON c.category_id = p.category_id \n"
+                + "  LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
+                + "  LEFT JOIN Discounts d ON d.discount_id = p.discount_id\n"
+                + "  WHERE p.product_id = ?";
         Object[] params = {productId};
 
         try {
             ResultSet rs = execSelectQuery(sql, params);
 
             if (rs.next()) {
-                // Xử lý các trường date có thể null
-                LocalDate discountStart = null;
-                Date discountStartDate = rs.getDate("discount_start");
-                if (discountStartDate != null) {
-                    discountStart = discountStartDate.toLocalDate();
-                }
-
-                LocalDate discountEnd = null;
-                Date discountEndDate = rs.getDate("discount_end");
-                if (discountEndDate != null) {
-                    discountEnd = discountEndDate.toLocalDate();
-                }
 
                 Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
                 Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
+                Discount discount = new Discount(
+                        rs.getInt("discount_id"), rs.getString("code"),
+                        rs.getString("description"), null,
+                        rs.getBigDecimal("discount_value"), rs.getDate("start_date").toLocalDate(),
+                        rs.getDate("end_date").toLocalDate(),
+                        rs.getBigDecimal("minimum_order_value"), rs.getInt("usage_limit"),
+                        rs.getInt("used_count"),
+                        rs.getBoolean("is_active"));
 
                 return new Product(
                         rs.getInt("product_id"),
@@ -103,7 +96,8 @@ public class ProductDAO extends JDBCUtil {
                         category,
                         rs.getString("image_url"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        brand
+                        brand,
+                        discount
                 );
             }
         } catch (SQLException e) {
@@ -114,21 +108,26 @@ public class ProductDAO extends JDBCUtil {
 
     public List<Product> getAll() {
         List<Product> list = new ArrayList<>();
-        String sql = "SELECT * ,\n"
-                + "	c.category_id,\n"
-                + "	c.description,\n"
-                + "	c.name,\n"
-                + "     b.brand_id,\n"
-                + "     b.brand_name\n"
-                + "FROM Products p\n"
-                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
-                + "LEFT JOIN Brand b ON b.brand_id = p.brand_i";
+        String sql = "SELECT * \n"
+                + "  FROM Products p  \n"
+                + "  LEFT JOIN Categories c ON c.category_id = p.category_id \n"
+                + "  LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
+                + "  LEFT JOIN Discounts d ON d.discount_id = p.discount_id";
+
         try {
             ResultSet rs = execSelectQuery(sql);
 
             while (rs.next()) {
                 Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
                 Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
+                Discount discount = new Discount(
+                        rs.getInt("discount_id"), rs.getString("code"),
+                        rs.getString("description"), null,
+                        rs.getBigDecimal("discount_value"), rs.getDate("start_date").toLocalDate(),
+                        rs.getDate("end_date").toLocalDate(),
+                        rs.getBigDecimal("minimum_order_value"), rs.getInt("usage_limit"),
+                        rs.getInt("used_count"),
+                        rs.getBoolean("is_active"));
 
                 Product product = new Product(
                         rs.getInt("product_id"),
@@ -139,7 +138,8 @@ public class ProductDAO extends JDBCUtil {
                         category,
                         rs.getString("image_url"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        brand
+                        brand,
+                        discount
                 );
                 list.add(product);
             }
@@ -153,23 +153,46 @@ public class ProductDAO extends JDBCUtil {
         List<Product> products = new ArrayList<>();
         Object[] params = {categoryId};
 
-        String sql = "SELECT * ,\n"
-                + "	c.category_id,\n"
-                + "	c.description,\n"
-                + "	c.name,\n"
-                + "     b.brand_id,\n"
-                + "     b.brand_name\n"
-                + "FROM Products p\n"
-                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
-                + "LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
-                + "WHERE c.category_id = ?;";
+        String sql = "SELECT * \n"
+                + "  FROM Products p  \n"
+                + "  LEFT JOIN Categories c ON c.category_id = p.category_id \n"
+                + "  LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
+                + "  LEFT JOIN Discounts d ON d.discount_id = p.discount_id\n"
+                + "  WHERE p.category_id = ?";
 
         try {
             ResultSet rs = execSelectQuery(sql, params);
-
             while (rs.next()) {
-                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
-                Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
+                Category category = new Category(
+                        rs.getInt("category_id"),
+                        rs.getString("description"),
+                        rs.getString("name")
+                );
+                Brand brand = new Brand(
+                        rs.getInt("brand_id"),
+                        rs.getString("brand_name")
+                );
+
+                Discount discount = null;
+                int discountId = rs.getInt("discount_id");
+                if (!rs.wasNull() && discountId != 0) {
+                    int discountType = rs.getInt("discount_type");
+                    DiscountType type = DiscountType.fromType(discountType);
+
+                    discount = new Discount(
+                            rs.getInt("discount_id"),
+                            rs.getString("code"),
+                            rs.getString("description"),
+                            type,
+                            rs.getBigDecimal("discount_value"),
+                            rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
+                            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
+                            rs.getBigDecimal("minimum_order_value"),
+                            rs.getInt("usage_limit"),
+                            rs.getInt("used_count"),
+                            rs.getBoolean("is_active")
+                    );
+                }
 
                 Product product = new Product(
                         rs.getInt("product_id"),
@@ -180,46 +203,17 @@ public class ProductDAO extends JDBCUtil {
                         category,
                         rs.getString("image_url"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        brand
+                        brand,
+                        discount
                 );
                 products.add(product);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         return products;
     }
 
-//    public List<Product> getProductsDemo(int categoryId, int limit) {
-//        List<Product> products = new ArrayList<>();
-//        Object[] params = {categoryId, limit};
-//        String sql = "SELECT * FROM products WHERE category_id = ? LIMIT ?";
-//
-//        try {
-//            ResultSet rs = execSelectQuery(sql, params);
-//
-//            while (rs.next()) {
-//                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
-//
-//                Product product = new Product(
-//                        rs.getInt("product_id"),
-//                        rs.getString("name"),
-//                        rs.getString("description"),
-//                        rs.getBigDecimal("price"),
-//                        rs.getInt("stock_quantity"),
-//                        category,
-//                        rs.getString("image_url"),
-//                        rs.getTimestamp("created_at").toLocalDateTime()
-//                );
-//                products.add(product);
-//            }
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return products;
-//    }
     public List<Product> getOrderHistoryByUserId(int userID) {
         List<Product> productList = new ArrayList<>();
         Object[] params = {userID};
@@ -247,5 +241,40 @@ public class ProductDAO extends JDBCUtil {
             e.printStackTrace();
         }
         return productList;
+    }
+
+    public List<Product> getRelatedProducts(int productId, int limit) {
+        List<Product> list = new ArrayList<>();
+
+        String sql = "SELECT TOP " + limit + " * "
+                + "FROM Products "
+                + "WHERE product_id <> ? AND is_active = 1 "
+                + "AND (category_id = (SELECT category_id FROM Products WHERE product_id = ?) "
+                + "OR brand_id = (SELECT brand_id FROM Products WHERE product_id = ?)) "
+                + "ORDER BY NEWID()";
+
+        Object[] params = {limit, productId, productId};
+
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            while (rs.next()) {
+                Product product = new Product();
+                product.setName(rs.getString("name"));
+                product.setProductId(rs.getInt("product_id"));
+                product.setImageUrl(rs.getString("image_url"));
+                product.setPrice(rs.getBigDecimal("price"));
+
+                list.add(product);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public static void main(String[] args) {
+        Product product = new ProductDAO().getProductById(3);
+
+        System.out.println(product.toString());
     }
 }

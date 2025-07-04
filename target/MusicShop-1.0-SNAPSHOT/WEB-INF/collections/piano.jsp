@@ -16,7 +16,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
         <!-- Link Header -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.header.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header.css">
         <!-- Link Footer -->
         <!-- Link CSS -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/piano.product.css">
@@ -31,11 +31,11 @@
             <div class="logo"><i class="fa-solid fa-music"></i> Piano Shop</div>
             <form>
                 <h3 style="font-size:1.1rem; color:#6d28d9; font-weight:700; margin-bottom:18px;">
-                    <i class="fa-solid fa-filter"></i> Lọc sản phẩm
+                    <i class="fa-solid fa-filter"></i> Filter products
                 </h3>
                 <!-- Danh mục loại piano -->
                 <div style="margin-bottom:18px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Loại đàn piano</div>
+                    <div style="font-weight:600; margin-bottom:8px;">Piano type</div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="grand">
                         <label class="form-check-label" for="grand">Grand Piano</label>
@@ -59,31 +59,31 @@
                 </div>
                 <!-- Khoảng giá -->
                 <div style="margin-bottom:18px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Khoảng giá</div>
+                    <div style="font-weight:600; margin-bottom:8px;">Price range</div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="price" id="price0">
-                        <label class="form-check-label" for="price0">Tất cả</label>
+                        <label class="form-check-label" for="price0">All</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="price" id="price1">
-                        <label class="form-check-label" for="price1">Dưới 10 triệu</label>
+                        <label class="form-check-label" for="price1">Under 10 million</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="price" id="price2">
-                        <label class="form-check-label" for="price2">10 - 30 triệu</label>
+                        <label class="form-check-label" for="price2">10 - 30 million</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="price" id="price3">
-                        <label class="form-check-label" for="price3">30 - 100 triệu</label>
+                        <label class="form-check-label" for="price3">30 - 100 million</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="price" id="price4">
-                        <label class="form-check-label" for="price4">Trên 100 triệu</label>
+                        <label class="form-check-label" for="price4">Over 100 million</label>
                     </div>
                 </div>
                 <!-- Thương hiệu -->
                 <div style="margin-bottom:18px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Thương hiệu</div>
+                    <div style="font-weight:600; margin-bottom:8px;">Brand</div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="yamaha">
                         <label class="form-check-label" for="yamaha">Yamaha</label>
@@ -102,7 +102,7 @@
                     </div>
                 </div>
                 <button type="submit" class="product-button buy" style="width:100%;margin-top:10px;">
-                    <i class="fa-solid fa-filter"></i> Áp dụng
+                    <i class="fa-solid fa-filter"></i> Apply
                 </button>
             </form>
         </div>
@@ -110,13 +110,31 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="banner">
-                <h1>Khám phá thế giới Piano</h1>
+                <h1>Explore the world of Piano</h1>
             </div>
             <div class="search-bar">
                 <input type="text" class="search-input" placeholder="Tìm kiếm đàn piano...">
                 <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
-            <h2 class="products-title">Tất cả sản phẩm Piano</h2>
+            
+            <nav aria-label="Page navigation example" class="d-flex justify-content-center">
+                <ul class="pagination">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <h2 class="products-title">All Piano products</h2>
             <div class="products-row">
                 <!-- Piano 1 -->
                 <c:choose>
@@ -131,7 +149,7 @@
                                     <div class="product-name">${piano.name}</div>
                                     <div class="product-price">${piano.price} ₫</div>
                                     <div class="product-actions">
-                                        <button class="product-button buy"><i class="fa-solid fa-bolt"></i> Mua ngay</button>
+                                        <button class="product-button buy"><i class="fa-solid fa-bolt"></i> Buy now</button>
                                         <button class="product-button cart"><i class="fa-solid fa-cart-plus"></i></button>
                                     </div>
                                 </div>
@@ -139,13 +157,30 @@
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <div id="no-products-message">Không có sản phẩm nào.</div>  
+                        <div id="no-products-message">No products available.</div>  
                     </c:otherwise>
                 </c:choose>
 
 
                 <!-- Thêm các sản phẩm piano khác tại đây -->
             </div>
+            <nav aria-label="Page navigation example" class="d-flex justify-content-center">
+                <ul class="pagination">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

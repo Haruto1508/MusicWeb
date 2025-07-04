@@ -5,10 +5,9 @@
 package controller;
 
 import dao.UserDAO;
+import enums.Gender;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,36 +23,7 @@ import model.User;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 @WebServlet(name = "UpdateUserServlet", urlPatterns = {"/updateUser"})
-@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-        maxFileSize = 1024 * 1024 * 10, // 10MB
-        maxRequestSize = 1024 * 1024 * 50) // 50MB
 public class UpdateUserServlet extends HttpServlet {
-
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet UpdateUserServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet UpdateUserServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -67,7 +37,7 @@ public class UpdateUserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+
     }
 
     /**
@@ -89,7 +59,6 @@ public class UpdateUserServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login"); // Hoặc trang báo lỗi
             return;
         }
-        setBirthdateAttributes(user, request);
 
         System.out.println(user.toString());
 
@@ -102,90 +71,41 @@ public class UpdateUserServlet extends HttpServlet {
         String month = request.getParameter("birth_month");
         String year = request.getParameter("birth_year");
 
+        System.out.println(year + " " + month + " " + day);
         UserDAO userDAO = new UserDAO();
-        boolean hasError = false;
 
         // Check for duplicates separately
         int userId = user.getUserId();
-        System.out.println(userId);
 
-        if (userDAO.isAccountTaken(account, userId)) {
-            request.removeAttribute("accountError");
-            request.setAttribute("accountError", "Account name already exists");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
-            System.out.println("account fail");
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
-            hasError = true;
-        }
-
-        if (userDAO.isEmailTaken(email, userId)) {
-            request.removeAttribute("emailError");
-            request.setAttribute("emailError", "Email has been registered");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
-            System.out.println("email fail");
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
-            hasError = true;
-        }
-
-        if (userDAO.isPhoneTaken(phone, userId)) {
-            request.removeAttribute("phoneError");
-            request.setAttribute("phoneError", "Phone number already in use");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
-            System.out.println("phone fail");
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
-            hasError = true;
-        }
-
-        if (hasError) {
+        // check for get id
+        try {
+            String id = String.valueOf(userId);
+            System.out.println("Get id " + id + " success");
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        if (fullName == null || fullName.trim().isEmpty()) {
-            request.removeAttribute("fullNameError");
-            request.setAttribute("fullNameError", "Họ tên không được để trống");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
-            System.out.println("name fail");
+        // check for duplicate user info
+        if (isDuplicateUserInfo(request, userDAO, account, email, phone, userId)) {
+            setBirthdateAttributes(user, request);
+            setTempAttributes(request, fullName, account, email, phone, gender, day, month, year);
             request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
             return;
         }
 
-        if (email == null || !email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            request.removeAttribute("emailError");
-            request.setAttribute("emailError", "Email không hợp lệ");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
-            System.out.println("email fail 2");
+        // check for valid update info
+        if (!isValidUpdateInfo(request, user, account, fullName, email, phone, day, month, year)) {
+            setBirthdateAttributes(user, request);
+            setTempAttributes(request, fullName, account, email, phone, gender, day, month, year);
             request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
             return;
-        }
-
-        if (phone != null && !phone.matches("^\\d{10,11}$")) {
-            request.removeAttribute("phoneError");
-            request.setAttribute("phoneError", "Số điện thoại phải từ 10 đến 11 chữ số");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
-            System.out.println("phone fail 2");
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
-            return;
-        }
-
-        if (day != null && month != null && year != null) {
-            try {
-                LocalDate birthdate = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
-                user.setBirthdate(birthdate);
-            } catch (DateTimeParseException | NumberFormatException e) {
-                e.printStackTrace();
-            }
         }
 
         user.setFullName(fullName);
         user.setEmail(email);
         user.setPhone(phone);
-        user.setGender(gender);
+        user.setGender(Gender.fromGender(Integer.parseInt(gender)));
         user.setAccount(account);
 
         boolean isUpdateSuccess = userDAO.update(user);
@@ -194,36 +114,110 @@ public class UpdateUserServlet extends HttpServlet {
             session.setAttribute("user", user);
             System.out.println("cap nhat thanh cong");
             request.setAttribute("updateSuccess", "Cập nhật thông tin thành công!");
-            request.setAttribute("view", "info");
+            setBirthdateAttributes(user, request);
+            
             request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
         } else {
             System.out.println("cap nhat that bai");
-            request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
-            request.setAttribute("view", "info");
+            setCommonFailAttributes(request);
+            setBirthdateAttributes(user, request);
+            
             request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
         }
     }
-  
+
     private void setBirthdateAttributes(User user, HttpServletRequest request) {
-        if (user.getBirthdate() != null) {
-            DateTimeFormatter inputFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            DateTimeFormatter displayFmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            request.setAttribute("birthdateInputValue", user.getBirthdate().format(inputFmt));
-            request.setAttribute("birthdateTextValue", user.getBirthdate().format(displayFmt));
-        } else {
-            request.setAttribute("birthdateInputValue", "");
-            request.setAttribute("birthdateTextValue", "");
-        }
+        int currentYear = LocalDate.now().getYear();
+        DateTimeFormatter textFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String birthdateInputValue = user.getBirthdate() != null
+                ? user.getBirthdate().format(inputFormatter)
+                : "";
+        String birthdateTextValue = user.getBirthdate() != null
+                ? user.getBirthdate().format(textFormatter)
+                : "";
+        request.setAttribute("currentYear", currentYear);
+        request.setAttribute("birthdateInputValue", birthdateInputValue);
+        request.setAttribute("birthdateTextValue", birthdateTextValue);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+    private void setTempAttributes(HttpServletRequest request, String fullName, String account, String email, String phone, String gender, String day, String month, String year) {
+        request.setAttribute("tempFullName", fullName);
+        request.setAttribute("tempAccount", account);
+        request.setAttribute("tempEmail", email);
+        request.setAttribute("tempPhone", phone);
+        request.setAttribute("tempGender", gender);
+        request.setAttribute("birth_day", day);
+        request.setAttribute("birth_month", month);
+        request.setAttribute("birth_year", year);
+    }
 
+    private boolean isDuplicateUserInfo(HttpServletRequest request, UserDAO userDAO, String account, String email, String phone, int userId) {
+        boolean hasError = false;
+        if (userDAO.isAccountTaken(account, userId)) {
+            request.setAttribute("accountError", "Account name already exists");
+            setCommonFailAttributes(request);
+            hasError = true;
+        }
+
+        if (userDAO.isEmailTaken(email, userId)) {
+            request.setAttribute("emailError", "Email has been registered");
+            setCommonFailAttributes(request);
+            hasError = true;
+        }
+
+        if (userDAO.isPhoneTaken(phone, userId)) {
+            request.setAttribute("phoneError", "Phone number already in use");
+            setCommonFailAttributes(request);
+            hasError = true;
+        }
+
+        return hasError;
+    }
+
+    private boolean isValidUpdateInfo(HttpServletRequest request, User user, String account, String fullName, String email, String phone, String day, String month, String year) {
+        boolean isValid = true;
+
+        if (account == null || account.trim().isEmpty()) {
+            request.setAttribute("accountError", "Account không được để trống");
+            setCommonFailAttributes(request);
+            isValid = false;
+        }
+        
+        if (fullName == null || fullName.trim().isEmpty()) {
+            request.setAttribute("fullNameError", "Họ tên không được để trống");
+            setCommonFailAttributes(request);
+            isValid = false;
+        }
+
+        if (email == null || !email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            request.setAttribute("emailError", "Email không hợp lệ");
+            setCommonFailAttributes(request);
+            isValid = false;
+        }
+
+        if (phone != null && !phone.matches("^\\d{10,11}$")) {
+            request.setAttribute("phoneError", "Số điện thoại phải từ 10 đến 11 chữ số");
+            setCommonFailAttributes(request);
+            isValid = false;
+        }
+
+        if (day != null && month != null && year != null) {
+            try {
+                LocalDate birthdate = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
+                user.setBirthdate(birthdate);
+            } catch (DateTimeParseException | NumberFormatException e) {
+                isValid = false;
+                setCommonFailAttributes(request);
+                e.printStackTrace();
+            }
+        }
+
+        return isValid;
+    }
+
+    private void setCommonFailAttributes(HttpServletRequest request) {
+        request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
+        request.setAttribute("view", "info");
+    }
 }

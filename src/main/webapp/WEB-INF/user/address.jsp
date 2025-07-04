@@ -12,7 +12,7 @@
         <!-- Header -->
         <div class="text-center mb-4">
             <h3 class="text-primary fw-bold">
-                <i class="fas fa-map-marker-alt me-2"></i> Địa chỉ của tôi
+                <i class="fas fa-map-marker-alt me-2"></i> My address
             </h3>
         </div>
 
@@ -51,8 +51,8 @@
                                 <!-- Chi tiết địa chỉ -->
                                 <div class="row mt-3">
                                     <div class="col-md-6">
-                                        <p class="mb-1"><i class="fas fa-phone text-success me-2"></i><strong>SĐT:</strong> ${address.user.phone}</p>
-                                        <p class="mb-1"><i class="fas fa-map-marker-alt text-danger me-2"></i><strong>Địa chỉ:</strong> ${address.street}</p>
+                                        <p class="mb-1"><i class="fas fa-phone text-success me-2"></i><strong>Number Phone: </strong> ${address.user.phone}</p>
+                                        <p class="mb-1"><i class="fas fa-map-marker-alt text-danger me-2"></i><strong>Address: </strong> ${address.street}</p>
                                     </div>
                                     <div class="col-md-6">
                                         <p class="mb-1 text-muted"><i class="fas fa-location-dot me-2"></i>${address.ward}, ${address.district}, ${address.city}</p>
@@ -66,8 +66,8 @@
                     <!-- Trạng thái rỗng -->
                     <div class="card shadow text-center mt-5 py-5">
                         <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">Chưa có địa chỉ nào</h5>
-                        <p class="text-muted">Bạn chưa thêm địa chỉ nào.</p>
+                        <h5 class="text-muted">No address yet</h5>
+                        <p class="text-muted">You have not added any addresses yet.</p>
                     </div>
                 </c:otherwise>
             </c:choose>
@@ -76,7 +76,7 @@
         </div>
         
         <div class="row g-4">
-            <button type="button" class="btn btn-primary ms-4" data-bs-toggle="modal" data-bs-target="#editModal"> Thêm địa chỉ </button>
+            <button type="button" class="btn btn-primary ms-4" data-bs-toggle="modal" data-bs-target="#editModal"> Add address </button>
         </div>
     </div>
 </div>
@@ -89,30 +89,30 @@
                 <input type="hidden" name="action" value="edit">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Địa chỉ</h5>
+                    <h5 class="modal-title" id="editModalLabel">Address</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="editId" class="form-label">Đường</label>
+                        <label for="editId" class="form-label">Street</label>
                         <input type="text" class="form-control" id="editId" name="id" readonly> 
                     </div>
                     <div class="mb-3">
-                        <label for="editName" class="form-label">Phường</label>
+                        <label for="editName" class="form-label">Ward</label>
                         <input type="text" class="form-control" id="editName" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="editName" class="form-label">Quận</label>
+                        <label for="editName" class="form-label">District</label>
                         <input type="text" class="form-control" id="editName" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="editName" class="form-label">Thành phố</label>
+                        <label for="editName" class="form-label">City</label>
                         <input type="text" class="form-control" id="editName" name="name" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bỏ</button>
-                    <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Address</button>
                 </div>
             </form>
         </div>

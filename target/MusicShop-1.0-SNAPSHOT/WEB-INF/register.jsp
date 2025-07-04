@@ -151,20 +151,7 @@
                             <div class="error-message">${phoneError}</div>
                         </c:if>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Gender</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fa-solid fa-venus-mars"></i></span>
-                            <select class="form-select" name="gender" required>
-                                <option value="">Chọn giới tính</option>
-                                <option value="male" ${gender eq 'male' ? 'selected' : ''}>Nam</option>
-                                <option value="female" ${gender eq 'female' ? 'selected' : ''}>Nữ</option>
-                                <option value="other" ${gender eq 'other' ? 'selected' : ''}>Khác</option>
-                            </select>
-                        </div>
-                    </div>
-
+                        
                     <div class="mb-3">
                         <label class="form-label">
                             Password

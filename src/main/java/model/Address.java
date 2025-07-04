@@ -17,10 +17,12 @@ public class Address {
     private String city;
     private String type;
     private boolean isDefault;
+    private String receiverPhone;
+    private String receiverName;
 
     public Address() {}
     
-    public Address(int addressId, User user, String street, String ward, String district, String city, String type, boolean isDefault) {
+    public Address(int addressId, User user, String street, String ward, String district, String city, String type, boolean isDefault, String receiverName, String receiverPhone) {
         this.addressId = addressId;
         this.user = user;
         this.street = street;
@@ -29,6 +31,8 @@ public class Address {
         this.city = city;
         this.type = type;
         this.isDefault = isDefault;
+        this.receiverPhone = receiverName;
+        this.receiverName = receiverPhone;
     }
 
     public int getAddressId() {
@@ -95,10 +99,26 @@ public class Address {
         this.isDefault = isDefault;
     }
 
+    public String getReceiverPhone() {
+        return receiverPhone;
+    }
+
+    public void setReceiverPhone(String receiverPhone) {
+        this.receiverPhone = receiverPhone;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
     @Override
     public String toString() {
-        return "Address{" + "addressId=" + addressId + ", user=" + user + ", street=" + street + ", ward=" + ward + ", district=" + district + ", city=" + city + ", type=" + type + ", isDefault=" + isDefault + '}';
+        return "Address{" + "addressId=" + addressId + ", user=" + user + ", street=" + street + ", ward=" + ward + ", district=" + district + ", city=" + city + ", type=" + type + ", isDefault=" + isDefault + ", receiverPhone=" + receiverPhone + ", receiverName=" + receiverName + '}';
     }
-    
+
     
 }

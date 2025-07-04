@@ -116,7 +116,7 @@
                         <label for="username" class="form-label">Tên đăng nhập</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
-                            <input type="text" class="form-control" id="username" name="info" value="${not empty info ? info : ''}" placeholder="Nhập tên đăng nhập" required>
+                            <input type="text" class="form-control" id="username" name="info" value="${not empty info ? info : savedUserAccount}" placeholder="Nhập tên đăng nhập" required>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -127,7 +127,7 @@
                         </div>
                     </div>
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <input type="checkbox" name="rememberMe" class="form-check-input" id="rememberMe">
                         <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
                     </div>
                     <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Đăng nhập</button>

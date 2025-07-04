@@ -32,9 +32,9 @@
         <!-- Hero section -->
         <section class="hero">
             <div class="container">
-                <h1 class="display-4 fw-bold mb-3">Khám phá thế giới nhạc cụ hiện đại</h1>
-                <p class="lead mb-4">Đa dạng sản phẩm, chất lượng đảm bảo, giá tốt nhất cho mọi nghệ sĩ.</p>
-                <a href="#" class="btn btn-lg shadow">Mua ngay <i class="fa-solid fa-arrow-right"></i></a>
+                <h1 class="display-4 fw-bold mb-3">Explore the world of modern musical instruments</h1>
+                <p class="lead mb-4">Diverse products, guaranteed quality, best price for all artists.</p>
+                <a href="#" class="btn btn-lg shadow">Buy now <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         </section>
 
@@ -48,19 +48,16 @@
                 <div class="col-md-6">
                     <h2 class="fw-bold mb-3">About MusicShop</h2>
                     <p>
-                        <strong>MusicShop</strong> là địa chỉ tin cậy dành cho mọi nghệ sĩ và người yêu âm nhạc. Chúng tôi
-                        cung cấp đa dạng các loại nhạc cụ như guitar, piano, trống, micro và phụ kiện với chất lượng đảm
-                        bảo, giá cả cạnh tranh.
+                        <strong>MusicShop</strong> is a trusted address for all artists and music lovers. We provide a variety of musical instruments such as guitars, pianos, drums, microphones and accessories with guaranteed quality and competitive prices.
                     </p>
                     <p>
-                        Đội ngũ tư vấn viên nhiệt tình, giàu kinh nghiệm luôn sẵn sàng hỗ trợ bạn lựa chọn sản phẩm phù hợp
-                        nhất. MusicShop cam kết mang đến trải nghiệm mua sắm trực tuyến hiện đại, an toàn và tiện lợi.
+                        Our team of enthusiastic and experienced consultants are always ready to help you choose the most suitable product. MusicShop is committed to providing a modern, safe and convenient online shopping experience.
                     </p>
                     <ul class="list-unstyled">
-                        <li><i class="fa-solid fa-check text-primary me-2"></i>Sản phẩm chính hãng, bảo hành rõ ràng</li>
-                        <li><i class="fa-solid fa-check text-primary me-2"></i>Giao hàng toàn quốc, thanh toán linh hoạt
+                        <li><i class="fa-solid fa-check text-primary me-2"></i>Genuine products, clear warranty</li>
+                        <li><i class="fa-solid fa-check text-primary me-2"></i>Nationwide delivery, flexible payment
                         </li>
-                        <li><i class="fa-solid fa-check text-primary me-2"></i>Hỗ trợ kỹ thuật & hậu mãi tận tâm</li>
+                        <li><i class="fa-solid fa-check text-primary me-2"></i>Dedicated technical & after-sales support</li>
                     </ul>
                 </div>
             </div>
@@ -68,7 +65,7 @@
 
         <!-- Categories -->
         <section class="container py-5">
-            <h2 class="text-center fw-bold mb-4">Danh mục nổi bật</h2>
+            <h2 class="text-center fw-bold mb-4">Featured Categories</h2>
             <div class="row g-4">
                 <div class="col-6 col-md-3">
                     <a href="${pageContext.request.contextPath}/path?page=guitar" class="text-decoration-none text-dark">
@@ -98,7 +95,7 @@
                     <a href="${pageContext.request.contextPath}/path?page=accessory" class="text-decoration-none text-dark">
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-microphone"></i></div>
-                            <h5 class="fw-semibold">Micro & Phụ kiện</h5>
+                            <h5 class="fw-semibold">Microphones & Accessories</h5>
                         </div>
                     </a>
                 </div>
@@ -120,7 +117,7 @@
                                         <p class="product-desc">${guitar.description}</p>
                                         <div class="product-footer">
                                             <span class="product-price">${guitar.price}đ</span>
-                                            <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
+                                            <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Add</a>
                                         </div>
                                     </div>
                                 </div>
@@ -128,7 +125,7 @@
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <p class="text-center text-muted w-100">Chưa có dữ liệu.</p>
+                        <p class="text-center text-muted w-100">No data yet.</p>
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -148,7 +145,7 @@
                                         <p class="product-desc">${violin.description}</p>
                                         <div class="product-footer">
                                             <span class="product-price">${violin.price}đ</span>
-                                            <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
+                                            <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Add</a>
                                         </div>
                                     </div>
                                 </div>
@@ -177,8 +174,8 @@
                                         <div class="product-footer d-flex justify-content-between align-items-center">
                                             <span class="product-price">${piano.price}đ</span>
                                             <div class="d-flex gap-2">
-                                                <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Thêm</a>
-                                                <a href="${pageContext.request.contextPath}/product?id=${piano.productId}" class="product-btn"><i class="fa-solid fa-credit-card"></i> Mua</a>
+                                                <a href="#" class="product-btn"><i class="fa-solid fa-cart-plus"></i> Add</a>
+                                                <a href="${pageContext.request.contextPath}/product?id=${piano.productId}" class="product-btn"><i class="fa-solid fa-credit-card"></i> Buy</a>
                                             </div>
                                         </div>
                                     </div>
@@ -187,7 +184,7 @@
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <p class="text-center text-muted w-100">Chưa có dữ liệu.</p>
+                        <p class="text-center text-muted w-100">No data yet.</p>
                     </c:otherwise>
                 </c:choose>
             </div>
