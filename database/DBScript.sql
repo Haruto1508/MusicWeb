@@ -46,7 +46,7 @@ CREATE TABLE Address (
     is_default BIT DEFAULT 0,
     receiver_name NVARCHAR(255),
     receiver_phone NVARCHAR(20),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 GO
 
@@ -118,7 +118,7 @@ CREATE TABLE ProductImages (
     caption NVARCHAR(255),
     is_primary BIT DEFAULT 0,
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE
 );
 GO
 
@@ -133,7 +133,7 @@ CREATE TABLE Orders (
     discount_amount DECIMAL(15,3) DEFAULT 0,
     address_id INT,
     FOREIGN KEY (address_id) REFERENCES Address(address_id),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id)
 );
 GO
@@ -145,7 +145,7 @@ CREATE TABLE OrderDetails (
     product_id INT,
     quantity INT NOT NULL,
     price DECIMAL(15,3) NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(product_id)
 );
 GO
@@ -157,8 +157,8 @@ CREATE TABLE Carts (
     product_id INT,
     quantity INT NOT NULL,
     added_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (product_id) REFERENCES Products(product_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE,
     CONSTRAINT unique_cart_user_product UNIQUE (user_id, product_id)
 );
 GO
@@ -171,8 +171,8 @@ CREATE TABLE Reviews (
     rating INT CHECK (rating BETWEEN 1 AND 5),
     comment NVARCHAR(MAX),
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (product_id) REFERENCES Products(product_id),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 GO
 
@@ -182,7 +182,7 @@ CREATE TABLE Payments (
     order_id INT,
     payment_date DATETIME DEFAULT GETDATE(),
     amount DECIMAL(15,3) NOT NULL,
-    payment_method INT DEFAULT 2 CHECK (payment_method IN (1, 2)),
+    payment_method INT DEFAULT 2 CHECK (payment_method IN (1, 2)), -- 1 credit card, 2 money
     status INT DEFAULT 2 CHECK (status IN (1, 2, 3)),
     FOREIGN KEY (order_id) REFERENCES Orders(order_id)
 );
@@ -206,10 +206,11 @@ CREATE TABLE DiscountUsers (
     discount_id INT,
     user_id INT,
     used_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 GO
+
 
 -- INDEXES
 CREATE INDEX idx_users_email ON Users(email);
@@ -223,3 +224,5 @@ CREATE INDEX idx_orderdetails_product_id ON OrderDetails(product_id);
 CREATE INDEX idx_carts_product_id ON Carts(product_id);
 CREATE INDEX idx_reviews_product_id ON Reviews(product_id);
 GO
+
+-- INSERT DATA
