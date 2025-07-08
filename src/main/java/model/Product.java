@@ -22,12 +22,13 @@ public class Product {
     private String imageUrl;
     private LocalDateTime createDateTime;
     private Brand brand;
+    private int soldQuantity;
     private Discount discount;
 
     public Product() {
     }
 
-    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, Brand brand, Discount discount) {
+    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, Brand brand, Discount discount, int soldQuantity) {
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -38,6 +39,7 @@ public class Product {
         this.createDateTime = createDateTime;
         this.brand = brand;
         this.discount = discount;
+        this.soldQuantity = soldQuantity;
     }
 
     public String getName() {
@@ -120,8 +122,16 @@ public class Product {
         this.discount = discount;
     }
 
+    public int getSoldQuantity() {
+        return soldQuantity;
+    }
+
+    public void setSoldQuantity(int soldQuantity) {
+        this.soldQuantity = soldQuantity;
+    }
+
     @Override
     public String toString() {
-        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + ", discount=" + discount + '}';
+        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + ", soldQuantity=" + soldQuantity + ", discount=" + discount + '}';
     }
 }

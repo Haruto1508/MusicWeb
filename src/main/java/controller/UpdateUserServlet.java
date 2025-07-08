@@ -52,15 +52,7 @@ public class UpdateUserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-
         User user = (User) session.getAttribute("user");
-
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login"); // Hoặc trang báo lỗi
-            return;
-        }
-
-        System.out.println(user.toString());
 
         String fullName = request.getParameter("fullName").trim();
         String account = request.getParameter("account").trim();
@@ -217,7 +209,7 @@ public class UpdateUserServlet extends HttpServlet {
     }
 
     private void setCommonFailAttributes(HttpServletRequest request) {
-        request.setAttribute("updateFail", "Cập nhật thông tin không thành công!");
+        request.setAttribute("updateFail", "Update informatio fail!");
         request.setAttribute("view", "info");
     }
 }

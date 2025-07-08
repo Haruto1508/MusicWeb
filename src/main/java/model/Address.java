@@ -19,10 +19,11 @@ public class Address {
     private boolean isDefault;
     private String receiverPhone;
     private String receiverName;
+    private boolean isDelete;
 
     public Address() {}
     
-    public Address(int addressId, User user, String street, String ward, String district, String city, String type, boolean isDefault, String receiverName, String receiverPhone) {
+    public Address(int addressId, User user, String street, String ward, String district, String city, String type, boolean isDefault, String receiverName, String receiverPhone, boolean isDelete) {
         this.addressId = addressId;
         this.user = user;
         this.street = street;
@@ -33,6 +34,7 @@ public class Address {
         this.isDefault = isDefault;
         this.receiverPhone = receiverName;
         this.receiverName = receiverPhone;
+        this.isDelete = isDelete;
     }
 
     public int getAddressId() {
@@ -115,10 +117,27 @@ public class Address {
         this.receiverName = receiverName;
     }
 
-    @Override
-    public String toString() {
-        return "Address{" + "addressId=" + addressId + ", user=" + user + ", street=" + street + ", ward=" + ward + ", district=" + district + ", city=" + city + ", type=" + type + ", isDefault=" + isDefault + ", receiverPhone=" + receiverPhone + ", receiverName=" + receiverName + '}';
+    public boolean isIsDelete() {
+        return isDelete;
     }
 
+    public void setIsDelete(boolean isDelete) {
+        this.isDelete = isDelete;
+    }
     
+    
+    public String getFullAddress() {
+        StringBuilder sb = new StringBuilder();
+        if (street != null) sb.append(street);
+        if (ward != null && !ward.isEmpty()) sb.append(", ").append(ward);
+        if (district != null && !district.isEmpty()) sb.append(", ").append(district);
+        if (city != null) sb.append(", ").append(city);
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "Address{" + "addressId=" + addressId + ", user=" + user + ", street=" + street + ", ward=" + ward + ", district=" + district + ", city=" + city + ", type=" + type + ", isDefault=" + isDefault + ", receiverPhone=" + receiverPhone + ", receiverName=" + receiverName + ", isDelete=" + isDelete + '}';
+    }
+ 
 }

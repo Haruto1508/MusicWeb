@@ -6,7 +6,6 @@ package dao;
 
 import db.JDBCUtil;
 import enums.DiscountType;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -97,7 +96,8 @@ public class ProductDAO extends JDBCUtil {
                         rs.getString("image_url"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
-                        discount
+                        discount,
+                        rs.getInt("sold_quantity")
                 );
             }
         } catch (SQLException e) {
@@ -139,7 +139,8 @@ public class ProductDAO extends JDBCUtil {
                         rs.getString("image_url"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
-                        discount
+                        discount,
+                        rs.getInt("sold_quantity")
                 );
                 list.add(product);
             }
@@ -204,7 +205,8 @@ public class ProductDAO extends JDBCUtil {
                         rs.getString("image_url"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
-                        discount
+                        discount,
+                        rs.getInt("sold_quantity")
                 );
                 products.add(product);
             }
@@ -270,6 +272,20 @@ public class ProductDAO extends JDBCUtil {
         }
 
         return list;
+    }
+
+    public int countProductsByCategory(String categoryId) {
+        String sql = "SELECT COUNT(*) FROM Products WHERE category_id = ?";
+        Object[] params = {categoryId};
+        
+        try (ResultSet rs = execSelectQuery(sql, params)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public static void main(String[] args) {

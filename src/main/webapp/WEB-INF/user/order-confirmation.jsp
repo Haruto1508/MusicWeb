@@ -5,140 +5,188 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>Order Confirmation</title>
+        <meta charset="UTF-8">
+        <link href="${pageContext.request.contextPath}/assets/css/order.confirm.css" rel="stylesheet"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     </head>
     <body>
+        <c:if test="${not empty error}">
+            <div class="alert alert-danger">${error}</div>
+        </c:if>
+        <c:if test="${discountAmount == null}">
+            <c:set var="discountAmount" value="0"/>
+        </c:if>
         <div class="musicshop-buy-container">
             <div class="musicshop-header">
-                <i class="fa fa-shopping-bag"></i> Xác nhận đơn hàng
+                <i class="fa fa-shopping-bag"></i> Order Confirmation
             </div>
+
             <!-- Địa chỉ nhận hàng -->
             <div class="musicshop-section">
-                <div class="musicshop-section-title"><i class="fa fa-map-marker-alt me-2"></i>Địa chỉ nhận hàng</div>
-                <div class="musicshop-address d-flex justify-content-between align-items-center flex-wrap">
-                    <div>
-                        <strong id="receiverName">Nguyễn Văn A</strong> | 
-                        <span id="receiverPhone">0123456789</span><br>
-                        <span id="receiverAddress">123 Đường ABC, Quận 1, TP.HCM</span>
-                    </div>
-                    <div class="mt-2 mt-md-0">
-                        <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="chooseAddress()">
-                            <i class="fa fa-map-pin"></i> Chọn địa chỉ khác
+                <div class="musicshop-section-title"><i class="fa fa-map-marker-alt me-2"></i>Delivery address</div>
+                <div class="musicshop-address"> 
+                    <c:if test="${not empty addressFail}">
+                        <div class="alert alert-warning">You have no saved address. Please add your delivery address in <a href="${pageContext.request.contextPath}/address-management">Address Management</a>.</div>
+                    </c:if>
+                    <c:if test="${not empty defaultAddress}">
+                        <div>
+                            <strong id="receiverName">${defaultAddress.receiverName}</strong> |
+                            <span id="receiverPhone">${defaultAddress.receiverPhone}</span><br>
+                            <span id="receiverAddress">${defaultAddress.fullAddress}</span>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addressModal">
+                            <i class="fa fa-map-pin"></i> Other address
                         </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="choosePhone()">
-                            <i class="fa fa-phone"></i> Chọn số điện thoại khác
-                        </button>
-                    </div>
-                </div>
-                <!-- Nếu chưa có địa chỉ, hiển thị nút tạo địa chỉ -->
-                <div id="noAddress" class="text-center mt-2" style="display:none;">
-                    <button type="button" class="btn btn-warning btn-sm" onclick="createAddress()">
-                        <i class="fa fa-plus"></i> Tạo địa chỉ mới
-                    </button>
+                    </c:if>
                 </div>
             </div>
+
             <!-- Sản phẩm -->
             <div class="musicshop-section">
-                <div class="musicshop-section-title">Sản phẩm</div>
+                <div class="musicshop-section-title">Product</div>
                 <div class="musicshop-product-row">
-                    <img src="./img/ram.jpg" alt="Guitar Acoustic">
+                    <img src="${pageContext.request.contextPath}/${product.imageUrl}" alt="${product.name}" width="100">
                     <div class="musicshop-product-info">
-                        <div class="musicshop-product-name">Guitar Acoustic Yamaha F310</div>
-                        <div class="musicshop-product-attr">Màu sắc: <span class="badge bg-light text-dark">Tự nhiên</span></div>
-                        <div class="musicshop-product-attr">Số lượng: <span id="quantity">1</span></div>
+                        <div class="musicshop-product-name">${product.name}</div>
+                        <div class="musicshop-product-attr">Quantity: <span id="quantity">${quantity}</span></div>
                     </div>
-                    <div class="musicshop-product-price">2.500.000đ</div>
+                    <div class="musicshop-product-price"><fmt:formatNumber value="${product.price}" pattern="#,##0.000"/>đ</div>
                 </div>
             </div>
+
             <!-- Chọn voucher -->
             <div class="musicshop-section">
-                <div class="musicshop-section-title"><i class="fa fa-ticket-alt me-2"></i>Chọn voucher</div>
-                <div class="d-flex align-items-center">
-                    <select class="form-select w-auto me-2" id="voucherSelect" style="min-width:180px;">
-                        <option value="">-- Không áp dụng --</option>
-                        <option value="10">Giảm 10.000đ</option>
-                        <option value="20">Giảm 20.000đ</option>
-                    </select>
-                    <button type="button" class="btn btn-outline-success btn-sm" onclick="applyVoucher()">
-                        Áp dụng
-                    </button>
+                <div class="musicshop-section-title">
+                    <i class="fa fa-ticket-alt me-2"></i>Select voucher
                 </div>
-                <div id="voucherInfo" class="form-text text-success mt-1" style="display:none;"></div>
-            </div>
-            <!-- Thanh toán -->
-            <div class="musicshop-section">
-                <div class="musicshop-section-title">Phương thức thanh toán</div>
-                <div class="d-flex align-items-center justify-content-between flex-wrap">
-                    <div>
-                        <i class="fa fa-money-bill-wave me-2"></i>
-                        <span id="paymentMethodText">Thanh toán khi nhận hàng (COD)</span>
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <form method="post" action="${pageContext.request.contextPath}/order-confirm" class="d-flex flex-wrap gap-2" id="voucherForm">
+                        <input type="hidden" name="productId" value="${product.productId}" />
+                        <input type="hidden" name="quantity" value="${quantity}" />
+                        <input type="hidden" name="paymentMethod" id="voucherPaymentMethod" value="${paymentMethod != null ? paymentMethod : '1'}" />
+                        <select class="form-select w-auto" id="voucherSelect" name="voucherId" style="min-width:180px;">
+                            <option value="not">-- Not applicable --</option>
+                            <c:forEach var="discount" items="${discountList}">
+                                <option value="${discount.discountId}"
+                                        <c:if test="${selectedDiscount != null && selectedDiscount.discountId == discount.discountId}">
+                                            selected
+                                        </c:if>>
+                                    ${discount.description}
+                                </option>
+                            </c:forEach>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fa fa-check me-1"></i>Apply
+                        </button>
+                    </form>
+                </div>
+                <c:if test="${not empty selectedDiscount}">
+                    <div id="voucherInfo" class="form-text text-success mt-1">
+                        <strong>${selectedDiscount.description}</strong><br/>
+                        <c:choose>
+                            <c:when test="${selectedDiscount.discountType.label == 'percentage'}">
+                                Discount: ${selectedDiscount.discountValue}% off
+                            </c:when>
+                            <c:otherwise>
+                                Discount: -<fmt:formatNumber value="${selectedDiscount.discountValue}" pattern="#,##0.000"/> VNĐ
+                            </c:otherwise>
+                        </c:choose>
                     </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-2 mt-md-0" onclick="choosePayment()">
-                        <i class="fa fa-credit-card"></i> Chọn phương thức khác
-                    </button>
+                </c:if>
+            </div>
+
+            <!-- Phương thức thanh toán -->
+            <div class="musicshop-section">
+                <div class="musicshop-section-title">Payment method</div>
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <i class="fa fa-money-bill-wave me-2"></i>
+                    <select id="paymentMethodSelect" name="paymentMethod" class="form-select w-auto" style="min-width:220px;">
+                        <option value="1" <c:if test="${paymentMethod == '1' || empty paymentMethod}">selected</c:if>>Cash on Delivery (COD)</option>
+                        <option value="2" <c:if test="${paymentMethod == '2'}">selected</c:if>>Bank transfer</option>
+                    </select>
                 </div>
             </div>
+
             <!-- Tổng kết -->
             <div class="musicshop-section">
-                <div class="musicshop-section-title">Tổng kết đơn hàng</div>
+                <div class="musicshop-section-title">Order Summary</div>
                 <div class="musicshop-summary-row">
-                    <span>Tổng tiền sản phẩm</span>
-                    <span>2.500.000đ</span>
+                    <span>Discount</span>
+                    <span id="discountAmount">-<fmt:formatNumber value="${discountAmount}" pattern="#,##0.000"/>đ</span>
                 </div>
                 <div class="musicshop-summary-row">
-                    <span>Phí vận chuyển</span>
-                    <span>30.000đ</span>
+                    <span>Total product price</span>
+                    <span><fmt:formatNumber value="${productPrice}" pattern="#,##0.000"/>đ</span>
+                </div>
+                <div class="musicshop-summary-row">
+                    <span>Shipping fee</span>
+                    <span><fmt:formatNumber value="${shippingFee}" pattern="#,##0.000"/>đ</span>
                 </div>
                 <div class="musicshop-summary-row total">
-                    <span>Tổng thanh toán</span>
-                    <span>2.530.000đ</span>
+                    <span>Total payment</span>
+                    <span id="finalAmount"><fmt:formatNumber value="${totalAmount}" pattern="#,##0.000"/>đ</span>
                 </div>
             </div>
-            <!-- Nút đặt hàng -->
-            <form id="orderForm">
-                <button type="submit" class="musicshop-btn-order w-100 mt-3"><i class="fa fa-check me-2"></i>Đặt hàng</button>
+
+            <!-- Form đặt hàng -->
+            <form id="orderForm" method="post" action="${pageContext.request.contextPath}/order-submit">
+                <input type="hidden" name="addressId" id="addressIdInput" value="${defaultAddress.addressId}" />
+                <input type="hidden" name="productId" value="${product.productId}" />
+                <input type="hidden" name="quantity" value="${quantity}" />
+                <input type="hidden" name="voucherId" id="voucherIdInput" value="${selectedDiscount != null ? selectedDiscount.discountId : ''}" />
+                <input type="hidden" name="paymentMethod" id="paymentMethodInput" value="${paymentMethod != null ? paymentMethod : '1'}" />
+                <button type="submit" class="musicshop-btn-order" <c:if test="${empty defaultAddress}">disabled</c:if>>
+                    <i class="fa fa-check me-2"></i>Order
+                </button>
             </form>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            // Demo chọn địa chỉ khác
-            function chooseAddress() {
-                alert('Chức năng chọn địa chỉ khác (mở modal hoặc chuyển trang address.html)');
-            }
-            function createAddress() {
-                alert('Chức năng tạo địa chỉ mới (mở modal hoặc chuyển trang address.html)');
-            }
-            function choosePhone() {
-                alert('Chức năng chọn số điện thoại khác');
-            }
-            function choosePayment() {
-                alert('Chức năng chọn phương thức thanh toán khác');
-            }
 
-            // Demo voucher
-            function applyVoucher() {
-                var voucher = document.getElementById('voucherSelect').value;
-                var info = document.getElementById('voucherInfo');
-                if (voucher === "10") {
-                    info.style.display = "block";
-                    info.textContent = "Đã áp dụng voucher giảm 10.000đ!";
-                } else if (voucher === "20") {
-                    info.style.display = "block";
-                    info.textContent = "Đã áp dụng voucher giảm 20.000đ!";
-                } else {
-                    info.style.display = "none";
-                    info.textContent = "";
-                }
-            }
-            // Demo xác nhận đặt hàng
-            document.getElementById('orderForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-                alert('Đặt hàng thành công!\nCảm ơn bạn đã mua hàng tại MusicShop.');
-            });
-        </script>
+        <!-- Modal địa chỉ -->
+        <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fa fa-map-marker-alt me-2"></i>Select Delivery Address</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="addressListSection">
+                            <div class="list-group" id="addressListContainer">
+                                <c:if test="${not empty addressList}">
+                                    <form action="${pageContext.request.contextPath}/address" method="post">
+                                        <input type="hidden" name="productId" value="${product.productId}">
+                                        <input type="hidden" name="quantity" value="${quantity}">
+                                        <input type="hidden" name="action" value="updateDefaultAddress">
+                                        <input type="hidden" name="page" value="orderConfirm">
+                                        <input type="hidden" name="userId" value="${user.userId}">
+                                        <input type="hidden" name="voucherId" value="${selectedDiscount != null ? selectedDiscount.discountId : ''}">
+                                        <input type="hidden" name="paymentMethod" value="${paymentMethod != null ? paymentMethod : '1'}">
+                                        <c:forEach var="address" items="${addressList}">
+                                            <button type="submit" name="addressId" value="${address.addressId}" class="list-group-item list-group-item-action">
+                                                ${address.receiverName} | ${address.receiverPhone}<br>
+                                                <small>${address.fullAddress}</small>
+                                            </button>
+                                        </c:forEach>
+                                    </form>
+                                </c:if>
+                                <c:if test="${empty addressList}">
+                                    <div class="text-muted">You have no addresses. Please add a new one in <a href="${pageContext.request.contextPath}/address-management">Address Management</a>.</div>
+                                </c:if>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Scripts -->
+        <script src="${pageContext.request.contextPath}/assets/js/order-confirm.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

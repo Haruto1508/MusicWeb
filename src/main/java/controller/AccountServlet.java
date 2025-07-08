@@ -44,28 +44,19 @@ public class AccountServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         HttpSession session = request.getSession(false);
-        User user = null;
+        User user = (User) session.getAttribute("user");
 
-        // Kiểm tra đăng nhập
-        if (session != null) {
-            user = (User) session.getAttribute("user");
-            if (user == null) {
-                response.sendRedirect(request.getContextPath() + "/login");
-                return;
-            }
-        } else {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // Gọi clearSession để lấy các thông báo từ session sang request
+        clearSession(request, response, session);
 
         String view = request.getParameter("view");
         if (view == null) {
             view = "info";
         }
 
-
+        System.out.println(user.toString());
+        System.out.println(user.getBirthdate());
         // Xử lý theo view
         switch (view) {
             case "info":
@@ -95,7 +86,7 @@ public class AccountServlet extends HttpServlet {
                     addresses = new ArrayList<>();
                     request.setAttribute("error", "Cannot load addresses");
                 }
-                session.setAttribute("addresses", addresses);
+                request.setAttribute("addresses", addresses);
                 break;
 
             case "cart":
@@ -110,7 +101,7 @@ public class AccountServlet extends HttpServlet {
                     carts = new ArrayList<>();
                     request.setAttribute("error", "Cannot load cart");
                 }
-                session.setAttribute("carts", carts);
+                request.setAttribute("carts", carts);
                 request.setAttribute("total", total);
                 break;
 
@@ -121,9 +112,8 @@ public class AccountServlet extends HttpServlet {
                     orders = new ArrayList<>();
                     request.setAttribute("error", "Cannot load orders");
                 }
-                session.setAttribute("orders", orders);
+                request.setAttribute("orders", orders);
                 break;
-
             case "setting":
             case "password":
                 // Nếu có view khác, xử lý tại đây
@@ -137,5 +127,52 @@ public class AccountServlet extends HttpServlet {
 
         request.setAttribute("view", view);
         request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
+    }
+
+    protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        // Thông báo
+        Object deleteSuccess = session.getAttribute("deleteSuccess");
+        Object deleteFail = session.getAttribute("deleteFail");
+        Object addSuccess = session.getAttribute("addSuccess");
+        Object addFail = session.getAttribute("addFail");
+        Object updateSuccess = session.getAttribute("updateSuccess");
+        Object updateFail = session.getAttribute("updateFail");
+
+        if (deleteSuccess != null) {
+            request.setAttribute("deleteSuccess", deleteSuccess);
+            session.removeAttribute("deleteSuccess");
+        }
+        if (deleteFail != null) {
+            request.setAttribute("deleteFail", deleteFail);
+            session.removeAttribute("deleteFail");
+        }
+        if (addSuccess != null) {
+            request.setAttribute("addSuccess", addSuccess);
+            session.removeAttribute("addSuccess");
+        }
+        if (addFail != null) {
+            request.setAttribute("addFail", addFail);
+            session.removeAttribute("addFail");
+        }
+        if (updateSuccess != null) {
+            request.setAttribute("updateSuccess", updateSuccess);
+            session.removeAttribute("updateSuccess");
+        }
+        if (updateFail != null) {
+            request.setAttribute("updateFail", updateFail);
+            session.removeAttribute("updateFail");
+        }
+
+        // Dữ liệu nhập lại
+        String[] fields = {"receiverName", "receiverPhone", "street", "ward", "district", "city",
+            "nameError", "phoneError", "streetError", "cityError"};
+
+        for (String field : fields) {
+            Object val = session.getAttribute(field);
+            if (val != null) {
+                request.setAttribute(field, val);
+                session.removeAttribute(field);
+            }
+        }
     }
 }

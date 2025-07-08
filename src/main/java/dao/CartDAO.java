@@ -25,13 +25,12 @@ public class CartDAO extends JDBCUtil {
 
     private static final Logger LOGGER = Logger.getLogger(CartDAO.class.getName());
 
-    public boolean insert(Cart cart) {
-        String sql = "INSERT INTO Carts (userID, productID, quantity, addDate) VALUES (?, ?, ?, ?)";
+    public boolean insertCart(Cart cart) {
+        String sql = "INSERT INTO Carts (userID, productID, quantity) VALUES (?, ?, ?)";
         Object[] params = {
             cart.getUser().getUserId(),
             cart.getProduct().getProductId(),
             cart.getQuantity(),
-            Timestamp.valueOf(cart.getAddDate())
         };
 
         try {

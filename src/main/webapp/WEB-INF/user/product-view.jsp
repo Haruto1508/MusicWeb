@@ -55,18 +55,20 @@
                                 </p>
                                 <div class="quantity">
                                     <label>Quantity:</label>
-                                    <input type="number" class="form-control" value="1" min="1" max="${product.stockQuantity}">
+                                    <input type="number" name="quantity" id="userQuantityInput" class="form-control" value="1" min="1" max="${product.stockQuantity}">
                                 </div>
                                 <div class="actions mt-3">
                                     <button class="btn btn-danger add-to-cart" data-product-id="${product.productId}">
                                         <i class="fa fa-cart-plus"></i> Add to cart
                                     </button>
-                                    <button class="btn btn-primary buy-now" data-bs-toggle="modal" data-bs-target="#orderModal">
-                                        <i class="fa fa-shopping-cart"></i> Buy now
-                                    </button>
-                                    <button class="btn btn-outline-secondary add-to-wishlist" data-product-id="${product.productId}">
-                                        <i class="fa fa-heart"></i> Favourite
-                                    </button>
+                                    <form id="buyNowForm" action="${pageContext.request.contextPath}/order-confirm" method="post" class="d-inline">
+                                        <input type="hidden" name="productId" value="${product.productId}" />
+                                        <input type="hidden" name="quantity" id="buyNowQuantity" value="" />
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-shopping-cart"></i> Buy now
+                                        </button>
+                                    </form>
+
                                 </div>
                             </div>
                         </div>
@@ -105,61 +107,13 @@
             </c:otherwise>
         </c:choose>
 
-        <!-- Order Modal -->
-        <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="orderModalLabel">Thông tin khách hàng</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Họ và tên</label>
-                                <input type="text" class="form-control" id="name" placeholder="Nhập họ và tên" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Number Phone</label>
-                                <input type="tel" class="form-control" id="phone" placeholder="Nhập số điện thoại" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="address" class="form-label">Address</label>
-                                <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="payment" class="form-label">Payment method</label>
-                                <select class="form-select" id="payment">
-                                    <option>Cash on Delivery</option>
-                                    <option>Credit card</option>
-                                    <option>E-wallet</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary">Đặt hàng</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <%@ include file="/WEB-INF/include/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            document.querySelectorAll('.add-to-cart').forEach(button => {
-                button.addEventListener('click', function () {
-                    const productId = this.dataset.productId;
-                    alert(`\u0110\u00e3 th\u00eam s\u1ea3n ph\u1ea9m ${productId} v\u00e0o gi\u1ecf h\u00e0ng (ch\u01b0a x\u1eed l\u00fd logic)`);
-                });
-            });
-
-            document.querySelectorAll('.add-to-wishlist').forEach(button => {
-                button.addEventListener('click', function () {
-                    const productId = this.dataset.productId;
-                    alert(`\u0110\u00e3 th\u00eam s\u1ea3n ph\u1ea9m ${productId} v\u00e0o danh s\u00e1ch y\u00eau th\u00edch (ch\u01b0a x\u1eed l\u00fd logic)`);
-                });
+            document.getElementById('buyNowForm').addEventListener('submit', function (e) {
+                const quantityInput = document.getElementById('userQuantityInput');
+                const hiddenQuantity = document.getElementById('buyNowQuantity');
+                hiddenQuantity.value = quantityInput.value;
             });
         </script>
     </body>

@@ -25,7 +25,7 @@
                         </div>
                         <div class="col-md-4 text-end cart-buttons">
                             <a href="${pageContext.request.contextPath}/product?id=${cart.product.productId}" class="btn btn-outline-primary btn-sm">🔍 See details</a>
-                            <a href="${pageContext.request.contextPath}/product?id=${cart.product.productId}" class="btn btn-success btn-sm">💳 Buy now</a>
+                            <a href="${pageContext.request.contextPath}/order-confirm?id=${cart.product.productId}" class="btn btn-success btn-sm">💳 Buy now</a>
                         </div>
                     </div>
                 </c:forEach>

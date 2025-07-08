@@ -50,6 +50,9 @@
                             <c:when test="${not empty user}">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=info">Profile</a></li>
                                 <li><a class="dropdown-item" href="#">History</a></li>
+                                <c:if test="${not empty admin}">
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin">Admin</a></li>
+                                </c:if>
                                 <li><hr class="dropdown-divider"> </li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
                             </c:when>

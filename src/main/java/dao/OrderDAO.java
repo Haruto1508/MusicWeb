@@ -8,7 +8,6 @@ import db.JDBCUtil;
 import enums.OrderStatus;
 import enums.PaymentMethod;
 import enums.PaymentStatus;
-import enums.ShippingMethod;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -44,6 +43,13 @@ public class OrderDAO extends JDBCUtil {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public int createOrder(int userId, int addressId, int productId, int quantity, Integer discountId, int paymentMethod) throws SQLException {
+        String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?)}";
+        Object[] params = {userId, addressId, productId, quantity, discountId, paymentMethod};
+        System.out.println("OrderDAO - Creating order for userId: " + userId + ", productId: " + productId);
+        return execStoredProcedure(procedureCall, params, 7);
     }
 
     public Order getOrderById(int orderId) {

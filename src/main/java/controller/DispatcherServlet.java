@@ -80,10 +80,6 @@ public class DispatcherServlet extends HttpServlet {
             user = (User) session.getAttribute("user");
         }
 
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
         switch (page) {
             case "home":
                 forwardHome(request, response);

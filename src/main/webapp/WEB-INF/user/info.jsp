@@ -149,7 +149,7 @@
     </div>
 </div>
 
-<script>
+<script> 
 window.addEventListener("DOMContentLoaded", function () {
     const editBtn = document.getElementById("editBtn");
     const saveBtn = document.getElementById("saveBtn");

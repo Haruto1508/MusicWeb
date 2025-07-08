@@ -127,7 +127,8 @@ public class LoginServlet extends HttpServlet {
             // Phân quyền
             int roleId = loginUser.getRole().getId();
             if (roleId == 1) { // Admin
-                request.getRequestDispatcher("/WEB-INF/admin/manager.jsp").forward(request, response);
+                session.setAttribute("admin", "admin  ");
+                response.sendRedirect(request.getContextPath() + "/home");
             } else if (roleId == 2) { // User
                 response.sendRedirect(request.getContextPath() + "/home");
             } else {
