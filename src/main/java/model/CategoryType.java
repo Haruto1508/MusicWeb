@@ -8,10 +8,10 @@ package model;
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-public class AddressStyle {
-    public static final String ADDRESS_HOME_STYLE = "Home";
-    public static final String ADDRESS_OFFICE_STYLE = "Office";
-    public static final String ADDRESS_COMPANY_STYLE = "Comapy";
+public class CategoryType {
+    public static final int CATEGORY_GUITAR = 1;
+    public static final int CATEGORY_VIOLIN = 2;
+    public static final int CATEGORY_PIANO = 2;
     
-    public AddressStyle() {}
+    public CategoryType() {}
 }

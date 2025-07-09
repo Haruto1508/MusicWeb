@@ -1,0 +1,195 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : May 19, 2025, 4:35:06 PM
+    Author     : Nguyen Hoang Thai Vinh - CE190384
+*/
+:root {
+    --primary: #8b5cf6;
+    --primary-dark: #6d28d9;
+    --light: #f8fafc;
+    --gray: #e5e7eb;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+    --shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+    --radius: 1rem;
+}
+
+/* Global styles */
+body {
+    background: var(--light);
+    color: var(--text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Hero section */
+.hero {
+    padding: 60px 0;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    text-align: center;
+}
+
+.hero .btn {
+    background-color: white;
+    color: var(--primary);
+    border-radius: 30px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.hero .btn:hover {
+    background-color: var(--gray);
+    color: var(--primary-dark);
+}
+
+/* About section */
+#about h2 {
+    color: var(--primary-dark);
+}
+
+/* Category icons */
+.category-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+}
+
+/* Home card layout */
+.home-card-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    padding-bottom: 40px;
+}
+
+.home-col {
+    flex: 1 1 calc(25% - 24px);
+    max-width: 280px;
+    display: flex;
+}
+
+/* Product Card */
+.product-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    width: 100%;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+}
+
+.product-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Product body */
+.product-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Title */
+.product-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+/* Description */
+.product-desc {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    flex-grow: 1;
+    margin-bottom: 14px;
+}
+
+/* Footer */
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+}
+
+/* Price */
+.product-price {
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 1.05rem;
+}
+
+/* Button */
+.product-btn {
+    background-color: transparent;
+    border: 1.5px solid var(--primary);
+    border-radius: 20px;
+    color: var(--primary);
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.product-btn:hover {
+    background-color: var(--primary);
+    color: #fff;
+}
+
+/* Responsive layout */
+@media (max-width: 992px) {
+    .home-col {
+        flex: 1 1 calc(33.333% - 24px);
+    }
+}
+
+@media (max-width: 768px) {
+    .home-col {
+        flex: 1 1 calc(50% - 24px);
+    }
+}
+
+@media (max-width: 576px) {
+    .home-col {
+        flex: 1 1 100%;
+    }
+
+    .product-img {
+        height: 160px;
+    }
+
+    .product-title {
+        font-size: 1rem;
+    }
+
+    .product-price {
+        font-size: 1rem;
+    }
+
+    .product-btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+    }
+}

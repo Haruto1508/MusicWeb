@@ -45,8 +45,6 @@ public class AddressServlet extends HttpServlet {
                 case "updateDefaultAddress":
                     updateDefaultAddress(request, response, user, addressDAO);
                     break;
-                case "getAddress":
-                    getAddressByAddressId(request, response, user, addressDAO);
                 default:
                     session.setAttribute("error", "Invalid action");
                     response.sendRedirect(request.getContextPath() + "/account?view=address");
@@ -58,33 +56,8 @@ public class AddressServlet extends HttpServlet {
         }
     }
 
-    private void getAddressByAddressId(HttpServletRequest request, HttpServletResponse response, User user, AddressDAO addressDAO, HttpSession session) {
-        String addressIdStr = request.getParameter("addressId");
-        
-        int addressId;
-        try {
-            addressId = Integer.parseInt(addressIdStr);
-        } catch (NumberFormatException e) {
-            session.setAttribute("updateFail", "Invalid address ID");
-            response.sendRedirect(request.getContextPath() + "/account?view=address");
-            return;
-        }
-        
-        Address address = addressDAO.getAddressById(addressId, user.getUserId());
-        
-        if (address != null) {
-            request.setAttribute("recieverName", address.getReceiverName());
-            request.setAttribute("recieverName", address.getReceiverPhone());
-            request.setAttribute("recieverName", address.getStreet());
-            request.setAttribute("recieverName", address.getWard());
-            request.setAttribute("recieverName", address.getCity());
-            request.setAttribute("recieverName", address.getDistrict());
-        }
-    }
-    
     private void addAddress(HttpServletRequest request, HttpServletResponse response, User user, AddressDAO addressDAO, HttpSession session)
             throws ServletException, IOException {
-        // Lấy tham số từ form
         String receiverName = request.getParameter("receiverName");
         String receiverPhone = request.getParameter("receiverPhone");
         String street = request.getParameter("street");
@@ -93,7 +66,6 @@ public class AddressServlet extends HttpServlet {
         String city = request.getParameter("city");
         String isSetDefault = request.getParameter("isDefault");
 
-        // Xác thực tham số
         if (receiverName == null || receiverPhone == null || street == null || city == null) {
             session.setAttribute("addFail", "Add address fail! All required fields must be filled.");
             session.setAttribute("receiverName", receiverName);
@@ -138,7 +110,6 @@ public class AddressServlet extends HttpServlet {
             return;
         }
 
-        // Tạo đối tượng Address
         Address address = new Address();
         address.setUser(user);
         address.setReceiverName(receiverName);
@@ -150,7 +121,6 @@ public class AddressServlet extends HttpServlet {
         address.setType(AddressStyle.ADDRESS_HOME_STYLE);
         address.setIsDefault("true".equals(isSetDefault));
 
-        // Thêm địa chỉ
         boolean isInsert = addressDAO.insertAddress(address);
         if (!isInsert) {
             session.setAttribute("addFail", "Add address failed!");
@@ -158,14 +128,12 @@ public class AddressServlet extends HttpServlet {
             return;
         }
 
-        // Thành công
         session.setAttribute("addSuccess", "Add address success!");
         response.sendRedirect(request.getContextPath() + "/account?view=address");
     }
 
     private void updateAddress(HttpServletRequest request, HttpServletResponse response, User user, AddressDAO addressDAO, HttpSession session)
             throws ServletException, IOException {
-        // Lấy tham số
         String addressIdStr = request.getParameter("addressId");
         String receiverName = request.getParameter("receiverName");
         String receiverPhone = request.getParameter("receiverPhone");
@@ -175,7 +143,6 @@ public class AddressServlet extends HttpServlet {
         String city = request.getParameter("city");
         String isSetDefault = request.getParameter("isDefault");
 
-        // Xác thực addressId
         int addressId;
         try {
             addressId = Integer.parseInt(addressIdStr);
@@ -185,7 +152,14 @@ public class AddressServlet extends HttpServlet {
             return;
         }
 
-        // Xác thực tham số
+        // Kiểm tra xem địa chỉ có thuộc về user không
+        Address existingAddress = addressDAO.getAddressById(addressId, user.getUserId());
+        if (existingAddress == null) {
+            session.setAttribute("updateFail", "Address not found or you do not have permission to update it.");
+            response.sendRedirect(request.getContextPath() + "/account?view=address");
+            return;
+        }
+
         boolean hasError = false;
         if (receiverName == null || !receiverName.matches("^[\\p{L} .'-]+$")) {
             session.setAttribute("nameError", "Full name is invalid.");
@@ -218,7 +192,6 @@ public class AddressServlet extends HttpServlet {
             return;
         }
 
-        // Tạo đối tượng Address
         Address address = new Address();
         address.setAddressId(addressId);
         address.setUser(user);
@@ -231,21 +204,18 @@ public class AddressServlet extends HttpServlet {
         address.setType(AddressStyle.ADDRESS_HOME_STYLE);
         address.setIsDefault("true".equals(isSetDefault));
 
-        // Cập nhật địa chỉ
-        if (!addressDAO.update(address)) {
-            session.setAttribute("updateFail", "Update address failed!");
+        if (!addressDAO.updateAddress(address)) {
+            session.setAttribute("updateFail", "Update address failed due to database error.");
             response.sendRedirect(request.getContextPath() + "/account?view=address");
             return;
         }
 
-        // Thành công
         session.setAttribute("updateSuccess", "Update address success!");
         response.sendRedirect(request.getContextPath() + "/account?view=address");
     }
 
     private void deleteAddress(HttpServletRequest request, HttpServletResponse response, User user, AddressDAO addressDAO, HttpSession session)
             throws ServletException, IOException {
-        // Lấy addressId
         String addressIdStr = request.getParameter("addressId");
         int addressId;
         try {
@@ -256,14 +226,12 @@ public class AddressServlet extends HttpServlet {
             return;
         }
 
-        // Xóa địa chỉ
         if (!addressDAO.deleteAddress(addressId, user.getUserId())) {
             session.setAttribute("deleteFail", "Delete address fail! This address is used in existing orders and cannot be deleted.");
             response.sendRedirect(request.getContextPath() + "/account?view=address");
             return;
         }
 
-        // Thành công
         session.setAttribute("deleteSuccess", "Delete address success!");
         response.sendRedirect(request.getContextPath() + "/account?view=address");
     }
@@ -276,7 +244,6 @@ public class AddressServlet extends HttpServlet {
         String voucherId = request.getParameter("voucherId");
         String paymentMethod = request.getParameter("paymentMethod");
 
-        // Lấy addressId
         String addressIdStr = request.getParameter("addressId");
         int addressId;
         try {
@@ -286,16 +253,14 @@ public class AddressServlet extends HttpServlet {
             return;
         }
 
-        // Cập nhật địa chỉ mặc định
         if (!addressDAO.setDefaultAddress(user.getUserId(), addressId)) {
             setErrorAndForward(request, response, "Failed to update default address", page, productId, quantity, voucherId, paymentMethod);
             return;
         }
 
-        // Chuyển hướng
         response.sendRedirect(buildRedirectUrl(request, page, productId, quantity, voucherId, paymentMethod));
     }
-    
+
     private void setErrorAndForward(HttpServletRequest request, HttpServletResponse response, String errorMessage,
             String page, String productId, String quantity, String voucherId, String paymentMethod)
             throws ServletException, IOException {
@@ -307,7 +272,6 @@ public class AddressServlet extends HttpServlet {
             request.setAttribute("paymentMethod", paymentMethod);
             request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
         } else {
-            // Giả định trang quản lý địa chỉ
             request.getRequestDispatcher("/WEB-INF/user/address-management.jsp").forward(request, response);
         }
     }

@@ -112,19 +112,28 @@ public class AddressDAO extends JDBCUtil {
         return null;
     }
 
-    public boolean update(Address address) {
-        String sql = "UPDATE Address SET street = ?, ward = ?, district = ?, city = ?, type = ?, is_default = ? WHERE address_id = ?";
+    public boolean updateAddress(Address address) {
+        String sql = "UPDATE Address SET receiver_name = ?, receiver_phone = ?, street = ?, ward = ?, district = ?, city = ?, type = ?, is_default = ? WHERE address_id = ? AND user_id = ?";
         Object[] params = {
-            address.getStreet(), address.getWard(), address.getDistrict(), address.getCity(), address.getType(), address.isIsDefault(), address.getUser().getUserId()
+            address.getReceiverName(),
+            address.getReceiverPhone(),
+            address.getStreet(),
+            address.getWard(),
+            address.getDistrict(),
+            address.getCity(),
+            address.getType(),
+            address.isIsDefault(),
+            address.getAddressId(),
+            address.getUser().getUserId()
         };
 
         try {
             return execQuery(sql, params) > 0;
         } catch (SQLException e) {
+            System.err.println("SQL Error in update: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-
-        return false;
     }
 
     public boolean deleteAddress(int addressId, int userId) {
@@ -136,7 +145,7 @@ public class AddressDAO extends JDBCUtil {
             e.printStackTrace();
         }
         return false;
-    }  
+    }
 
     public Address getDefaultAddress(int userId) {
         String sql = "SELECT *,  \n"

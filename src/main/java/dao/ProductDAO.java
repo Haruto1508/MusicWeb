@@ -274,11 +274,11 @@ public class ProductDAO extends JDBCUtil {
         return list;
     }
 
-    public int countProductsByCategory(String categoryId) {
+    public int countProductsByCategory(int categoryId) {
         String sql = "SELECT COUNT(*) FROM Products WHERE category_id = ?";
         Object[] params = {categoryId};
-        
-        try (ResultSet rs = execSelectQuery(sql, params)) {
+
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -286,6 +286,65 @@ public class ProductDAO extends JDBCUtil {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public List<Product> getProductsByCategoryAndPage(int categoryId, int offset, int limit) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM Products p\n"
+                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
+                + "LEFT JOIN Discounts d ON d.discount_id = p.discount_id\n"
+                + "WHERE p.category_id = ?\n"
+                + "ORDER BY p.product_id\n"
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        Object[] params = {categoryId, offset, limit};
+
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            while (rs.next()) {
+                Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+                Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
+                Discount discount = null;
+
+                int discountId = rs.getInt("discount_id");
+                if (!rs.wasNull() && discountId != 0) {
+                    int discountType = rs.getInt("discount_type");
+                    DiscountType type = DiscountType.fromType(discountType);
+                    discount = new Discount(
+                            discountId,
+                            rs.getString("code"),
+                            rs.getString("description"),
+                            type,
+                            rs.getBigDecimal("discount_value"),
+                            rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
+                            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
+                            rs.getBigDecimal("minimum_order_value"),
+                            rs.getInt("usage_limit"),
+                            rs.getInt("used_count"),
+                            rs.getBoolean("is_active")
+                    );
+                }
+
+                Product product = new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getBigDecimal("price"),
+                        rs.getInt("stock_quantity"),
+                        category,
+                        rs.getString("image_url"),
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        brand,
+                        discount,
+                        rs.getInt("sold_quantity")
+                );
+                list.add(product);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 
     public static void main(String[] args) {

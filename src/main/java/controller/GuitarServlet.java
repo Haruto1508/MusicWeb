@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import model.CategoryType;
+import model.PageSize;
 import model.Product;
 
 /**
@@ -61,20 +63,29 @@ public class GuitarServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int page = 1;
+        int categoryId = 1; //guitar
+        // Lấy page và categoryId từ request
         String pageParam = request.getParameter("page");
+        String categoryParam = request.getParameter("categoryId");
+
         if (pageParam != null && pageParam.matches("\\d+")) {
             page = Integer.parseInt(pageParam);
         }
+        if (categoryParam != null && categoryParam.matches("\\d+")) {
+            categoryId = Integer.parseInt(categoryParam);
+        }
 
-        GuitarDAO dao = new GuitarDAO();
-        int totalProducts = dao.countAllGuitars();
-        int totalPages = (int) Math.ceil((double) totalProducts / PAGE_SIZE);
+        ProductDAO dao = new ProductDAO();
+        int totalProducts = dao.countProductsByCategory(CategoryType.CATEGORY_GUITAR);
+        int totalPages = (int) Math.ceil((double) totalProducts / PageSize.PAGE_SIZE);
 
-        List<Guitar> guitars = dao.getGuitarsByPage((page - 1) * PAGE_SIZE, PAGE_SIZE);
+        List<Product> products = dao.getProductsByCategoryAndPage(categoryId, (page - 1) * PageSize.PAGE_SIZE, PageSize.PAGE_SIZE);
 
-        request.setAttribute("guitars", guitars);
+        request.setAttribute("guitars", products);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
+        request.setAttribute("categoryId", categoryId); // truyền lại để tạo link đúng
+
         request.getRequestDispatcher("guitar.jsp").forward(request, response);
     }
 
