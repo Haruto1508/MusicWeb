@@ -9,7 +9,9 @@ import enums.Gender;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Role;
 import model.User;
 
@@ -286,11 +288,38 @@ public class UserDAO extends JDBCUtil {
         return false;
     }
 
+    public Map<String, Boolean> checkDuplicateInfo(String account, String email, String phone, int userId) {
+        Map<String, Boolean> result = new HashMap<>();
+        result.put("account", false);
+        result.put("email", false);
+        result.put("phone", false);
+        String sql = "SELECT account, email, phone FROM users WHERE (account = ? OR email = ? OR phone = ?) AND user_id != ?";
+        Object[] params = {
+            account, email, phone, userId
+        };
+        try (ResultSet rs = execSelectQuery(sql, params)) {
+            while (rs.next()) {
+                if (rs.getString("account").equals(account)) {
+                    result.put("account", true);
+                }
+                if (rs.getString("email").equals(email)) {
+                    result.put("email", true);
+                }
+                if (rs.getString("phone").equals(phone)) {
+                    result.put("phone", true);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
     public static void main(String[] args) {
         UserDAO u = new UserDAO();
 
         User user = u.getUserById(2);
-        
+
         System.out.println(user);
     }
 

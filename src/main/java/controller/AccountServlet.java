@@ -55,12 +55,8 @@ public class AccountServlet extends HttpServlet {
             view = "info";
         }
 
-        System.out.println(user.toString());
-        System.out.println(user.getBirthdate());
-        // Xử lý theo view
         switch (view) {
             case "info":
-                // Định dạng ngày sinh
                 int currentYear = LocalDate.now().getYear();
                 DateTimeFormatter textFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                 DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -72,8 +68,6 @@ public class AccountServlet extends HttpServlet {
                         ? user.getBirthdate().format(textFormatter)
                         : "";
 
-                // Gán thông tin dùng chung
-                session.setAttribute("user", user);
                 request.setAttribute("currentYear", currentYear);
                 request.setAttribute("birthdateInputValue", birthdateInputValue);
                 request.setAttribute("birthdateTextValue", birthdateTextValue);
@@ -114,9 +108,9 @@ public class AccountServlet extends HttpServlet {
                 }
                 request.setAttribute("orders", orders);
                 break;
+
             case "setting":
             case "password":
-                // Nếu có view khác, xử lý tại đây
                 break;
 
             default:
@@ -130,48 +124,17 @@ public class AccountServlet extends HttpServlet {
     }
 
     protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-        // Thông báo
-        Object deleteSuccess = session.getAttribute("deleteSuccess");
-        Object deleteFail = session.getAttribute("deleteFail");
-        Object addSuccess = session.getAttribute("addSuccess");
-        Object addFail = session.getAttribute("addFail");
-        Object updateSuccess = session.getAttribute("updateSuccess");
-        Object updateFail = session.getAttribute("updateFail");
-
-        if (deleteSuccess != null) {
-            request.setAttribute("deleteSuccess", deleteSuccess);
-            session.removeAttribute("deleteSuccess");
-        }
-        if (deleteFail != null) {
-            request.setAttribute("deleteFail", deleteFail);
-            session.removeAttribute("deleteFail");
-        }
-        if (addSuccess != null) {
-            request.setAttribute("addSuccess", addSuccess);
-            session.removeAttribute("addSuccess");
-        }
-        if (addFail != null) {
-            request.setAttribute("addFail", addFail);
-            session.removeAttribute("addFail");
-        }
-        if (updateSuccess != null) {
-            request.setAttribute("updateSuccess", updateSuccess);
-            session.removeAttribute("updateSuccess");
-        }
-        if (updateFail != null) {
-            request.setAttribute("updateFail", updateFail);
-            session.removeAttribute("updateFail");
-        }
-
-        // Dữ liệu nhập lại
-        String[] fields = {"receiverName", "receiverPhone", "street", "ward", "district", "city",
-            "nameError", "phoneError", "streetError", "cityError"};
-
-        for (String field : fields) {
-            Object val = session.getAttribute(field);
+        String[] attributes = {"deleteSuccess", "deleteFail", "addSuccess", "addFail", "updateSuccess", "updateFail",
+            "receiverName", "receiverPhone", "street", "ward", "district", "city",
+            "nameError", "phoneError", "streetError", "cityError",
+            "tempFullName", "tempAccount", "tempEmail", "tempPhone", "tempGender",
+            "birth_day", "birth_month", "birth_year", "accountError", "fullNameError",
+            "emailError", "phoneError", "birthdateError", "genderError"};
+        for (String attr : attributes) {
+            Object val = session.getAttribute(attr);
             if (val != null) {
-                request.setAttribute(field, val);
-                session.removeAttribute(field);
+                request.setAttribute(attr, val);
+                session.removeAttribute(attr);
             }
         }
     }

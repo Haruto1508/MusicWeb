@@ -14,8 +14,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.Map;
 import model.User;
 
 /**
@@ -51,8 +52,13 @@ public class UpdateUserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        System.out.println("bat dau update user servlet");
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String fullName = request.getParameter("fullName").trim();
         String account = request.getParameter("account").trim();
@@ -63,153 +69,172 @@ public class UpdateUserServlet extends HttpServlet {
         String month = request.getParameter("birth_month");
         String year = request.getParameter("birth_year");
 
-        System.out.println(year + " " + month + " " + day);
+        System.out.println(fullName);
+        System.out.println("Received: birth_day=" + day + ", birth_month=" + month + ", birth_year=" + year);
+        
         UserDAO userDAO = new UserDAO();
-
-        // Check for duplicates separately
         int userId = user.getUserId();
 
-        // check for get id
-        try {
-            String id = String.valueOf(userId);
-            System.out.println("Get id " + id + " success");
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        // Check for duplicates
+        if (isDuplicateUserInfo(request, userDAO, account, email, phone, userId, session)) {
+            setTempAttributes(fullName, account, email, phone, gender, day, month, year, session);
+            response.sendRedirect(request.getContextPath() + "/account?view=info");
             return;
         }
 
-        // check for duplicate user info
-        if (isDuplicateUserInfo(request, userDAO, account, email, phone, userId)) {
-            setBirthdateAttributes(user, request);
-            setTempAttributes(request, fullName, account, email, phone, gender, day, month, year);
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
-            return;
-        }
-
-        // check for valid update info
-        if (!isValidUpdateInfo(request, user, account, fullName, email, phone, day, month, year)) {
-            setBirthdateAttributes(user, request);
-            setTempAttributes(request, fullName, account, email, phone, gender, day, month, year);
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
+        // Check for valid update info
+        if (!isValidUpdateInfo(request, user, account, fullName, email, phone, day, month, year, gender, session)) {
+            setTempAttributes(fullName, account, email, phone, gender, day, month, year, session);
+            response.sendRedirect(request.getContextPath() + "/account?view=info");
             return;
         }
 
         user.setFullName(fullName);
         user.setEmail(email);
         user.setPhone(phone);
-        user.setGender(Gender.fromGender(Integer.parseInt(gender)));
         user.setAccount(account);
 
         boolean isUpdateSuccess = userDAO.update(user);
-        System.out.println(user.toString());
         if (isUpdateSuccess) {
             session.setAttribute("user", user);
-            System.out.println("cap nhat thanh cong");
-            request.setAttribute("updateSuccess", "Cập nhật thông tin thành công!");
-            setBirthdateAttributes(user, request);
-            
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
+            session.setAttribute("updateSuccess", "Cập nhật thông tin thành công!");
+            clearSession(session);
+            response.sendRedirect(request.getContextPath() + "/account?view=info");
         } else {
-            System.out.println("cap nhat that bai");
-            setCommonFailAttributes(request);
-            setBirthdateAttributes(user, request);
-            
-            request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
+            session.setAttribute("updateFail", "Update information failed!");
+            setTempAttributes(fullName, account, email, phone, gender, day, month, year, session);
+            response.sendRedirect(request.getContextPath() + "/account?view=info");
         }
     }
 
-    private void setBirthdateAttributes(User user, HttpServletRequest request) {
-        int currentYear = LocalDate.now().getYear();
-        DateTimeFormatter textFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String birthdateInputValue = user.getBirthdate() != null
-                ? user.getBirthdate().format(inputFormatter)
-                : "";
-        String birthdateTextValue = user.getBirthdate() != null
-                ? user.getBirthdate().format(textFormatter)
-                : "";
-        request.setAttribute("currentYear", currentYear);
-        request.setAttribute("birthdateInputValue", birthdateInputValue);
-        request.setAttribute("birthdateTextValue", birthdateTextValue);
+    private void setTempAttributes(String fullName, String account, String email, String phone, String gender, String day, String month, String year, HttpSession session) {
+        session.setAttribute("tempFullName", fullName);
+        session.setAttribute("tempAccount", account);
+        session.setAttribute("tempEmail", email);
+        session.setAttribute("tempPhone", phone);
+        session.setAttribute("tempGender", gender);
+        session.setAttribute("birth_day", day);
+        session.setAttribute("birth_month", month);
+        session.setAttribute("birth_year", year);
     }
 
-    private void setTempAttributes(HttpServletRequest request, String fullName, String account, String email, String phone, String gender, String day, String month, String year) {
-        request.setAttribute("tempFullName", fullName);
-        request.setAttribute("tempAccount", account);
-        request.setAttribute("tempEmail", email);
-        request.setAttribute("tempPhone", phone);
-        request.setAttribute("tempGender", gender);
-        request.setAttribute("birth_day", day);
-        request.setAttribute("birth_month", month);
-        request.setAttribute("birth_year", year);
-    }
-
-    private boolean isDuplicateUserInfo(HttpServletRequest request, UserDAO userDAO, String account, String email, String phone, int userId) {
+    private boolean isDuplicateUserInfo(HttpServletRequest request, UserDAO userDAO, String account, String email, String phone, int userId, HttpSession session) {
+        Map<String, Boolean> duplicates = userDAO.checkDuplicateInfo(account, email, phone, userId);
         boolean hasError = false;
-        if (userDAO.isAccountTaken(account, userId)) {
-            request.setAttribute("accountError", "Account name already exists");
-            setCommonFailAttributes(request);
+        if (duplicates.get("account")) {
+            session.setAttribute("accountError", "Account name already exists");
             hasError = true;
         }
-
-        if (userDAO.isEmailTaken(email, userId)) {
-            request.setAttribute("emailError", "Email has been registered");
-            setCommonFailAttributes(request);
+        if (duplicates.get("email")) {
+            session.setAttribute("emailError", "Email has been registered");
             hasError = true;
         }
-
-        if (userDAO.isPhoneTaken(phone, userId)) {
-            request.setAttribute("phoneError", "Phone number already in use");
-            setCommonFailAttributes(request);
+        if (duplicates.get("phone")) {
+            session.setAttribute("phoneError", "Phone number already in use");
             hasError = true;
         }
-
+        if (hasError) {
+            session.setAttribute("updateFail", "Update information failed!");
+        }
         return hasError;
     }
 
-    private boolean isValidUpdateInfo(HttpServletRequest request, User user, String account, String fullName, String email, String phone, String day, String month, String year) {
+    private boolean isValidUpdateInfo(HttpServletRequest request, User user, String account, String fullName, String email, String phone, String day, String month, String year, String gender, HttpSession session) {
         boolean isValid = true;
 
         if (account == null || account.trim().isEmpty()) {
-            request.setAttribute("accountError", "Account không được để trống");
-            setCommonFailAttributes(request);
+            session.setAttribute("accountError", "Account cannot be blank");
             isValid = false;
         }
-        
+
         if (fullName == null || fullName.trim().isEmpty()) {
-            request.setAttribute("fullNameError", "Họ tên không được để trống");
-            setCommonFailAttributes(request);
+            session.setAttribute("fullNameError", "Full name cannot be left blank");
             isValid = false;
         }
 
         if (email == null || !email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            request.setAttribute("emailError", "Email không hợp lệ");
-            setCommonFailAttributes(request);
+            session.setAttribute("emailError", "Invalid email");
             isValid = false;
         }
 
         if (phone != null && !phone.matches("^\\d{10,11}$")) {
-            request.setAttribute("phoneError", "Số điện thoại phải từ 10 đến 11 chữ số");
-            setCommonFailAttributes(request);
+            session.setAttribute("phoneError", "Phone number must be 10 to 11 digits");
             isValid = false;
         }
 
-        if (day != null && month != null && year != null) {
+        if (day != null && month != null && year != null && !day.isEmpty() && !month.isEmpty() && !year.isEmpty()) {
             try {
-                LocalDate birthdate = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
-                user.setBirthdate(birthdate);
-            } catch (DateTimeParseException | NumberFormatException e) {
+                int d = Integer.parseInt(day);
+                int m = Integer.parseInt(month);
+                int y = Integer.parseInt(year);
+                if (y < 1900 || y > LocalDate.now().getYear()) {
+                    session.setAttribute("birthdateError", "Year must be between 1900 and " + LocalDate.now().getYear());
+                    isValid = false;
+                } else if (m < 1 || m > 12) {
+                    session.setAttribute("birthdateError", "Month must be between 1 and 12");
+                    isValid = false;
+                } else if (d < 1 || d > 31) {
+                    session.setAttribute("birthdateError", "Day must be between 1 and 31");
+                    isValid = false;
+                } else {
+                    try {
+                        LocalDate birthdate = LocalDate.of(y, m, d);
+                        if (birthdate.getDayOfMonth() != d || birthdate.getMonthValue() != m || birthdate.getYear() != y) {
+                            session.setAttribute("birthdateError", "Invalid date (e.g., 31/04 or 29/02 in non-leap year)");
+                            isValid = false;
+                        } else {
+                            user.setBirthdate(birthdate);
+                        }
+                    } catch (DateTimeParseException e) {
+                        session.setAttribute("birthdateError", "Invalid date (e.g., 31/04 or 29/02 in non-leap year)");
+                        isValid = false;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                session.setAttribute("birthdateError", "Invalid date format (day, month, year must be numbers)");
                 isValid = false;
-                setCommonFailAttributes(request);
-                e.printStackTrace();
             }
+        } else if (day != null || month != null || year != null) {
+            session.setAttribute("birthdateError", "Please select complete birthdate (day, month, year)");
+            isValid = false;
+        }
+
+        try {
+            int genderValue = Integer.parseInt(gender);
+            if (genderValue < 0 || genderValue > 3) {
+                session.setAttribute("genderError", "Invalid gender selection");
+                isValid = false;
+            } else {
+                user.setGender(Gender.fromGender(genderValue));
+            }
+        } catch (NumberFormatException e) {
+            session.setAttribute("genderError", "Invalid gender selection");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            session.setAttribute("updateFail", "Update information failed!");
         }
 
         return isValid;
     }
 
-    private void setCommonFailAttributes(HttpServletRequest request) {
-        request.setAttribute("updateFail", "Update informatio fail!");
-        request.setAttribute("view", "info");
+    private void clearSession(HttpSession session) {
+        String[] attributes = {"tempFullName", "tempAccount", "tempEmail", "tempPhone", "tempGender",
+            "birth_day", "birth_month", "birth_year", "accountError", "fullNameError",
+            "emailError", "phoneError", "birthdateError", "genderError"};
+        for (String attr : attributes) {
+            session.removeAttribute(attr);
+        }
+    }
+
+    // Giả định phương thức checkDuplicateInfo trong UserDAO
+    private Map<String, Boolean> checkDuplicateInfo(String account, String email, String phone, int userId) {
+        Map<String, Boolean> result = new HashMap<>();
+        result.put("account", false);
+        result.put("email", false);
+        result.put("phone", false);
+        // Thêm logic truy vấn cơ sở dữ liệu tại đây
+        return result;
     }
 }
