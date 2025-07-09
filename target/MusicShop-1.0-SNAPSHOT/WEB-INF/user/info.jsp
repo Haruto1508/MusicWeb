@@ -11,14 +11,16 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.info.css"/>
 
 <!-- Gán giá trị mặc định cho gender nếu null -->
-<c:set var="genderValue" value="${not empty tempGender ? tempGender : user.gender.gender}" />
-<c:if test="${not empty birthdateInputValue}">
-    <c:set var="birthYear" value="${fn:substring(birthdateInputValue, 0, 4)}" />
-    <fmt:parseNumber var="birthYearInt" integerOnly="true" value="${birthYear}" />
-</c:if>
+<c:set var="genderValue" value="${not empty sessionScope.tempGender ? sessionScope.tempGender : user.gender.gender}" />
 
 <div class="container">
     <h1 class="text-center fw-bold py-4">User Information</h1>
+    <c:if test="${not empty sessionScope.updateSuccess}">
+        <div class="alert alert-success">${sessionScope.updateSuccess}</div>
+    </c:if>
+    <c:if test="${not empty sessionScope.updateFail}">
+        <div class="alert alert-danger">${sessionScope.updateFail}</div>
+    </c:if>
 
     <div class="card-body">
         <form id="userForm" action="${pageContext.request.contextPath}/updateUser" method="post">
@@ -27,10 +29,9 @@
                 <label class="info-label">Account:</label>
                 <p class="info-value">${user.account}</p>
                 <input type="text" class="form-control d-none" name="account" id="accountInput"
-                       value="${not empty tempAccount ? tempAccount : user.account}">
-                <div id="accountErrorClient" class="text-danger small d-none"></div>
-                <c:if test="${not empty accountError}">
-                    <div class="text-danger small">${accountError}</div>
+                       value="${not empty sessionScope.tempAccount ? sessionScope.tempAccount : user.account}">
+                <c:if test="${not empty sessionScope.accountError}">
+                    <div class="text-danger small">${sessionScope.accountError}</div>
                 </c:if>
             </div>
 
@@ -39,9 +40,9 @@
                 <label class="info-label">Full Name</label>
                 <p class="info-value">${user.fullName}</p>
                 <input type="text" class="form-control d-none" name="fullName" id="nameInput"
-                       value="${not empty tempFullName ? tempFullName : user.fullName}">
-                <c:if test="${not empty fullNameError}">
-                    <div class="text-danger small">${fullNameError}</div>
+                       value="${not empty sessionScope.tempFullName ? sessionScope.tempFullName : user.fullName}">
+                <c:if test="${not empty sessionScope.fullNameError}">
+                    <div class="text-danger small">${sessionScope.fullNameError}</div>
                 </c:if>
             </div>
 
@@ -50,10 +51,9 @@
                 <label class="info-label">Email:</label>
                 <p class="info-value">${user.email}</p>
                 <input type="email" class="form-control d-none" name="email" id="emailInput"
-                       value="${not empty tempEmail ? tempEmail : user.email}">
-                <div id="emailErrorClient" class="text-danger small d-none"></div>
-                <c:if test="${not empty emailError}">
-                    <div class="text-danger small">${emailError}</div>
+                       value="${not empty sessionScope.tempEmail ? sessionScope.tempEmail : user.email}">
+                <c:if test="${not empty sessionScope.emailError}">
+                    <div class="text-danger small">${sessionScope.emailError}</div>
                 </c:if>
             </div>
 
@@ -62,11 +62,9 @@
                 <label class="info-label">Phone:</label>
                 <p class="info-value">${user.phone}</p>
                 <input type="text" class="form-control d-none" name="phone" id="phoneInput"
-                       value="${not empty tempPhone ? tempPhone : user.phone}">
-
-                <div id="phoneErrorClient" class="text-danger small d-none"></div>
-                <c:if test="${not empty phoneError}">
-                    <div class="text-danger small">${phoneError}</div>
+                       value="${not empty sessionScope.tempPhone ? sessionScope.tempPhone : user.phone}">
+                <c:if test="${not empty sessionScope.phoneError}">
+                    <div class="text-danger small">${sessionScope.phoneError}</div>
                 </c:if>
             </div>
 
@@ -78,57 +76,74 @@
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="gender" id="genderMale" value="1"
                                <c:if test="${genderValue == 1}">checked</c:if> >
-                               <label class="form-check-label" for="genderMale">Male</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="2"
-                            <c:if test="${genderValue == 2}">checked</c:if> >
-                            <label class="form-check-label" for="genderFemale">Female</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="gender" id="genderOther" value="3"
-                            <c:if test="${genderValue == 0}">checked</c:if> >
-                            <label class="form-check-label" for="genderOther">Other</label>
-                        </div>
+                        <label class="form-check-label" for="genderMale">Male</label>
                     </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="2"
+                               <c:if test="${genderValue == 2}">checked</c:if> >
+                        <label class="form-check-label" for="genderFemale">Female</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="gender" id="genderOther" value="3"
+                               <c:if test="${genderValue == 3}">checked</c:if> >
+                        <label class="form-check-label" for="genderOther">Other</label>
+                    </div>
+                    <c:if test="${not empty sessionScope.genderError}">
+                        <div class="text-danger small">${sessionScope.genderError}</div>
+                    </c:if>
                 </div>
+            </div>
 
-                <!-- Birthdate -->
-                <div class="mb-3">
-                    <label class="info-label">Birthdate:</label>
-                    <p class="info-value" id="birthdateDisplay">${birthdateTextValue}</p>
+            <!-- Birthdate -->
+            <div class="mb-3">
+                <label class="info-label">Birthdate:</label>
+                <p class="info-value" id="birthdateDisplay">${sessionScope.birthdateTextValue}</p>
                 <div class="row d-none" id="birthdateInputs">
                     <div class="col-4">
                         <select class="form-select" name="birth_day" id="birthDay">
                             <option value="">Day</option>
                             <c:forEach var="day" begin="1" end="31">
                                 <option value="${day}" 
-                                        <c:if test="${fn:substring(birthdateInputValue,8,10) == day}">selected</c:if>>
+                                        <c:if test="${not empty sessionScope.birth_day ? sessionScope.birth_day == day : fn:substring(sessionScope.birthdateInputValue,8,10) == day}">selected</c:if>>
                                     ${day}
                                 </option>
                             </c:forEach>
                         </select>
+                        <c:if test="${not empty sessionScope.birthdateDayError}">
+                            <div class="text-danger small">${sessionScope.birthdateDayError}</div>
+                        </c:if>
                     </div>
                     <div class="col-4">
                         <select class="form-select" name="birth_month" id="birthMonth">
                             <option value="">Month</option>
                             <c:forEach var="month" begin="1" end="12">
                                 <option value="${month}" 
-                                        <c:if test="${fn:substring(birthdateInputValue,5,7) == month}">selected</c:if>>
+                                        <c:if test="${not empty sessionScope.birth_month ? sessionScope.birth_month == month : fn:substring(sessionScope.birthdateInputValue,5,7) == month}">selected</c:if>>
                                     ${month}
                                 </option>
                             </c:forEach>
                         </select>
+                        <c:if test="${not empty sessionScope.birthdateMonthError}">
+                            <div class="text-danger small">${sessionScope.birthdateMonthError}</div>
+                        </c:if>
                     </div>
                     <div class="col-4">
                         <select class="form-select" name="birth_year" id="birthYear">
                             <option value="">Year</option>
-                            <c:forEach var="year" begin="1990" end="${currentYear}">
-                                <option value="${year}" <c:if test="${fn:substring(birthdateInputValue,0,4) == year}">selected</c:if>>${year}</option>
-
+                            <c:forEach var="year" begin="1900" end="${sessionScope.currentYear}">
+                                <option value="${year}" 
+                                        <c:if test="${not empty sessionScope.birth_year ? sessionScope.birth_year == year : fn:substring(sessionScope.birthdateInputValue,0,4) == year}">selected</c:if>>
+                                    ${year}
+                                </option>
                             </c:forEach>
                         </select>
+                        <c:if test="${not empty sessionScope.birthdateYearError}">
+                            <div class="text-danger small">${sessionScope.birthdateYearError}</div>
+                        </c:if>
                     </div>
+                    <c:if test="${not empty sessionScope.birthdateError}">
+                        <div class="text-danger small mt-1">${sessionScope.birthdateError}</div>
+                    </c:if>
                 </div>
             </div>
 
@@ -149,12 +164,31 @@
     </div>
 </div>
 
-<script> 
+<script>
 window.addEventListener("DOMContentLoaded", function () {
     const editBtn = document.getElementById("editBtn");
     const saveBtn = document.getElementById("saveBtn");
+    const userForm = document.getElementById("userForm");
 
+    // Log để kiểm tra các phần tử
+    console.log("Elements:", {
+        editBtn: editBtn,
+        saveBtn: saveBtn,
+        userForm: userForm
+    });
+
+    if (!userForm) {
+        console.error("Form element not found");
+        return;
+    }
+    if (!editBtn || !saveBtn) {
+        console.error("Edit or Save button not found");
+        return;
+    }
+
+    // Chuyển sang chế độ chỉnh sửa khi nhấp vào nút Edit
     editBtn.addEventListener("click", function () {
+        console.log("Edit button clicked");
         document.querySelectorAll(".info-value").forEach(el => el.classList.add("d-none"));
         document.querySelectorAll("input.form-control, .gender-group, select.form-select").forEach(el => el.classList.remove("d-none"));
         document.getElementById("birthdateDisplay").classList.add("d-none");
@@ -163,131 +197,22 @@ window.addEventListener("DOMContentLoaded", function () {
         saveBtn.classList.remove("d-none");
     });
 
-    // 👇 Gọi click nếu updateFail
-    <c:if test="${not empty updateFail}">
+    // Tự động kích hoạt chế độ chỉnh sửa nếu có updateFail
+    <c:if test="${not empty sessionScope.updateFail}">
+        console.log("Auto-triggering edit mode due to updateFail");
         editBtn.click();
     </c:if>
 
-    // Validate client khi submit form
-    document.getElementById("userForm").addEventListener("submit", function (e) {
-        let isValid = true;
-
-        // Ẩn tất cả lỗi trước khi kiểm tra
-        ["accountErrorClient", "fullNameErrorClient", "emailErrorClient", "phoneErrorClient", "genderErrorClient", "birthdateErrorClient"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.textContent = "";
-                el.classList.add("d-none");
-            }
-        });
-
-        // Lấy giá trị các input
-        const account = document.getElementById("accountInput").value.trim();
-        const name = document.getElementById("nameInput").value.trim();
-        const email = document.getElementById("emailInput").value.trim();
-        const phone = document.getElementById("phoneInput").value.trim();
-        const genderEls = document.getElementsByName("gender");
-        const birthDay = document.getElementById("birthDay").value;
-        const birthMonth = document.getElementById("birthMonth").value;
-        const birthYear = document.getElementById("birthYear").value;
-
-        // Kiểm tra account không được rỗng
-        if (!account) {
-            const el = document.getElementById("accountErrorClient");
-            el.textContent = "Account is required";
-            el.classList.remove("d-none");
-            isValid = false;
-        }
-
-        // Kiểm tra full name không rỗng
-        if (!name) {
-            const el = document.getElementById("fullNameErrorClient");
-            el.textContent = "Full name is required";
-            el.classList.remove("d-none");
-            isValid = false;
-        }
-
-        // Kiểm tra email hợp lệ
-        const emailPattern = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
-        if (!email) {
-            const el = document.getElementById("emailErrorClient");
-            el.textContent = "Email is required";
-            el.classList.remove("d-none");
-            isValid = false;
-        } else if (!emailPattern.test(email)) {
-            const el = document.getElementById("emailErrorClient");
-            el.textContent = "Invalid email address";
-            el.classList.remove("d-none");
-            isValid = false;
-        }
-
-        // Kiểm tra phone, nếu có thì phải đúng định dạng 10 hoặc 11 chữ số
-        const phonePattern = /^\d{10,11}$/;
-        if (phone && !phonePattern.test(phone)) {
-            const el = document.getElementById("phoneErrorClient");
-            el.textContent = "Phone must be 10 or 11 digits";
-            el.classList.remove("d-none");
-            isValid = false;
-        }
-
-        // Kiểm tra gender đã chọn
-        let genderChecked = false;
-        for (let i = 0; i < genderEls.length; i++) {
-            if (genderEls[i].checked) {
-                genderChecked = true;
-                break;
-            }
-        }
-        if (!genderChecked) {
-            let el = document.getElementById("genderErrorClient");
-            if (!el) {
-                // Nếu chưa có thẻ báo lỗi gender, tạo mới
-                const genderGroup = document.querySelector(".gender-group");
-                el = document.createElement("div");
-                el.id = "genderErrorClient";
-                el.classList.add("text-danger", "small");
-                genderGroup.appendChild(el);
-            }
-            el.textContent = "Please select a gender";
-            el.classList.remove("d-none");
-            isValid = false;
-        }
-
-        // Kiểm tra ngày sinh hợp lệ: tất cả hoặc không chọn
-        if ((birthDay || birthMonth || birthYear) && !(birthDay && birthMonth && birthYear)) {
-            let el = document.getElementById("birthdateErrorClient");
-            if (!el) {
-                const birthdateInputs = document.getElementById("birthdateInputs");
-                el = document.createElement("div");
-                el.id = "birthdateErrorClient";
-                el.classList.add("text-danger", "small", "mt-1");
-                birthdateInputs.appendChild(el);
-            }
-            el.textContent = "Please select complete birthdate (day, month, year)";
-            el.classList.remove("d-none");
-            isValid = false;
-        } else if (birthDay && birthMonth && birthYear) {
-            // Kiểm tra ngày hợp lệ (ví dụ 31/02 không hợp lệ)
-            const dateStr = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
-            const dateObj = new Date(dateStr);
-            if (dateObj.getFullYear() != birthYear || (dateObj.getMonth() + 1) != birthMonth || dateObj.getDate() != birthDay) {
-                let el = document.getElementById("birthdateErrorClient");
-                if (!el) {
-                    const birthdateInputs = document.getElementById("birthdateInputs");
-                    el = document.createElement("div");
-                    el.id = "birthdateErrorClient";
-                    el.classList.add("text-danger", "small", "mt-1");
-                    birthdateInputs.appendChild(el);
-                }
-                el.textContent = "Invalid birthdate";
-                el.classList.remove("d-none");
-                isValid = false;
-            }
-        }
-
-        if (!isValid) {
-            e.preventDefault();
-        }
+    // Log khi form được gửi
+    userForm.addEventListener("submit", function (e) {
+        console.log("Form submit event triggered");
+        const birthDayEl = document.getElementById("birthDay");
+        const birthMonthEl = document.getElementById("birthMonth");
+        const birthYearEl = document.getElementById("birthYear");
+        const birthDay = birthDayEl ? birthDayEl.value : "";
+        const birthMonth = birthMonthEl ? birthMonthEl.value : "";
+        const birthYear = birthYearEl ? birthYearEl.value : "";
+        console.log("Form submitted with values:", { birthDay, birthMonth, birthYear });
     });
 });
 </script>

@@ -47,7 +47,7 @@ public class AccountServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User user = (User) session.getAttribute("user");
 
-        // Gọi clearSession để lấy các thông báo từ session sang request
+        // Gọi clearSession để lấy các thông báo và lỗi từ session sang request
         clearSession(request, response, session);
 
         String view = request.getParameter("view");
@@ -74,9 +74,9 @@ public class AccountServlet extends HttpServlet {
 
                 // Gán thông tin dùng chung
                 session.setAttribute("user", user);
-                request.setAttribute("currentYear", currentYear);
-                request.setAttribute("birthdateInputValue", birthdateInputValue);
-                request.setAttribute("birthdateTextValue", birthdateTextValue);
+                session.setAttribute("currentYear", currentYear);
+                session.setAttribute("birthdateInputValue", birthdateInputValue);
+                session.setAttribute("birthdateTextValue", birthdateTextValue);
                 break;
 
             case "address":
@@ -131,42 +131,22 @@ public class AccountServlet extends HttpServlet {
 
     protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         // Thông báo
-        Object deleteSuccess = session.getAttribute("deleteSuccess");
-        Object deleteFail = session.getAttribute("deleteFail");
-        Object addSuccess = session.getAttribute("addSuccess");
-        Object addFail = session.getAttribute("addFail");
-        Object updateSuccess = session.getAttribute("updateSuccess");
-        Object updateFail = session.getAttribute("updateFail");
-
-        if (deleteSuccess != null) {
-            request.setAttribute("deleteSuccess", deleteSuccess);
-            session.removeAttribute("deleteSuccess");
-        }
-        if (deleteFail != null) {
-            request.setAttribute("deleteFail", deleteFail);
-            session.removeAttribute("deleteFail");
-        }
-        if (addSuccess != null) {
-            request.setAttribute("addSuccess", addSuccess);
-            session.removeAttribute("addSuccess");
-        }
-        if (addFail != null) {
-            request.setAttribute("addFail", addFail);
-            session.removeAttribute("addFail");
-        }
-        if (updateSuccess != null) {
-            request.setAttribute("updateSuccess", updateSuccess);
-            session.removeAttribute("updateSuccess");
-        }
-        if (updateFail != null) {
-            request.setAttribute("updateFail", updateFail);
-            session.removeAttribute("updateFail");
+        String[] messages = {"deleteSuccess", "deleteFail", "addSuccess", "addFail", "updateSuccess", "updateFail",
+                             "accountError", "fullNameError", "emailError", "phoneError", "genderError",
+                             "birthdateError", "birthdateDayError", "birthdateMonthError", "birthdateYearError"};
+        for (String message : messages) {
+            Object val = session.getAttribute(message);
+            if (val != null) {
+                request.setAttribute(message, val);
+                session.removeAttribute(message);
+            }
         }
 
         // Dữ liệu nhập lại
         String[] fields = {"receiverName", "receiverPhone", "street", "ward", "district", "city",
-            "nameError", "phoneError", "streetError", "cityError"};
-
+                           "nameError", "phoneError", "streetError", "cityError",
+                           "tempFullName", "tempAccount", "tempEmail", "tempPhone", "tempGender",
+                           "birth_day", "birth_month", "birth_year"};
         for (String field : fields) {
             Object val = session.getAttribute(field);
             if (val != null) {
