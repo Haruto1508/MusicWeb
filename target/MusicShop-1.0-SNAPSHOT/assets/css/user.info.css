@@ -1,8 +1,243 @@
-/*
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
-*/
 /* 
-    Created on : May 24, 2025, 2:57:43 PM
+    Created on : Jul 09, 2025
     Author     : Nguyen Hoang Thai Vinh - CE190384
 */
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.modern-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.modern-card {
+    background: var(--card-bg, #ffffff);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modern-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--primary, #6b69d6);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    color: var(--text-color, #333);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.modern-input, .modern-select {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modern-input:focus, .modern-select:focus {
+    border-color: var(--primary, #6b69d6);
+    box-shadow: 0 0 0 3px rgba(107, 105, 214, 0.1);
+    outline: none;
+}
+
+.modern-radio {
+    accent-color: var(--primary, #6b69d6);
+}
+
+.gender-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.form-check-label {
+    font-size: 0.95rem;
+    color: var(--text-color, #333);
+}
+
+.avatar-section {
+    padding: 20px;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.avatar-dropzone {
+    border: 2px dashed #e0e0e0;
+    border-radius: 15px;
+    padding: 20px;
+    background: rgba(245, 245, 245, 0.5);
+    transition: border-color 0.3s ease, background 0.3s ease;
+    cursor: pointer;
+}
+
+.avatar-dropzone.drag-active {
+    border-color: var(--primary, #6b69d6);
+    background: rgba(107, 105, 214, 0.05);
+}
+
+.avatar-dropzone .profile-img {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin: 0 auto 15px;
+    transition: transform 0.3s ease;
+}
+
+.avatar-dropzone:hover .profile-img {
+    transform: scale(1.05);
+}
+
+.drop-text {
+    font-size: 0.9rem;
+    color: #888;
+    margin: 0;
+}
+
+.btn-modern {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 10px;
+    min-width: 130px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-modern i {
+    font-size: 1.1rem;
+}
+
+.btn-primary.btn-modern {
+    background: linear-gradient(135deg, var(--primary, #6b69d6), #8a86e8);
+    border: none;
+}
+
+.btn-primary.btn-modern:hover {
+    background: linear-gradient(135deg, #5653c7, #7874d6);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(107, 105, 214, 0.3);
+}
+
+.btn-success.btn-modern {
+    background: linear-gradient(135deg, #28a745, #34c759);
+    border: none;
+}
+
+.btn-success.btn-modern:hover {
+    background: linear-gradient(135deg, #218838, #2cb44f);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-danger.btn-modern {
+    background: linear-gradient(135deg, #e44d26, #ff6b4a);
+    border: none;
+}
+
+.btn-danger.btn-modern:hover {
+    background: linear-gradient(135deg, #c44624, #e65b38);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(228, 77, 38, 0.3);
+}
+
+.btn-modern:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modern-divider {
+    border-color: rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+.text-danger {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+    .modern-card {
+        padding: 20px;
+    }
+
+    .avatar-section {
+        border-left: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        padding-top: 20px;
+    }
+
+    .avatar-dropzone .profile-img {
+        width: 140px;
+        height: 140px;
+    }
+
+    .btn-modern {
+        min-width: 110px;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+
+    .form-group.row {
+        flex-direction: column;
+    }
+
+    .form-group.row .col-4,
+    .form-group.row .col-8 {
+        width: 100%;
+    }
+
+    .form-group.row .info-label {
+        margin-bottom: 8px;
+    }
+}
+
+/* Dark Mode */
+.dark-mode {
+    --card-bg: #2a2a2a;
+    --text-color: #e0e0e0;
+    --shadow-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .modern-card {
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .modern-input,
+.dark-mode .modern-select {
+    background: #333;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-mode .avatar-dropzone {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #444;
+}
+
+.dark-mode .drop-text {
+    color: #aaa;
+}
+
+.dark-mode .modern-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+}

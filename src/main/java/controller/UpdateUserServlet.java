@@ -71,7 +71,7 @@ public class UpdateUserServlet extends HttpServlet {
 
         System.out.println(fullName);
         System.out.println("Received: birth_day=" + day + ", birth_month=" + month + ", birth_year=" + year);
-        
+
         UserDAO userDAO = new UserDAO();
         int userId = user.getUserId();
 
@@ -108,14 +108,14 @@ public class UpdateUserServlet extends HttpServlet {
     }
 
     private void setTempAttributes(String fullName, String account, String email, String phone, String gender, String day, String month, String year, HttpSession session) {
-        session.setAttribute("tempFullName", fullName);
-        session.setAttribute("tempAccount", account);
-        session.setAttribute("tempEmail", email);
-        session.setAttribute("tempPhone", phone);
-        session.setAttribute("tempGender", gender);
-        session.setAttribute("birth_day", day);
-        session.setAttribute("birth_month", month);
-        session.setAttribute("birth_year", year);
+        session.setAttribute("tempFullName", fullName != null ? fullName : "");
+        session.setAttribute("tempAccount", account != null ? account : "");
+        session.setAttribute("tempEmail", email != null ? email : "");
+        session.setAttribute("tempPhone", phone != null ? phone : "");
+        session.setAttribute("tempGender", gender != null ? gender : "");
+        session.setAttribute("birth_day", day != null ? day : "");
+        session.setAttribute("birth_month", month != null ? month : "");
+        session.setAttribute("birth_year", year != null ? year : "");
     }
 
     private boolean isDuplicateUserInfo(HttpServletRequest request, UserDAO userDAO, String account, String email, String phone, int userId, HttpSession session) {

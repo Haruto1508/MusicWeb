@@ -97,6 +97,7 @@
             </div>
 
             <!-- Birthdate -->
+            <!-- Birthdate -->
             <div class="mb-3">
                 <label class="info-label">Birthdate:</label>
                 <p class="info-value" id="birthdateDisplay">${birthdateTextValue}</p>
@@ -105,8 +106,8 @@
                         <select class="form-select" name="birth_day" id="birthDay">
                             <option value="">Day</option>
                             <c:forEach var="day" begin="1" end="31">
-                                <option value="${day}" 
-                                        <c:if test="${not empty birth_day ? birth_day == day : fn:substring(birthdateInputValue,8,10) == day}">selected</c:if>>
+                                <option value="${day}"
+                                        <c:if test="${not empty birth_day ? birth_day == day : (not empty birthdateInputValue ? fn:substring(birthdateInputValue, 8, 10) * 1 == day : false)}">selected</c:if>>
                                     ${day}
                                 </option>
                             </c:forEach>
@@ -116,8 +117,8 @@
                         <select class="form-select" name="birth_month" id="birthMonth">
                             <option value="">Month</option>
                             <c:forEach var="month" begin="1" end="12">
-                                <option value="${month}" 
-                                        <c:if test="${not empty birth_month ? birth_month == month : fn:substring(birthdateInputValue,5,7) == month}">selected</c:if>>
+                                <option value="${month}"
+                                        <c:if test="${not empty birth_month ? birth_month == month : (not empty birthdateInputValue ? fn:substring(birthdateInputValue, 5, 7) * 1 == month : false)}">selected</c:if>>
                                     ${month}
                                 </option>
                             </c:forEach>
@@ -127,8 +128,8 @@
                         <select class="form-select" name="birth_year" id="birthYear">
                             <option value="">Year</option>
                             <c:forEach var="year" begin="1900" end="${currentYear}">
-                                <option value="${year}" 
-                                        <c:if test="${not empty birth_year ? birth_year == year : fn:substring(birthdateInputValue,0,4) == year}">selected</c:if>>
+                                <option value="${year}"
+                                        <c:if test="${not empty birth_year ? birth_year == year : (not empty birthdateInputValue ? fn:substring(birthdateInputValue, 0, 4) == year : false)}">selected</c:if>>
                                     ${year}
                                 </option>
                             </c:forEach>
@@ -159,50 +160,88 @@
 </div>
 
 <script>
-   window.addEventListener("DOMContentLoaded", function () {
-    const editBtn = document.getElementById("editBtn");
-    const saveBtn = document.getElementById("saveBtn");
-    const userForm = document.getElementById("userForm");
+    window.addEventListener("DOMContentLoaded", function () {
+        const editBtn = document.getElementById("editBtn");
+        const saveBtn = document.getElementById("saveBtn");
+        const userForm = document.getElementById("userForm");
 
-    // Log để kiểm tra các phần tử
-    console.log("Elements:", {
-        editBtn: editBtn,
-        saveBtn: saveBtn,
-        userForm: userForm
-    });
-
-    // Chuyển sang chế độ chỉnh sửa khi nhấp vào nút Edit
-    if (editBtn && saveBtn) {
-        editBtn.addEventListener("click", function () {
-            console.log("Edit button clicked");
-            document.querySelectorAll(".info-value").forEach(el => el.classList.add("d-none"));
-            document.querySelectorAll("input.form-control, .gender-group, select.form-select").forEach(el => el.classList.remove("d-none"));
-            document.getElementById("birthdateDisplay").classList.add("d-none");
-            document.getElementById("birthdateInputs").classList.remove("d-none");
-            editBtn.classList.add("d-none");
-            saveBtn.classList.remove("d-none");
+        // Log để kiểm tra các phần tử
+        console.log("Elements:", {
+            editBtn: editBtn,
+            saveBtn: saveBtn,
+            userForm: userForm
         });
-    } else {
-        console.error("Edit button or Save button not found");
-    }
 
-    // Tự động kích hoạt chế độ chỉnh sửa nếu có updateFail từ server
+        // Chuyển sang chế độ chỉnh sửa khi nhấp vào nút Edit
+        if (editBtn && saveBtn) {
+            editBtn.addEventListener("click", function () {
+                console.log("Edit button clicked");
+                document.querySelectorAll(".info-value").forEach(el => el.classList.add("d-none"));
+                document.querySelectorAll("input.form-control, .gender-group, select.form-select").forEach(el => el.classList.remove("d-none"));
+                document.getElementById("birthdateDisplay").classList.add("d-none");
+                document.getElementById("birthdateInputs").classList.remove("d-none");
+                editBtn.classList.add("d-none");
+                saveBtn.classList.remove("d-none");
+            });
+        } else {
+            console.error("Edit button or Save button not found");
+        }
+
+        // Tự động kích hoạt chế độ chỉnh sửa nếu có updateFail từ server
     <c:if test="${not empty updateFail}">
         console.log("Auto-triggering edit mode due to updateFail");
         editBtn.click();
     </c:if>
 
-    // Log khi form được gửi
-    if (userForm) {
-        userForm.addEventListener("submit", function (e) {
-            console.log("Form submit event triggered");
-            const birthDay = document.getElementById("birthDay") ? document.getElementById("birthDay").value : "";
-            const birthMonth = document.getElementById("birthMonth") ? document.getElementById("birthMonth").value : "";
-            const birthYear = document.getElementById("birthYear") ? document.getElementById("birthYear").value : "";
-            console.log("Form submitted with values:", { birthDay, birthMonth, birthYear });
-        });
-    } else {
-        console.error("Form element not found");
-    }
-});
+        // Log khi form được gửi
+        if (userForm) {
+            userForm.addEventListener("submit", function (e) {
+                console.log("Form submit event triggered");
+                const birthDay = document.getElementById("birthDay") ? document.getElementById("birthDay").value : "";
+                const birthMonth = document.getElementById("birthMonth") ? document.getElementById("birthMonth").value : "";
+                const birthYear = document.getElementById("birthYear") ? document.getElementById("birthYear").value : "";
+                console.log("Form submitted with values:", {birthDay, birthMonth, birthYear});
+            });
+        } else {
+            console.error("Form element not found");
+        }
+    });
+
+    // Xác thực ngày sinh trước khi gửi form
+    userForm.addEventListener("submit", function (e) {
+        console.log("Form submit event triggered");
+        const birthDay = document.getElementById("birthDay").value;
+        const birthMonth = document.getElementById("birthMonth").value;
+        const birthYear = document.getElementById("birthYear").value;
+        const birthdateErrorClient = document.getElementById("birthdateErrorClient");
+
+        // Kiểm tra nếu một phần của ngày sinh được chọn nhưng không đầy đủ
+        if ((birthDay || birthMonth || birthYear) && !(birthDay && birthMonth && birthYear)) {
+            e.preventDefault(); // Ngăn gửi form
+            birthdateErrorClient.textContent = "Please select complete birthdate (day, month, year)";
+            birthdateErrorClient.classList.remove("d-none");
+            return;
+        }
+
+        // Kiểm tra ngày sinh hợp lệ (ví dụ: 31/04 hoặc 29/02 không hợp lệ)
+        if (birthDay && birthMonth && birthYear) {
+            const date = new Date(birthYear, birthMonth - 1, birthDay);
+            if (date.getDate() != birthDay || date.getMonth() + 1 != birthMonth || date.getFullYear() != birthYear) {
+                e.preventDefault(); // Ngăn gửi form
+                birthdateErrorClient.textContent = "Invalid date (e.g., 31/04 or 29/02 in non-leap year)";
+                birthdateErrorClient.classList.remove("d-none");
+                return;
+            }
+            // Kiểm tra năm hợp lệ
+            const currentYear = new Date().getFullYear();
+            if (birthYear < 1900 || birthYear > currentYear) {
+                e.preventDefault();
+                birthdateErrorClient.textContent = `Year must be between 1900 and ${currentYear}`;
+                birthdateErrorClient.classList.remove("d-none");
+                return;
+            }
+        }
+
+        console.log("Form submitted with values:", {birthDay, birthMonth, birthYear});
+    });
 </script>

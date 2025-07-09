@@ -9,7 +9,7 @@ package enums;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 public enum PaymentMethod {
-    CARD(1, "Card"),
+    CARD(1, "Cash on Delivery (COD)"),
     BANK_TRANSFER(2, "Bank Transfer");
 
     private final int code;

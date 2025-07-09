@@ -66,7 +66,7 @@ public class AccountServlet extends HttpServlet {
                         : "";
                 String birthdateTextValue = user.getBirthdate() != null
                         ? user.getBirthdate().format(textFormatter)
-                        : "";
+                        : "Not set"; // Hiển thị "Not set" nếu chưa có ngày sinh
 
                 request.setAttribute("currentYear", currentYear);
                 request.setAttribute("birthdateInputValue", birthdateInputValue);
@@ -120,7 +120,7 @@ public class AccountServlet extends HttpServlet {
         }
 
         request.setAttribute("view", view);
-        request.getRequestDispatcher("WEB-INF/user/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/user/profile.jsp").forward(request, response);
     }
 
     protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
