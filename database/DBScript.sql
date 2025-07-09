@@ -105,6 +105,9 @@ CREATE TABLE Products (
     created_at DATETIME DEFAULT GETDATE(),
     sold_quantity INT DEFAULT 0,
     is_active BIT DEFAULT 1,
+	origin_country NVARCHAR(100),
+	manufacturing_year INT,
+	material NVARCHAR(100),
     FOREIGN KEY (category_id) REFERENCES Categories(category_id),
     FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id),
     FOREIGN KEY (brand_id) REFERENCES Brands(brand_id)
