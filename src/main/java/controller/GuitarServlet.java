@@ -63,30 +63,38 @@ public class GuitarServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int page = 1;
-        int categoryId = 1; //guitar
         // Lấy page và categoryId từ request
         String pageParam = request.getParameter("page");
-        String categoryParam = request.getParameter("categoryId");
-
-        if (pageParam != null && pageParam.matches("\\d+")) {
+        int pageSize = PageSize.PAGE_SIZE;
+        int categoryId = CategoryType.CATEGORY_GUITAR;
+        try {
             page = Integer.parseInt(pageParam);
-        }
-        if (categoryParam != null && categoryParam.matches("\\d+")) {
-            categoryId = Integer.parseInt(categoryParam);
+        } catch (Exception e) {
+            page = 1;
         }
 
         ProductDAO dao = new ProductDAO();
-        int totalProducts = dao.countProductsByCategory(CategoryType.CATEGORY_GUITAR);
+        int totalProducts = dao.countProductsByCategory(categoryId);
         int totalPages = (int) Math.ceil((double) totalProducts / PageSize.PAGE_SIZE);
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
 
-        List<Product> products = dao.getProductsByCategoryAndPage(categoryId, (page - 1) * PageSize.PAGE_SIZE, PageSize.PAGE_SIZE);
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        List<Product> products = dao.getProductsByCategoryAndPage(categoryId, (page - 1) * pageSize, pageSize);
 
         request.setAttribute("guitars", products);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("categoryId", categoryId); // truyền lại để tạo link đúng
 
-        request.getRequestDispatcher("guitar.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/collections/guitar.jsp").forward(request, response);
     }
 
     /**

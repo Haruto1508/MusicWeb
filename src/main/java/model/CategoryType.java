@@ -11,7 +11,7 @@ package model;
 public class CategoryType {
     public static final int CATEGORY_GUITAR = 1;
     public static final int CATEGORY_VIOLIN = 2;
-    public static final int CATEGORY_PIANO = 2;
+    public static final int CATEGORY_PIANO = 3;
     
     public CategoryType() {}
 }

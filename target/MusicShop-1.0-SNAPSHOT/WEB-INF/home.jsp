@@ -68,7 +68,7 @@
             <h2 class="text-center fw-bold mb-4">Featured Categories</h2>
             <div class="row g-4">
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/path?page=guitar" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/guitar?page=1" class="text-decoration-none text-dark">
                         <div class="card text-center py-4 h-100">
                             <div class="category-icon mb-2"><i class="fa-solid fa-guitar"></i></div>
                             <h5 class="fw-semibold">Guitar</h5>
@@ -88,14 +88,6 @@
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-keyboard"></i></div>
                             <h5 class="fw-semibold">Piano & Keyboard</h5>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/path?page=accessory" class="text-decoration-none text-dark">
-                        <div class="card text-center py-4">
-                            <div class="category-icon mb-2"><i class="fa-solid fa-microphone"></i></div>
-                            <h5 class="fw-semibold">Microphones & Accessories</h5>
                         </div>
                     </a>
                 </div>

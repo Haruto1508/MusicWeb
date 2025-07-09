@@ -15,13 +15,15 @@
         <!-- Link bootstrap -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
         <!-- Link Header -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header.css">
         <!-- Link Footer -->
+        <!--<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/footer.css">-->
 
         <!-- Link CSS -->
-        <link rel="stylesheet" href="assets/css/guitar.product.css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/guitar.product.css"/>
     </head>
 
     <body>
@@ -115,23 +117,6 @@
                 <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
 
-            <nav aria-label="Page navigation example" class="d-flex justify-content-center">
-                <ul class="pagination">
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
             <h2 class="products-title">Recommended Guitars</h2>
             <div class="products-row">
                 <c:choose>
@@ -159,32 +144,70 @@
                 </c:choose>
             </div>
 
-            <nav aria-label="Page navigation example" class="d-flex justify-content-center mt-4">
-                <ul class="pagination">
+            <nav aria-label="Guitar pagination" class="d-flex justify-content-center mt-4">
+                <ul class="pagination pagination-pill">
+                    <!-- Nút Prev -->
                     <c:if test="${currentPage > 1}">
                         <li class="page-item">
                             <a class="page-link" href="guitar?page=${currentPage - 1}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
+                                <i class="fas fa-chevron-left"></i>
                             </a>
                         </li>
                     </c:if>
 
-                    <c:forEach var="i" begin="1" end="${totalPages}">
+                    <!-- Trang 1 -->
+                    <li class="page-item ${currentPage == 1 ? 'active' : ''}">
+                        <a class="page-link" href="guitar?page=1">1</a>
+                    </li>
+
+                    <!-- Dấu ... trái -->
+                    <c:if test="${currentPage > 4}">
+                        <li class="page-item disabled"><a class="page-link">...</a></li>
+                        </c:if>
+
+                    <!-- Tính begin/end -->
+                    <c:set var="pageBegin" value="${currentPage - 2}" />
+                    <c:if test="${pageBegin < 2}">
+                        <c:set var="pageBegin" value="2" />
+                    </c:if>
+
+                    <c:set var="pageEnd" value="${currentPage + 2}" />
+                    <c:if test="${pageEnd >= totalPages}">
+                        <c:set var="pageEnd" value="${totalPages - 1}" />
+                    </c:if>
+
+                    <!-- Các trang ở giữa -->
+                    <c:forEach begin="${pageBegin}" end="${pageEnd}" var="i">
                         <li class="page-item ${i == currentPage ? 'active' : ''}">
                             <a class="page-link" href="guitar?page=${i}">${i}</a>
                         </li>
                     </c:forEach>
 
+                    <!-- Dấu ... phải -->
+                    <c:if test="${currentPage < totalPages - 3}">
+                        <li class="page-item disabled"><a class="page-link">...</a></li>
+                        </c:if>
+
+                    <!-- Trang cuối -->
+                    <c:if test="${totalPages > 1}">
+                        <li class="page-item ${currentPage == totalPages ? 'active' : ''}">
+                            <a class="page-link" href="guitar?page=${totalPages}">${totalPages}</a>
+                        </li>
+                    </c:if>
+
+                    <!-- Nút Next -->
                     <c:if test="${currentPage < totalPages}">
                         <li class="page-item">
                             <a class="page-link" href="guitar?page=${currentPage + 1}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
+                                <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>
                     </c:if>
                 </ul>
             </nav>
+
         </div>
+        <%--<%@ include file="/WEB-INF/include/footer.jsp" %>--%>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

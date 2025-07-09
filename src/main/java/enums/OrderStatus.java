@@ -10,10 +10,9 @@ package enums;
  */
 public enum OrderStatus {
     PENDING(1, "Pending"),
-    PROCESSING(2, "Processing"),
-    SHIPPED(3, "Shipped"),
-    DELIVERED(4, "Delivered"),
-    CANCELLED(5, "Cancelled");
+    SHIPPED(2, "Shipped"),
+    DELIVERED(3, "Delivered"),
+    CANCELLED(4, "Cancelled");
 
     private final int value;
     private final String label;
