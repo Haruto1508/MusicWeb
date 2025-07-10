@@ -1,4 +1,5 @@
 model\DiscountCODE.class
+controller\AddressServlet.class
 dao\OrderDAO.class
 util\RelatedProduct.class
 dao\CategoryDAO.class
@@ -7,6 +8,7 @@ controller\RefreshServlet.class
 model\Address.class
 enums\Gender.class
 controller\AccountServlet.class
+controller\GuitarServlet.class
 model\Product.class
 controller\UpdateUserServlet.class
 dao\UserDAO.class
@@ -22,6 +24,7 @@ model\Brand.class
 dao\OrderDetailDAO.class
 hashpw\MD5PasswordHasher.class
 model\Payment.class
+model\CategoryType.class
 controller\ChangePassword.class
 model\Category.class
 controller\LogoutServlet.class
@@ -31,6 +34,7 @@ model\OrderDetail.class
 model\Cart.class
 dao\CartDAO.class
 enums\OrderStatus.class
+controller\PianoServlet.class
 model\SubCategory.class
 dao\DiscountDAO.class
 model\UserAddress.class
@@ -39,6 +43,7 @@ filter\AuthenFilter.class
 model\Discount.class
 util\AddressUtil.class
 enums\DiscountType.class
+model\AddressStyle.class
 controller\AdminServlet.class
 enums\PaymentStatus.class
 enums\ShippingMethod.class
@@ -51,4 +56,5 @@ model\PageSize.class
 controller\OrderConfirmServlet.class
 model\Order.class
 model\OrderViewModel.class
+controller\ViolinServlet.class
 controller\HomeServlet.class

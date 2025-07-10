@@ -248,6 +248,10 @@ VALUES
 ('Guitars', 'All kinds of guitars'),
 ('Keyboards', 'Digital and analog keyboards');
 
+INSERT INTO Categories (name, description)
+VALUES 
+('Violins', 'All kinds of guitars')
+
 -- SUBCATEGORIES
 INSERT INTO Subcategories (name, category_id)
 VALUES 

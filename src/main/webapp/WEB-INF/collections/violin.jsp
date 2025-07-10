@@ -6,6 +6,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -26,100 +27,106 @@
         <%@ include file="/WEB-INF/include/header.jsp" %>
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="logo"><i class="fa-solid fa-violin"></i> Violin Shop</div>
             <form>
                 <h3 style="font-size:1.1rem; color:#6d28d9; font-weight:700; margin-bottom:18px;">
                     <i class="fa-solid fa-filter"></i> Filter products
                 </h3>
                 <!-- Danh mục loại violin -->
                 <div style="margin-bottom:18px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Violin type</div>
+                    <div style="font-weight:600; margin-bottom:8px;">Violin Type</div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="fullsize">
-                        <label class="form-check-label" for="fullsize">4/4 (Full size)</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="threequarter">
-                        <label class="form-check-label" for="threequarter">3/4</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="halvesize">
-                        <label class="form-check-label" for="halvesize">1/2</label>
+                        <input class="form-check-input" type="checkbox" id="acoustic" name="type" value="acoustic" 
+                               <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'acoustic')}">checked</c:if>>
+                               <label class="form-check-label" for="acoustic">Violin Acoustic</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="electric" name="type" value="electric" 
+                            <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'electric')}">checked</c:if>>
+                            <label class="form-check-label" for="electric">Electric Violin</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="semi-electric" name="type" value="semi-electric" 
+                            <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'semi-electric')}">checked</c:if>>
+                            <label class="form-check-label" for="semi-electric">Semi-electric Violin</label>
+                        </div>
                     </div>
 
-                </div>
-                <!-- Khoảng giá -->
-                <div style="margin-bottom:18px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Price range</div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="price" id="price0">
-                        <label class="form-check-label" for="price0">All</label>
+                    <!-- Khoảng giá -->
+                    <div style="margin-bottom:18px;">
+                        <div style="font-weight:600; margin-bottom:8px;">Price range</div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price0" value="1" 
+                            <c:if test="${selectedPrice == '1' || selectedPrice == null}">checked</c:if>>
+                            <label class="form-check-label" for="price0">All Products</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price1" value="2" 
+                            <c:if test="${selectedPrice == '2'}">checked</c:if>>
+                            <label class="form-check-label" for="price1">Under 2 million</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price2" value="3" 
+                            <c:if test="${selectedPrice == '3'}">checked</c:if>>
+                            <label class="form-check-label" for="price2">2 - 5 million</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price3" value="4" 
+                            <c:if test="${selectedPrice == '4'}">checked</c:if>>
+                            <label class="form-check-label" for="price3">5 - 10 million</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price4" value="5" 
+                            <c:if test="${selectedPrice == '5'}">checked</c:if>>
+                            <label class="form-check-label" for="price4">10 - 20 million</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price5" value="6" 
+                            <c:if test="${selectedPrice == '6'}">checked</c:if>>
+                            <label class="form-check-label" for="price5">20 - 50 million</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="price" id="price6" value="7" 
+                            <c:if test="${selectedPrice == '7'}">checked</c:if>>
+                            <label class="form-check-label" for="price6">over 50 million</label>
+                        </div>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="price" id="price1">
-                        <label class="form-check-label" for="price1">Under 2 million</label>
+                    <!-- Khác -->
+                    <div style="margin-bottom:18px;">
+                        <div style="font-weight:600; margin-bottom:8px;">Others</div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sale" name="sale" value="true" 
+                            <c:if test="${isSale}">checked</c:if>>
+                            <label class="form-check-label" for="sale">On Sale</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="bestSeller" name="bestSeller" value="true" 
+                            <c:if test="${isBestSeller}">checked</c:if>>
+                            <label class="form-check-label" for="bestSeller">Best Seller</label>
+                        </div>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="price" id="price2">
-                        <label class="form-check-label" for="price2">2 - 5 million</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="price" id="price3">
-                        <label class="form-check-label" for="price3">5 - 10 million</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="price" id="price4">
-                        <label class="form-check-label" for="price4">Over 10 million</label>
-                    </div>
-                </div>
-                <!-- Khác -->
-                <div style="margin-bottom:18px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Other</div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="sale">
-                        <label class="form-check-label" for="sale">On sale</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="banchay">
-                        <label class="form-check-label" for="banchay">Best Seller</label>
-                    </div>
-                </div>
-                <button type="submit" class="product-button buy" style="width:100%;margin-top:10px;">
-                    <i class="fa-solid fa-filter"></i> Apply
-                </button>
-            </form>
-        </div>
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="banner">
-                <h1>Explore the world of Violin</h1>
+                    <button type="submit" class="product-button buy" style="width:100%;margin-top:10px;">
+                        <i class="fa-solid fa-filter"></i> Apply
+                    </button>
+                </form>
             </div>
-            <div class="search-bar">
-                <input type="text" class="search-input" placeholder="Search for violin products...">
-                <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="banner">
+                    <h1>Explore the world of Violin</h1>
+                </div>
+                <div class="search-bar">
+                    <form action="${pageContext.request.contextPath}/violin" method="get">
+                    <div class="d-flex align-items-center">
+                        <input type="text" class="search-input" name="search" placeholder="Search for products..." value="${searchQuery}">
+                        <button type="submit" class="search-btn ms-2"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                </form>
             </div>
-            
-            <nav aria-label="Page navigation example" class="d-flex justify-content-center">
-                <ul class="pagination">
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+
             <h2 class="products-title">All Violin products</h2>
-            <div class="products-row">
-                <c:choose>
-                    <c:when test="${not empty violins}">
+            <c:choose>
+                <c:when test="${not empty violins}">
+                    <div class="products-row">
                         <c:forEach var="violin" items="${violins}">
                             <div class="product-card">
                                 <div class="product-image">
@@ -136,33 +143,79 @@
                                 </div>
                             </div>
                         </c:forEach>
-                    </c:when>
-                    <c:otherwise>
-                        <div id="no-products-message">No products available.</div>  
-                    </c:otherwise>
-                </c:choose>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <%@include file="/WEB-INF/include/unfind-product.jsp" %>
+                </c:otherwise>
+            </c:choose>
 
-                <!-- Thêm các sản phẩm violin khác tại đây -->
-            </div>
-            
-            <nav aria-label="Page navigation example" class="d-flex justify-content-center">
-                <ul class="pagination">
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
+            <!-- Thêm các sản phẩm violin khác tại đây -->
+
+            <!-- Pagination -->
+            <nav aria-label="Guitar pagination" class="d-flex justify-content-center mt-4">
+                <ul class="pagination pagination-pill">
+                    <!-- Nút Prev -->
+                    <c:if test="${currentPage > 1}">
+                        <li class="page-item">
+                            <a class="page-link" href="violin?page=${currentPage - 1}<c:if test="${selectedTypes != null}">&${fn:join(selectedTypes, '&type=')}</c:if><c:if test="${selectedPrice != null && selectedPrice != '1'}">&price=${selectedPrice}</c:if><c:if test="${isSale}">&sale=true</c:if><c:if test="${isBestSeller}">&bestSeller=true</c:if><c:if test="${searchQuery != null && not empty searchQuery}">&search=${searchQuery}</c:if>" aria-label="Previous">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                    </c:if>
+
+                    <!-- Trang 1 -->
+                    <li class="page-item ${currentPage == 1 ? 'active' : ''}">
+                        <a class="page-link" href="violin?page=1<c:if test="${selectedTypes != null}">&${fn:join(selectedTypes, '&type=')}</c:if><c:if test="${selectedPrice != null && selectedPrice != '1'}">&price=${selectedPrice}</c:if><c:if test="${isSale}">&sale=true</c:if><c:if test="${isBestSeller}">&bestSeller=true</c:if><c:if test="${searchQuery != null && not empty searchQuery}">&search=${searchQuery}</c:if>">1</a>
+                        </li>
+
+                        <!-- Dấu ... trái -->
+                    <c:if test="${currentPage > 4}">
+                        <li class="page-item disabled"><a class="page-link">...</a></li>
+                        </c:if>
+
+                    <!-- Tính begin/end -->
+                    <c:set var="pageBegin" value="${currentPage - 2}" />
+                    <c:if test="${pageBegin < 2}">
+                        <c:set var="pageBegin" value="2" />
+                    </c:if>
+
+                    <c:set var="pageEnd" value="${currentPage + 2}" />
+                    <c:if test="${pageEnd >= totalPages}">
+                        <c:set var="pageEnd" value="${totalPages - 1}" />
+                    </c:if>
+
+                    <!-- Các trang ở giữa -->
+                    <c:forEach begin="${pageBegin}" end="${pageEnd}" var="i">
+                        <li class="page-item ${i == currentPage ? 'active' : ''}">
+                            <a class="page-link" href="violin?page=${i}<c:if test="${selectedTypes != null}">&${fn:join(selectedTypes, '&type=')}</c:if><c:if test="${selectedPrice != null && selectedPrice != '1'}">&price=${selectedPrice}</c:if><c:if test="${isSale}">&sale=true</c:if><c:if test="${isBestSeller}">&bestSeller=true</c:if><c:if test="${searchQuery != null && not empty searchQuery}">&search=${searchQuery}</c:if>">${i}</a>
+                            </li>
+                    </c:forEach>
+
+                    <!-- Dấu ... phải -->
+                    <c:if test="${currentPage < totalPages - 3}">
+                        <li class="page-item disabled"><a class="page-link">...</a></li>
+                        </c:if>
+
+                    <!-- Trang cuối -->
+                    <c:if test="${totalPages > 1}">
+                        <li class="page-item ${currentPage == totalPages ? 'active' : ''}">
+                            <a class="page-link" href="violin?page=${totalPages}<c:if test="${selectedTypes != null}">&${fn:join(selectedTypes, '&type=')}</c:if><c:if test="${selectedPrice != null && selectedPrice != '1'}">&price=${selectedPrice}</c:if><c:if test="${isSale}">&sale=true</c:if><c:if test="${isBestSeller}">&bestSeller=true</c:if><c:if test="${searchQuery != null && not empty searchQuery}">&search=${searchQuery}</c:if>">${totalPages}</a>
+                            </li>
+                    </c:if>
+
+                    <!-- Nút Next -->
+                    <c:if test="${currentPage < totalPages}">
+                        <li class="page-item">
+                            <a class="page-link" href="violin?page=${currentPage + 1}<c:if test="${selectedTypes != null}">&${fn:join(selectedTypes, '&type=')}</c:if><c:if test="${selectedPrice != null && selectedPrice != '1'}">&price=${selectedPrice}</c:if><c:if test="${isSale}">&sale=true</c:if><c:if test="${isBestSeller}">&bestSeller=true</c:if><c:if test="${searchQuery != null && not empty searchQuery}">&search=${searchQuery}</c:if>" aria-label="Next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                    </c:if>
                 </ul>
             </nav>
         </div>
+        <%@include file="/WEB-INF/include/btn-to-top.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

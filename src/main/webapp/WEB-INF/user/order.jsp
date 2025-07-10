@@ -5,45 +5,69 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.order.css"/>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<div class="container">
-    <h2 class="mb-4">🧾 Your Orders</h2>
+<div class="container my-5">
+    <h2 class="mb-4 text-primary"><i class="fa-solid fa-receipt me-2"></i>Đơn hàng của bạn</h2>
 
     <c:choose>
         <c:when test="${not empty orders}">
             <div class="row row-cols-1 g-4">
                 <c:forEach var="order" items="${orders}">
                     <div class="col">
-                        <div class="card shadow-sm border-0 order-item">
+                        <div class="card shadow-sm border-0 order-card">
+                            <!-- Tiêu đề đơn hàng -->
+                            <div class="order-header d-flex justify-content-between align-items-center">
+                                <span>🆔 Mã đơn hàng: <strong>${order.orderId}</strong></span>
+                                <a href="${pageContext.request.contextPath}/order?id=${order.orderId}" class="btn btn-outline-light btn-sm btn-view-detail">
+                                    <i class="fa-solid fa-eye me-1"></i> Xem chi tiết
+                                </a>
+                            </div>
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <h5 class="card-title mb-1">🆔 Order ID: <strong>${order.orderId}</strong></h5>
-                                        <p class="mb-0">📅 Day: ${order.orderDate}</p>
-                                        <p class="mb-0">💰 Total: <strong>${order.totalAmount} VNĐ</strong></p>  
-                                        <p class="mb-0">📦 Status:
-                                            <span class="badge bg-${badgeClass}">
-                                                ${statusText}
-                                            </span>
+                                <!-- Thông tin đơn hàng -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <p class="mb-1 text-muted"><i class="fa-solid fa-calendar-alt me-1"></i> Ngày đặt: 
+                                            <c:choose>
+                                                <c:when test="${order.orderDateAsDate != null}">
+                                                    <fmt:formatDate value="${order.orderDateAsDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Không có ngày
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
+                                        <p class="mb-1 text-muted"><i class="fa-solid fa-money-bill-wave me-1"></i> Tổng tiền: 
+                                            <strong><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0.000"/> VNĐ</strong>
                                         </p>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/order?id=${order.orderId}" class="btn btn-outline-primary btn-sm">
-                                        View detail
-                                    </a>
-                                </div>
-
-                                <!-- Danh sách sản phẩm trong đơn -->
-                                <c:forEach var="item" items="${order.orderDetails}">
-                                    <div class="d-flex align-items-center border-top pt-3 pb-2">
-                                        <img src="${item.product.imageUrl}" alt="${item.product.name}" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
-                                        <div>
-                                            <h6 class="mb-1">${item.product.name}</h6>
-                                            <p class="mb-0">SL: ${item.quantity} × ${item.price} VNĐ</p>
-                                        </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <p class="mb-0"><i class="fa-solid fa-box-open me-1"></i> Trạng thái: 
+                                            <span class="badge bg-${order.status.label}">${order.status.label}</span>
+                                        </p>
                                     </div>
-                                </c:forEach>
+                                </div>
+                                <!-- Sản phẩm trong đơn hàng -->
+                                <div class="border-top pt-3">
+                                    <c:choose>
+                                        <c:when test="${order.orderDetail != null}">
+                                            <div class="order-item">
+                                                <img src="${order.orderDetail.product.imageUrl}" alt="${order.orderDetail.product.name}" class="me-3">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">${order.orderDetail.product.name}</h6>
+                                                    <p class="mb-1 text-muted">Số lượng: ${order.orderDetail.quantity}</p>
+                                                    <p class="mb-0 text-muted">Đơn giá: 
+                                                        <fmt:formatNumber value="${order.orderDetail.price}" pattern="#,##0.000"/> VNĐ
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <p class="text-muted text-center">Không có sản phẩm trong đơn hàng.</p>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -51,9 +75,11 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div class="alert alert-info text-center" role="alert">
-                🛒 You have no orders yet!
+            <div class="alert alert-info text-center py-4">
+                <i class="fa-solid fa-cart-shopping me-2"></i> Bạn chưa có đơn hàng nào!
             </div>
         </c:otherwise>
     </c:choose>
 </div>
+
+<%@include file="/WEB-INF/include/btn-to-top.jsp" %>

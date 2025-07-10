@@ -76,7 +76,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/path?page=violin" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/violin?page=1" class="text-decoration-none text-dark">
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-violin"></i></div>
                             <h5 class="fw-semibold">Violin</h5>
@@ -84,7 +84,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="${pageContext.request.contextPath}/path?page=piano" class="text-decoration-none text-dark">
+                    <a href="${pageContext.request.contextPath}/piano?page=1" class="text-decoration-none text-dark">
                         <div class="card text-center py-4">
                             <div class="category-icon mb-2"><i class="fa-solid fa-keyboard"></i></div>
                             <h5 class="fw-semibold">Piano & Keyboard</h5>

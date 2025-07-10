@@ -8,21 +8,54 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 */
 
 .order-card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.order-item {
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
+    transition: transform 0.2s, box-shadow 0.2s;
     border-radius: 10px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: #fff;
 }
-
-.order-item h5 {
-    margin-bottom: 0;
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+.order-header {
+    background: linear-gradient(135deg, #6d28d9, #a855f7);
+    color: white;
+    padding: 15px;
+    border-radius: 10px 10px 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.order-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.order-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 15px;
+}
+.badge-pending {
+    background-color: #ffc107;
+}
+.badge-processing {
+    background-color: #17a2b8;
+}
+.badge-shipped {
+    background-color: #007bff;
+}
+.badge-delivered {
+    background-color: #28a745;
+}
+.badge-cancelled {
+    background-color: #dc3545;
+}
+.btn-view-detail {
+    transition: background-color 0.2s;
+}
+.btn-view-detail:hover {
+    background-color: #5b21b6;
+    color: white;
 }

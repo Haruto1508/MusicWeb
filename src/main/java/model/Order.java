@@ -7,8 +7,8 @@ package model;
 import enums.OrderStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-
+import java.time.ZoneId;
+import java.util.Date;
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
@@ -24,7 +24,7 @@ public class Order {
     private BigDecimal discountAmount;
     private Address address;
 
-    private List<OrderDetail> orderDetails;
+    private OrderDetail orderDetail;
 
     public Order() {
     }
@@ -44,12 +44,12 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public List<OrderDetail> getOrderDetails() {
-        return orderDetails;
+    public OrderDetail getOrderDetail() {
+        return orderDetail;
     }
 
-    public void setOrderDetails(List<OrderDetail> orderDetails) {
-        this.orderDetails = orderDetails;
+    public void setOrderDetail(OrderDetail orderDetail) {
+        this.orderDetail = orderDetail;
     }
 
     public int getOrderId() {
@@ -116,8 +116,13 @@ public class Order {
         this.status = status;
     }
     
+    // Thêm phương thức chuyển đổi LocalDateTime sang Date
+    public Date getOrderDateAsDate() {
+        return orderDate != null ? Date.from(orderDate.atZone(ZoneId.systemDefault()).toInstant()) : null;
+    }
+    
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", address=" + address + ", orderDetails=" + orderDetails + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", address=" + address + ", orderDetails=" + orderDetail + '}';
     }
 }

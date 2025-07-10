@@ -32,6 +32,7 @@ public class AuthenFilter implements  Filter{
         
         if (session.getAttribute("user") == null) {
             res.sendRedirect(req.getContextPath() + "/login");
+//            res.sendRedirect(req.getContextPath() + "/error-page/404page.jsp");
             return;
         }
         

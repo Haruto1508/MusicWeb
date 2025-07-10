@@ -3,6 +3,7 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\controller\ProductServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\OrderServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\CategoryDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\SubCategory.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\controller\ViolinServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\Cart.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\RefreshServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\RoleDAO.java
@@ -12,7 +13,6 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\dao\ProductDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\Product.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\UserAddress.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\ShippingFee.java
-D:\Java Web\MusicShop\MusicShop\src\main\java\model\NewClass.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\enums\Gender.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\filter\AuthenFilter.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\enums\ShippingMethod.java
@@ -31,6 +31,7 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\model\Order.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\enums\OrderStatus.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\Payment.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\Shipping.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\controller\PianoServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\OrderDetailDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\User.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\DiscountDAO.java
@@ -39,8 +40,10 @@ D:\Java Web\MusicShop\MusicShop\src\main\java\model\PageSize.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\OrderDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\enums\PaymentStatus.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\GuitarServlet.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\AddressStyle.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\util\RelatedProduct.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\enums\PaymentMethod.java
+D:\Java Web\MusicShop\MusicShop\src\main\java\model\CategoryType.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\controller\AdminServlet.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\dao\AddressDAO.java
 D:\Java Web\MusicShop\MusicShop\src\main\java\model\DiscountCODE.java

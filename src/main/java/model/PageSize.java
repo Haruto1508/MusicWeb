@@ -9,7 +9,7 @@ package model;
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
 public class PageSize {
-    public static final int PAGE_SIZE = 20;
+    public static final int PAGE_SIZE = 30;
     
     public PageSize() {}
 }

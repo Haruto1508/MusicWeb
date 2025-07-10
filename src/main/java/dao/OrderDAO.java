@@ -111,6 +111,7 @@ public class OrderDAO extends JDBCUtil {
                 + "    SELECT \n"
                 + "        o.order_id, o.order_date, o.status, o.total_amount,\n"
                 + "        o.discount_amount, o.address_id, o.user_id, o.discount_id,\n"
+                + "        od.quantity, od.price,\n"
                 + "        u.full_name AS user_full_name,\n"
                 + "        d.discount_value,\n"
                 + "        a.street, a.city, a.ward, a.district,\n"
@@ -177,6 +178,13 @@ public class OrderDAO extends JDBCUtil {
                 product.setName(rs.getString("product_name"));
                 product.setImageUrl(rs.getString("image_url"));
 
+                OrderDetail od = new OrderDetail();
+                od.setOrder(order);
+                od.setProduct(product);
+                od.setQuantity(rs.getInt("quantity"));
+                od.setPrice(rs.getBigDecimal("price"));
+                
+                order.setOrderDetail(od);
                 orders.add(order);
             }
 

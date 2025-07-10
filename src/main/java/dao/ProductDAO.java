@@ -347,6 +347,192 @@ public class ProductDAO extends JDBCUtil {
         return list;
     }
 
+    public List<Product> filterProductsByPage(int categoryId, String[] types, String priceRange, boolean sale, boolean bestSeller, String searchQuery, int offset, int limit) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM Products p\n"
+                + "LEFT JOIN Categories c ON c.category_id = p.category_id\n"
+                + "LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
+                + "LEFT JOIN Discounts d ON d.discount_id = p.discount_id\n"
+                + "WHERE p.category_id = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(categoryId);
+
+        // Lọc theo từ khóa tìm kiếm
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            sql.append(" AND (p.name LIKE ? OR p.description LIKE ?)");
+            params.add("%" + searchQuery.trim() + "%");
+            params.add("%" + searchQuery.trim() + "%");
+        }
+
+        // Lọc theo loại
+        if (types != null && types.length > 0) {
+            sql.append(" AND (");
+            for (int i = 0; i < types.length; i++) {
+                sql.append(" p.name LIKE ? ");
+                params.add("%" + types[i] + "%");
+                if (i < types.length - 1) {
+                    sql.append(" OR ");
+                }
+            }
+            sql.append(")");
+        }
+
+        // Lọc theo giá
+        if (priceRange != null && !priceRange.equals("1")) {
+            switch (priceRange) {
+                case "2":
+                    sql.append(" AND p.price < 2000000");
+                    break;
+                case "3":
+                    sql.append(" AND p.price BETWEEN 2000000 AND 5000000");
+                    break;
+                case "4":
+                    sql.append(" AND p.price BETWEEN 5000000 AND 10000000");
+                    break;
+                case "5":
+                    sql.append(" AND p.price BETWEEN 10000000 AND 20000000");
+                    break;
+                case "6":
+                    sql.append(" AND p.price BETWEEN 20000000 AND 50000000");
+                    break;
+                case "7":
+                    sql.append(" AND p.price > 50000000");
+                    break;
+            }
+        }
+
+        if (sale) {
+            sql.append(" AND p.discount_id IS NOT NULL");
+        }
+        if (bestSeller) {
+            sql.append(" AND p.sold_quantity >= 10");
+        }
+
+        sql.append(" ORDER BY p.product_id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add(offset);
+        params.add(limit);
+
+        try ( ResultSet rs = execSelectQuery(sql.toString(), params.toArray())) {
+            while (rs.next()) {
+                Category category = new Category(
+                        rs.getInt("category_id"),
+                        rs.getString("description"),
+                        rs.getString("name")
+                );
+                Brand brand = new Brand(
+                        rs.getInt("brand_id"),
+                        rs.getString("brand_name")
+                );
+
+                Discount discount = null;
+                int discountId = rs.getInt("discount_id");
+                if (!rs.wasNull() && discountId != 0) {
+                    int discountType = rs.getInt("discount_type");
+                    DiscountType type = DiscountType.fromType(discountType);
+                    discount = new Discount(
+                            discountId,
+                            rs.getString("code"),
+                            rs.getString("description"),
+                            type,
+                            rs.getBigDecimal("discount_value"),
+                            rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
+                            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
+                            rs.getBigDecimal("minimum_order_value"),
+                            rs.getInt("usage_limit"),
+                            rs.getInt("used_count"),
+                            rs.getBoolean("is_active")
+                    );
+                }
+
+                Product product = new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getBigDecimal("price"),
+                        rs.getInt("stock_quantity"),
+                        category,
+                        rs.getString("image_url"),
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        brand,
+                        discount,
+                        rs.getInt("sold_quantity")
+                );
+                list.add(product);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countFilteredProducts(int categoryId, String[] types, String priceRange, boolean sale, boolean bestSeller, String searchQuery) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM Products p WHERE p.category_id = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(categoryId);
+
+        // Lọc theo từ khóa tìm kiếm
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            sql.append(" AND (p.name LIKE ? OR p.description LIKE ?)");
+            params.add("%" + searchQuery.trim() + "%");
+            params.add("%" + searchQuery.trim() + "%");
+        }
+
+        // Lọc theo loại
+        if (types != null && types.length > 0) {
+            sql.append(" AND (");
+            for (int i = 0; i < types.length; i++) {
+                sql.append(" p.name LIKE ? ");
+                params.add("%" + types[i] + "%");
+                if (i < types.length - 1) {
+                    sql.append(" OR ");
+                }
+            }
+            sql.append(")");
+        }
+
+        // Lọc theo giá
+        if (priceRange != null && !priceRange.equals("1")) {
+            switch (priceRange) {
+                case "2":
+                    sql.append(" AND p.price < 2000000");
+                    break;
+                case "3":
+                    sql.append(" AND p.price BETWEEN 2000000 AND 5000000");
+                    break;
+                case "4":
+                    sql.append(" AND p.price BETWEEN 5000000 AND 10000000");
+                    break;
+                case "5":
+                    sql.append(" AND p.price BETWEEN 10000000 AND 20000000");
+                    break;
+                case "6":
+                    sql.append(" AND p.price BETWEEN 20000000 AND 50000000");
+                    break;
+                case "7":
+                    sql.append(" AND p.price > 50000000");
+                    break;
+            }
+        }
+
+        if (sale) {
+            sql.append(" AND p.discount_id IS NOT NULL");
+        }
+        if (bestSeller) {
+            sql.append(" AND p.sold_quantity >= 10");
+        }
+
+        try ( ResultSet rs = execSelectQuery(sql.toString(), params.toArray())) {
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public static void main(String[] args) {
         Product product = new ProductDAO().getProductById(3);
 
