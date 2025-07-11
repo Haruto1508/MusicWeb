@@ -46,6 +46,33 @@ public class UserDAO extends JDBCUtil {
         return false;
     }
 
+    public boolean uploadAvatar(String avatarFilePath, int userId) {
+        String sqlString = "UPDATE Users SET image_url = ? WHERE user_id = ?";
+        Object[] params = {avatarFilePath, userId};
+
+        try {
+            return execQuery(sqlString, params) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public String getAvatarUrl(int userId) {
+        String sql = "SELECT image_url FROM Users WHERE user_id = ?";
+        Object[] params = {userId};
+
+        try (ResultSet rs = execSelectQuery(sql, params)) {
+            if (rs.next()) {
+                return rs.getString("image_url");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; 
+    }
+
     public boolean update(User user) {
         String sql = "UPDATE Users SET account=?, full_name=?, email=?, phone=?, gender=?, birthdate=? WHERE user_id=?";
         Object[] params = {
@@ -297,7 +324,7 @@ public class UserDAO extends JDBCUtil {
         Object[] params = {
             account, email, phone, userId
         };
-        try (ResultSet rs = execSelectQuery(sql, params)) {
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
             while (rs.next()) {
                 if (rs.getString("account").equals(account)) {
                     result.put("account", true);

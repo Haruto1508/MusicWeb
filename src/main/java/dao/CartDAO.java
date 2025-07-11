@@ -26,12 +26,11 @@ public class CartDAO extends JDBCUtil {
     private static final Logger LOGGER = Logger.getLogger(CartDAO.class.getName());
 
     public boolean insertCart(Cart cart) {
-        String sql = "INSERT INTO Carts (userID, productID, quantity) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Carts (user_id, product_id, quantity) VALUES (?, ?, ?)";
         Object[] params = {
             cart.getUser().getUserId(),
             cart.getProduct().getProductId(),
-            cart.getQuantity(),
-        };
+            cart.getQuantity(),};
 
         try {
             return execQuery(sql, params) > 0;
@@ -41,26 +40,26 @@ public class CartDAO extends JDBCUtil {
         }
     }
 
-    public boolean update(Cart cart) {
-        String sql = "UPDATE Carts SET userID=?, productID=?, quantity=?, addDate=? WHERE cartID=?";
+    public boolean updateCart(Cart cart) {
+        String sql = "UPDATE Carts SET userID=?, productID=?, quantity=?, addDate=? WHERE cart_id=?";
         Object[] params = {
             cart.getUser().getUserId(),
             cart.getProduct().getProductId(),
             cart.getQuantity(),
             Timestamp.valueOf(cart.getAddDate()),
-            cart.getCartID()
+            cart.getCartId()
         };
 
         try {
             return execQuery(sql, params) > 0;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật giỏ hàng ID: " + cart.getCartID(), ex);
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật giỏ hàng ID: " + cart.getCartId(), ex);
             return false;
         }
     }
 
-    public boolean delete(int cartID) {
-        String sql = "DELETE FROM Carts WHERE cartID=?";
+    public boolean deleteCartById(int cartID) {
+        String sql = "DELETE FROM Carts WHERE cart_id=?";
         Object[] params = {cartID};
 
         try {
@@ -100,7 +99,7 @@ public class CartDAO extends JDBCUtil {
         return null;
     }
 
-    public List<Cart> getCartByUserId(int userId) {
+    public List<Cart> getCartsByUserId(int userId) {
         List<Cart> cartItems = new ArrayList<>();
 
         String sql = "SELECT \n"
@@ -139,14 +138,40 @@ public class CartDAO extends JDBCUtil {
         return cartItems;
     }
 
-    public static void main(String[] args) {
-        CartDAO cartDao = new CartDAO();
+    public Cart getCartByUserAndProduct(int userId, int productId) {
+        Cart cart = null;
+        String sql = "SELECT * FROM Carts WHERE user_id = ? AND product_id = ?";
+        Object[] params = {userId, productId};
 
-        // Test lấy giỏ hàng
-        List<Cart> cartList = cartDao.getCartByUserId(4);
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            if (rs.next()) {
+                // set User
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
 
-        for (Cart cart : cartList) {
-            System.out.println(cart.toString());
+                // set Product
+                Product product = new Product();
+                product.setProductId(rs.getInt("product_id"));
+
+                cart = new Cart(rs.getInt("cart_id"), user, product, rs.getInt("quantity"), null);
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi kiểm tra giỏ hàng: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return cart;
+    }
+
+    public boolean updateCartQuantity(int cartId, int quantity) {
+        String sql = "UPDATE Carts SET quantity = ? WHERE cart_id = ?";
+        Object[] params = {quantity, cartId};
+        
+        try {
+            return execQuery(sql, params) > 0;
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi cập nhật số lượng giỏ hàng: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 }

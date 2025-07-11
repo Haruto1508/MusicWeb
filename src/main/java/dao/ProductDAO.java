@@ -6,6 +6,7 @@ package dao;
 
 import db.JDBCUtil;
 import enums.DiscountType;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -77,11 +78,15 @@ public class ProductDAO extends JDBCUtil {
 
                 Category category = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
                 Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
+
+                Date startDate = rs.getDate("start_date");
+                Date endDate = rs.getDate("end_date");
                 Discount discount = new Discount(
                         rs.getInt("discount_id"), rs.getString("code"),
                         rs.getString("description"), null,
-                        rs.getBigDecimal("discount_value"), rs.getDate("start_date").toLocalDate(),
-                        rs.getDate("end_date").toLocalDate(),
+                        rs.getBigDecimal("discount_value"),
+                        startDate != null ? startDate.toLocalDate() : null,
+                        endDate != null ? endDate.toLocalDate() : null,
                         rs.getBigDecimal("minimum_order_value"), rs.getInt("usage_limit"),
                         rs.getInt("used_count"),
                         rs.getBoolean("is_active"));
@@ -97,7 +102,10 @@ public class ProductDAO extends JDBCUtil {
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
                         discount,
-                        rs.getInt("sold_quantity")
+                        rs.getInt("sold_quantity"),
+                        rs.getString("material"),
+                        rs.getInt("manufacturing_year"),
+                        rs.getString("made_in")
                 );
             }
         } catch (SQLException e) {
@@ -140,7 +148,10 @@ public class ProductDAO extends JDBCUtil {
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
                         discount,
-                        rs.getInt("sold_quantity")
+                        rs.getInt("sold_quantity"),
+                        rs.getString("material"),
+                        rs.getInt("manufacturing_year"),
+                        rs.getString("made_in")
                 );
                 list.add(product);
             }
@@ -206,7 +217,10 @@ public class ProductDAO extends JDBCUtil {
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
                         discount,
-                        rs.getInt("sold_quantity")
+                        rs.getInt("sold_quantity"),
+                        rs.getString("material"),
+                        rs.getInt("manufacturing_year"),
+                        rs.getString("made_in")
                 );
                 products.add(product);
             }
@@ -336,7 +350,10 @@ public class ProductDAO extends JDBCUtil {
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
                         discount,
-                        rs.getInt("sold_quantity")
+                        rs.getInt("sold_quantity"),
+                        rs.getString("material"),
+                        rs.getInt("manufacturing_year"),
+                        rs.getString("made_in")
                 );
                 list.add(product);
             }
@@ -455,7 +472,10 @@ public class ProductDAO extends JDBCUtil {
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         brand,
                         discount,
-                        rs.getInt("sold_quantity")
+                        rs.getInt("sold_quantity"),
+                        rs.getString("material"),
+                        rs.getInt("manufacturing_year"),
+                        rs.getString("made_in")
                 );
                 list.add(product);
             }

@@ -241,3 +241,73 @@ body {
 .dark-mode .modern-divider {
     border-color: rgba(255, 255, 255, 0.1);
 }
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 14px;
+}
+.custom-file-upload:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+.custom-file-upload i {
+    margin-right: 5px;
+}
+.form-control-file {
+    display: none;
+}
+.profile-img, .preview-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.info-label {
+    font-weight: bold;
+    min-width: 100px;
+}
+.info-value {
+    margin: 0;
+    flex-grow: 1;
+}
+.gender-group {
+    display: flex;
+    gap: 10px;
+}
+.birthdate-inputs select {
+    width: 100px;
+    display: inline-block;
+    margin-right: 10px;
+}
+.avatar-section {
+    text-align: center;
+}
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1055;
+}

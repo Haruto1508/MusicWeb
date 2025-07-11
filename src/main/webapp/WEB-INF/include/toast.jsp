@@ -6,7 +6,7 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="position-fixed top-5 end-0 p-3" style="z-index: 1100;">
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
     <div id="toastNotification" class="toast align-items-center text-white border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body" id="toastMessage"></div>
@@ -39,6 +39,18 @@
     </c:if>
     <c:if test="${not empty updateFail}">
         showToast("${updateFail}", false);
+    </c:if>
+    <c:if test="${not empty addSuccess}">
+        showToast("${addSuccess}", true);
+    </c:if>
+    <c:if test="${not empty addFail}">
+        showToast("${addFail}", false);
+    </c:if>
+    <c:if test="${not empty deleteSuccess}">
+        showToast("${deleteSuccess}", true);
+    </c:if>
+    <c:if test="${not empty deleteFail}">
+        showToast("${deleteFail}", false);
     </c:if>
     });
 </script>

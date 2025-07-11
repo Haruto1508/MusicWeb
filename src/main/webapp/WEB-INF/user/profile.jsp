@@ -14,7 +14,6 @@
     <title>User Profile</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <!-- FontAwesome CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
@@ -29,9 +28,9 @@
     <%@include file="/WEB-INF/include/header.jsp" %>
 
     <!-- Content -->
-    <div class="container info-box" style="min-height: 100vh;"> <!-- Ensure container has enough height -->
-        <div class="row" style="margin-top: 100px;">
-            <div class="col-md-4">
+    <div class="container-fluid" style="margin-top: 120px">
+        <div class="row">
+            <div class="col-md-4 col-lg-3"> 
                 <div class="sidebar">
                     <div class="text-center">
                         <img src="${user.imageUrl}" alt="Profile Picture" class="profile-img">
@@ -51,16 +50,13 @@
                         <li><a href="${pageContext.request.contextPath}/account?view=cart" 
                                class="${view == 'cart' ? 'active' : ''}" onclick="activeBtn(event, this)">
                                 <i class="fas fa-shopping-cart"></i> Cart</a></li>
-                        <li><a href="${pageContext.request.contextPath}/account?view=setting" 
-                               class="${view == 'setting' ? 'active' : ''}" onclick="activeBtn(event, this)">
-                                <i class="fas fa-cog"></i> Setting</a></li>
                         <li><a href="${pageContext.request.contextPath}/account?view=password" 
                                class="${view == 'password' ? 'active' : ''}" onclick="activeBtn(event, this)">
                                 <i class="fas fa-lock"></i> Change Password</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="col-md-8">
+            <div class="col-md-4 col-md-8">
                 <c:choose>
                     <c:when test="${view == 'info' or empty view}">
                         <jsp:include page="/WEB-INF/user/info.jsp" />
@@ -74,9 +70,6 @@
                     <c:when test="${view == 'order'}">
                         <jsp:include page="/WEB-INF/user/order.jsp" />
                     </c:when>
-                    <c:when test="${view == 'setting'}">
-                        <jsp:include page="/WEB-INF/user/setting.jsp" />
-                    </c:when>
                     <c:when test="${view == 'password'}">
                         <jsp:include page="/WEB-INF/user/password.jsp" />
                     </c:when>
@@ -87,10 +80,12 @@
 
     <!-- Footer -->
     <%@include file="/WEB-INF/include/footer.jsp" %>
+    <!-- Toast -->
     <%@include file="/WEB-INF/include/profile-toast.jsp" %>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/address.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/info.js"></script>
 </body>
 </html>

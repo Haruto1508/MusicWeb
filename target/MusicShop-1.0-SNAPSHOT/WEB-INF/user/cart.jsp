@@ -8,7 +8,7 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.cart.css"/>
 <div class="container">
-    <h2 class="mb-4">🛒 Your Cart</h2>
+    <h2 class="mb-4 text-center text-primary">🛒 Your Cart</h2>
 
     <c:choose>
         <c:when test="${not empty carts}">
@@ -25,7 +25,7 @@
                         </div>
                         <div class="col-md-4 text-end cart-buttons">
                             <a href="${pageContext.request.contextPath}/product?id=${cart.product.productId}" class="btn btn-outline-primary btn-sm">🔍 See details</a>
-                            <a href="${pageContext.request.contextPath}/order-confirm?id=${cart.product.productId}" class="btn btn-success btn-sm">💳 Buy now</a>
+                            <a href="${pageContext.request.contextPath}/cart?action=delete&cartId=${cart.cartId}" class="btn btn-danger btn-sm">🗑️ Delete</a>
                         </div>
                     </div>
                 </c:forEach>
@@ -49,4 +49,3 @@
         </c:otherwise>
     </c:choose>
 </div>
-

@@ -67,10 +67,11 @@ public class AccountServlet extends HttpServlet {
                 String birthdateTextValue = user.getBirthdate() != null
                         ? user.getBirthdate().format(textFormatter)
                         : "Not set"; // Hiển thị "Not set" nếu chưa có ngày sinh
-
+                String gender = user.getGender() != null ? user.getGender().getLabel() : "Not set";
                 request.setAttribute("currentYear", currentYear);
                 request.setAttribute("birthdateInputValue", birthdateInputValue);
                 request.setAttribute("birthdateTextValue", birthdateTextValue);
+                request.setAttribute("genderTextValue", gender);
                 break;
 
             case "address":
@@ -85,7 +86,7 @@ public class AccountServlet extends HttpServlet {
 
             case "cart":
                 CartDAO cartDAO = new CartDAO();
-                List<Cart> carts = cartDAO.getCartByUserId(user.getUserId());
+                List<Cart> carts = cartDAO.getCartsByUserId(user.getUserId());
                 BigDecimal total = BigDecimal.ZERO;
                 if (carts != null) {
                     for (Cart c : carts) {

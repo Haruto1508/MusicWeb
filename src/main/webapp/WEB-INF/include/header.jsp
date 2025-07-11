@@ -24,18 +24,20 @@
                         Products
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="productDropdown">
-                        <li><a class="dropdown-item" href="#">Guitar</a></li>
-                        <li><a class="dropdown-item" href="#">Piano & Keyboard</a></li>
-                        <li><a class="dropdown-item" href="#">Violin</a></li>
-                        <li><a class="dropdown-item" href="#">Micro & accessories</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/guitar?page=1">Guitar</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="#">All products </a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/piano?page=1">Piano & Keyboard</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/violin?page=1">Violin</a></li>
+                        
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="#">Introduce</a>
+                    <a class="nav-link fw-semibold" href="${pageContext.request.contextPath}/home">Introduce</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" href="#contact">Contact</a>

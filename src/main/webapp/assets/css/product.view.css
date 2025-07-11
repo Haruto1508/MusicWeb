@@ -81,7 +81,7 @@ body {
     margin-right: 0.5rem;
 }
 .product-info .quantity input {
-    width: 50px;
+    width: 15%;
     text-align: center;
 }
 .product-info .actions button {
@@ -153,4 +153,9 @@ body {
 .product-related .card-text {
     font-size: 0.8rem;
     color: #555;
+}
+
+.product-related .col-md-3:hover {
+    transform: translateY(-7px) scale(1.025);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
 }

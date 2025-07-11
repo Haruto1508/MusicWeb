@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  */
 public class Cart {
 
-    private int cartID;
+    private int cartId;
     private User user;
     private Product product;
     private int quantity;
@@ -21,8 +21,8 @@ public class Cart {
 
     public Cart() {}
 
-    public Cart(int cartID, User user, Product product, int quantity, LocalDateTime addDate) {
-        this.cartID = cartID;
+    public Cart(int cartId, User user, Product product, int quantity, LocalDateTime addDate) {
+        this.cartId = cartId;
         this.user = user;
         this.product = product;
         this.quantity = quantity;
@@ -37,12 +37,12 @@ public class Cart {
         this.product = product;
     }
 
-    public int getCartID() {
-        return cartID;
+    public int getCartId() {
+        return cartId;
     }
 
-    public void setCartID(int cartID) {
-        this.cartID = cartID;
+    public void setCartId(int cartId) {
+        this.cartId = cartId;
     }
 
     public User getUser() {
@@ -79,6 +79,6 @@ public class Cart {
 
     @Override
     public String toString() {
-        return "Cart{" + "cartID=" + cartID + ", user=" + user + ", product=" + product + ", quantity=" + quantity + ", addDate=" + addDate + '}';
+        return "Cart{" + "cartId=" + cartId + ", user=" + user + ", product=" + product + ", quantity=" + quantity + ", addDate=" + addDate + '}';
     }
 }

@@ -11,7 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Chi tiết sản phẩm - MusicShop</title>
+        <title>Product View - MusicShop</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product.view.css">
@@ -50,25 +50,43 @@
                                 <p class="text-muted">Quantity in stock: ${product.stockQuantity}</p>
                                 <p>
                                     Brand: <strong>${product.brand.name}</strong><br>
-                                    Category: <strong>${product.category.name}</strong><br>
-                                    Date created: <strong>${product.createDateTime}</strong>
+                                    Category: <strong>${not empty product.category.name ? product.category.name : 'product.category.name'} </strong><br>
+                                    Material: <strong>${not empty product.material ? product.material : '...'}</strong><br>
+                                    Year of manufacture: <strong>${product.yearOfManufacture != 0 ? product.yearOfManufacture : '...'}</strong><br>
+                                    Made in: <strong>${not empty product.madeIn ? product.madeIn : '...'}</strong>
                                 </p>
-                                <div class="quantity">
-                                    <label>Quantity:</label>
-                                    <input type="number" name="quantity" id="userQuantityInput" class="form-control" value="1" min="1" max="${product.stockQuantity}">
+                                <div class="quantity d-flex align-items-center">
+                                    <label for="userQuantityInput">Quantity: </label>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity(-1)">−</button>
+                                    <input type="number" id="userQuantityInput" name="quantity" class="form-control text-center mx-2"
+                                           value="1" min="1" max="${product.stockQuantity}" style="width: 60px;">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity(1)">+</button>
                                 </div>
                                 <div class="actions mt-3">
-                                    <button class="btn btn-danger add-to-cart" data-product-id="${product.productId}">
-                                        <i class="fa fa-cart-plus"></i> Add to cart
-                                    </button>
-                                    <form id="buyNowForm" action="${pageContext.request.contextPath}/order-confirm" method="post" class="d-inline">
-                                        <input type="hidden" name="productId" value="${product.productId}" />
-                                        <input type="hidden" name="quantity" id="buyNowQuantity" value="" />
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fa fa-shopping-cart"></i> Buy now
-                                        </button>
-                                    </form>
-
+                                    <div class="d-flex">
+                                        <c:if test="${product.stockQuantity > 0}">
+                                            <form action="${pageContext.request.contextPath}/cart" method="get">
+                                                <input type="hidden" name="productId" value="${product.productId}">
+                                                <input type="hidden" name="quantity" id="addToCartQuantity" value="1">
+                                                <input type="hidden" name="action" value="add">
+                                                <button type="submit" class="btn btn-danger add-to-cart">
+                                                    <i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng
+                                                </button>
+                                            </form>
+                                        </c:if>
+                                        <c:if test="${product.stockQuantity == 0}">
+                                            <button type="button" class="btn btn-danger add-to-cart" disabled>
+                                                <i class="fa fa-cart-plus"></i> Hết hàng
+                                            </button>
+                                        </c:if>
+                                        <form id="buyNowForm" action="${pageContext.request.contextPath}/order-confirm" method="post" class="d-inline">
+                                            <input type="hidden" name="productId" value="${product.productId}" />
+                                            <input type="hidden" name="quantity" id="buyNowQuantity" value="1" />
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fa fa-shopping-cart"></i> Buy now
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -92,29 +110,53 @@
                                                 <h5 class="card-title">${product.name}</h5>
                                                 <p class="card-text">${product.price}</p>
                                             </div>
+                                            <a href="${pageContext.request.contextPath}/product?id=${product.productId}" class="text-decoration-none text-center text-dark">View detail</a>
                                         </div>
                                     </div>
                                 </c:forEach>
                             </div>
                         </div>
                     </div>
-                </div>
-            </c:when>
-            <c:otherwise>
-                <div>
-                    <h3>Product does not exist!</h3>
-                </div>
-            </c:otherwise>
-        </c:choose>
-
+                </c:when>
+                <c:otherwise>
+                    <div>
+                        <h3>Product does not exist!</h3>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+        <%@include file="/WEB-INF/include/toast.jsp" %>
         <%@ include file="/WEB-INF/include/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            document.getElementById('buyNowForm').addEventListener('submit', function (e) {
-                const quantityInput = document.getElementById('userQuantityInput');
-                const hiddenQuantity = document.getElementById('buyNowQuantity');
-                hiddenQuantity.value = quantityInput.value;
-            });
+                                        // Hàm cập nhật quantity cho cả hai form
+                                        function updateQuantityForms() {
+                                            const quantityInput = document.getElementById('userQuantityInput');
+                                            const buyNowQuantity = document.getElementById('buyNowQuantity');
+                                            const addToCartQuantity = document.getElementById('addToCartQuantity');
+
+                                            buyNowQuantity.value = quantityInput.value;
+                                            addToCartQuantity.value = quantityInput.value;
+                                        }
+
+                                        // Gắn sự kiện input cho userQuantityInput
+                                        const quantityInput = document.getElementById('userQuantityInput');
+                                        quantityInput.addEventListener('input', updateQuantityForms);
+
+                                        // Hàm thay đổi số lượng khi nhấn nút + hoặc -
+                                        function changeQuantity(delta) {
+                                            const input = document.getElementById('userQuantityInput');
+                                            let value = parseInt(input.value);
+                                            const min = parseInt(input.min);
+                                            const max = parseInt(input.max);
+
+                                            value = Math.min(max, Math.max(min, value + delta));
+                                            input.value = value;
+                                            updateQuantityForms(); // Cập nhật giá trị cho các form
+                                        }
+
+                                        // Gán giá trị mặc định ban đầu
+                                        updateQuantityForms();
         </script>
     </body>
 </html>

@@ -12,6 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
 
@@ -87,5 +88,16 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("violins", violins);
 
         request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
+    }
+    
+    protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        String[] attributes = {"addFail, addSuccess"};
+        for (String attr : attributes) {
+            Object val = session.getAttribute(attr);
+            if (val != null) {
+                request.setAttribute(attr, val);
+                session.removeAttribute(attr);
+            }
+        }
     }
 }

@@ -19,7 +19,10 @@ import java.io.IOException;
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-@WebFilter(filterName="AuthenFilter", urlPatterns = {"/account", "/order", "/updateUser", "/order-confirm", "/address"}) 
+@WebFilter(filterName="AuthenFilter", urlPatterns = {
+    "/account", "/order", "/updateUser", "/order-confirm", "/address", "/cart",
+    "/avatar"
+}) 
 public class AuthenFilter implements  Filter{
 
     @Override

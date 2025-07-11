@@ -387,7 +387,7 @@ public class OrderDAO extends JDBCUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+ 
         return orderView;
     }
 
@@ -395,7 +395,7 @@ public class OrderDAO extends JDBCUtil {
         List<Order> or = new OrderDAO().getOrdersByUserId(2);
 
         for (Order o : or) {
-            System.out.println(o.toString());
+            System.out.println(o);
         }
     }
 }

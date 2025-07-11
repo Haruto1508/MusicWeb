@@ -43,92 +43,92 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="acoustic" name="type" value="acoustic" 
                                <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'acoustic')}">checked</c:if>>
-                               <label class="form-check-label" for="acoustic">Acoustic</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="classic" name="type" value="classic" 
-                            <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'classic')}">checked</c:if>>
-                            <label class="form-check-label" for="classic">Classic</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="electric" name="type" value="electric" 
-                            <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'electric')}">checked</c:if>>
-                            <label class="form-check-label" for="electric">Electric</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="bass" name="type" value="bass" 
-                            <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'bass')}">checked</c:if>>
-                            <label class="form-check-label" for="bass">Bass</label>
-                        </div>
+                        <label class="form-check-label" for="acoustic">Acoustic</label>
                     </div>
-
-                    <!-- Khoảng giá -->
-                    <div style="margin-bottom:18px;">
-                        <div style="font-weight:600; margin-bottom:8px;">Price range</div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price0" value="1" 
-                            <c:if test="${selectedPrice == '1' || selectedPrice == null}">checked</c:if>>
-                            <label class="form-check-label" for="price0">All Products</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price1" value="2" 
-                            <c:if test="${selectedPrice == '2'}">checked</c:if>>
-                            <label class="form-check-label" for="price1">Under 2 million</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price2" value="3" 
-                            <c:if test="${selectedPrice == '3'}">checked</c:if>>
-                            <label class="form-check-label" for="price2">2 - 5 million</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price3" value="4" 
-                            <c:if test="${selectedPrice == '4'}">checked</c:if>>
-                            <label class="form-check-label" for="price3">5 - 10 million</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price4" value="5" 
-                            <c:if test="${selectedPrice == '5'}">checked</c:if>>
-                            <label class="form-check-label" for="price4">10 - 20 million</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price5" value="6" 
-                            <c:if test="${selectedPrice == '6'}">checked</c:if>>
-                            <label class="form-check-label" for="price5">20 - 50 million</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="price" id="price6" value="7" 
-                            <c:if test="${selectedPrice == '7'}">checked</c:if>>
-                            <label class="form-check-label" for="price6">over 50 million</label>
-                        </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="classic" name="type" value="classic" 
+                        <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'classic')}">checked</c:if>>
+                        <label class="form-check-label" for="classic">Classic</label>
                     </div>
-                    <!-- Khác -->
-                    <div style="margin-bottom:18px;">
-                        <div style="font-weight:600; margin-bottom:8px;">Others</div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="sale" name="sale" value="true" 
-                            <c:if test="${isSale}">checked</c:if>>
-                            <label class="form-check-label" for="sale">On Sale</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="bestSeller" name="bestSeller" value="true" 
-                            <c:if test="${isBestSeller}">checked</c:if>>
-                            <label class="form-check-label" for="bestSeller">Best Seller</label>
-                        </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="electric" name="type" value="electric" 
+                        <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'electric')}">checked</c:if>>
+                        <label class="form-check-label" for="electric">Electric</label>
                     </div>
-                    <button type="submit" class="product-button" style="margin-top:10px;">
-                        <i class="fa-solid fa-filter"></i> Áp dụng
-                    </button>
-                </form>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main-content">
-                <div class="banner">
-                    <h1>Explore the world of Guitar</h1>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="bass" name="type" value="bass" 
+                        <c:if test="${selectedTypes != null && fn:contains(fn:join(selectedTypes, ','), 'bass')}">checked</c:if>>
+                        <label class="form-check-label" for="bass">Bass</label>
+                    </div>
                 </div>
 
-                <div class="search-bar">
-                    <form action="${pageContext.request.contextPath}/guitar" method="get">
+                <!-- Khoảng giá -->
+                <div style="margin-bottom:18px;">
+                    <div style="font-weight:600; margin-bottom:8px;">Price range</div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price0" value="1" 
+                        <c:if test="${selectedPrice == '1' || selectedPrice == null}">checked</c:if>>
+                        <label class="form-check-label" for="price0">All Products</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price1" value="2" 
+                        <c:if test="${selectedPrice == '2'}">checked</c:if>>
+                        <label class="form-check-label" for="price1">Under 2 million</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price2" value="3" 
+                        <c:if test="${selectedPrice == '3'}">checked</c:if>>
+                        <label class="form-check-label" for="price2">2 - 5 million</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price3" value="4" 
+                        <c:if test="${selectedPrice == '4'}">checked</c:if>>
+                        <label class="form-check-label" for="price3">5 - 10 million</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price4" value="5" 
+                        <c:if test="${selectedPrice == '5'}">checked</c:if>>
+                        <label class="form-check-label" for="price4">10 - 20 million</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price5" value="6" 
+                        <c:if test="${selectedPrice == '6'}">checked</c:if>>
+                        <label class="form-check-label" for="price5">20 - 50 million</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="price" id="price6" value="7" 
+                        <c:if test="${selectedPrice == '7'}">checked</c:if>>
+                        <label class="form-check-label" for="price6">over 50 million</label>
+                    </div>
+                </div>
+                <!-- Khác -->
+                <div style="margin-bottom:18px;">
+                    <div style="font-weight:600; margin-bottom:8px;">Others</div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="sale" name="sale" value="true" 
+                        <c:if test="${isSale}">checked</c:if>>
+                        <label class="form-check-label" for="sale">On Sale</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="bestSeller" name="bestSeller" value="true" 
+                        <c:if test="${isBestSeller}">checked</c:if>>
+                        <label class="form-check-label" for="bestSeller">Best Seller</label>
+                    </div>
+                </div>
+                <button type="submit" class="product-button" style="margin-top:10px;">
+                    <i class="fa-solid fa-filter"></i> Áp dụng
+                </button>
+            </form>
+        </div>
+
+            <!-- Main Content -->
+        <div class="main-content">
+            <div class="banner">
+                <h1>Explore the world of Guitar</h1>
+            </div>
+
+            <div class="search-bar">
+                <form action="${pageContext.request.contextPath}/guitar" method="get">
                     <div class="d-flex align-items-center">
                         <input type="text" class="search-input" name="search" placeholder="Search for products..." value="${searchQuery}">
                         <button type="submit" class="search-btn ms-2"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -144,14 +144,16 @@
                             <div class="product-card">
                                 <div class="product-image">
                                     <img src="${guitar.imageUrl}" alt="${guitar.name}">
-
                                 </div>
                                 <div class="product-info">
                                     <div class="product-name">${guitar.name}</div>
                                     <div class="product-price">${guitar.price} ₫</div>
                                     <div class="product-actions">
-                                        <button class="product-button buy"><i class="fa-solid fa-bolt"></i> Buy now</button>
-                                        <button class="product-button cart"><i class="fa-solid fa-cart-plus"></i></button>
+                                        <button class="product-button buy">
+                                            <a href="${pageContext.request.contextPath}/product?id=${guitar.productId}" class="text-decoration-none text-white">
+                                                <i class="fa-solid fa-bolt"></i> Buy now
+                                            </a>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -229,6 +231,7 @@
         </div>
         <%--<%@ include file="/WEB-INF/include/footer.jsp" %>--%>
         <%@include file="/WEB-INF/include/btn-to-top.jsp" %>
+        <%@include file="/WEB-INF/include/toast.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

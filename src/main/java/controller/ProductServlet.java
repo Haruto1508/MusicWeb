@@ -13,6 +13,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
 import util.RelatedProduct;
@@ -62,15 +63,18 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        clearSession(request, response, session);
+
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
 
         String id = request.getParameter("id");
         ProductDAO producDAO = new ProductDAO();
-        
+
         Product product = producDAO.getProductById(Integer.parseInt(id));
-        
+
         // related product
         List<Product> relatedList = producDAO.getRelatedProducts(product.getProductId(), RelatedProduct.RELATED_PRODUCT_LIMIT);
 
@@ -96,14 +100,14 @@ public class ProductServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+    protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        String[] attributes = {"addFail", "addSuccess"};
+        for (String attr : attributes) {
+            Object val = session.getAttribute(attr);
+            if (val != null) {
+                request.setAttribute(attr, val);
+                session.removeAttribute(attr);
+            }
+        }
+    }
 }

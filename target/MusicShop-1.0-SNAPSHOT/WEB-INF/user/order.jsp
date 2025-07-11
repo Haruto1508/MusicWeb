@@ -8,8 +8,11 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
+
+
+
 <div class="container my-5">
-    <h2 class="mb-4 text-primary"><i class="fa-solid fa-receipt me-2"></i>Đơn hàng của bạn</h2>
+    <h2 class="mb-4 text-center text-primary"><i class="fa-solid fa-receipt me-2"></i>Your order</h2>
 
     <c:choose>
         <c:when test="${not empty orders}">
@@ -19,33 +22,33 @@
                         <div class="card shadow-sm border-0 order-card">
                             <!-- Tiêu đề đơn hàng -->
                             <div class="order-header d-flex justify-content-between align-items-center">
-                                <span>🆔 Mã đơn hàng: <strong>${order.orderId}</strong></span>
-                                <a href="${pageContext.request.contextPath}/order?id=${order.orderId}" class="btn btn-outline-light btn-sm btn-view-detail">
-                                    <i class="fa-solid fa-eye me-1"></i> Xem chi tiết
-                                </a>
+                                <span>🆔 Order ID <strong>${order.orderId}</strong></span>
                             </div>
                             <div class="card-body">
                                 <!-- Thông tin đơn hàng -->
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <p class="mb-1 text-muted"><i class="fa-solid fa-calendar-alt me-1"></i> Ngày đặt: 
+                                        <p class="mb-1 text-muted"><i class="fa-solid fa-calendar-alt me-1"></i> Order Date: 
                                             <c:choose>
                                                 <c:when test="${order.orderDateAsDate != null}">
                                                     <fmt:formatDate value="${order.orderDateAsDate}" pattern="dd/MM/yyyy HH:mm"/>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    Không có ngày
+                                                    No date
                                                 </c:otherwise>
                                             </c:choose>
                                         </p>
-                                        <p class="mb-1 text-muted"><i class="fa-solid fa-money-bill-wave me-1"></i> Tổng tiền: 
+                                        <p class="mb-1 text-muted"><i class="fa-solid fa-money-bill-wave me-1"></i> Total amount: 
                                             <strong><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0.000"/> VNĐ</strong>
                                         </p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
-                                        <p class="mb-0"><i class="fa-solid fa-box-open me-1"></i> Trạng thái: 
-                                            <span class="badge bg-${order.status.label}">${order.status.label}</span>
+                                        <p class="mb-2"><i class="fa-solid fa-box-open me-1"></i> Status: 
+                                            <span class="${order.status.bootstrapClass} rounded-2 p-2 text-light">${order.status.label}</span>
                                         </p>
+                                        <a href="${pageContext.request.contextPath}/order?id=${order.orderId}" class="btn btn-view-detail">
+                                            <i class="fa-solid fa-eye me-1"></i> View Detail
+                                        </a>
                                     </div>
                                 </div>
                                 <!-- Sản phẩm trong đơn hàng -->
@@ -56,15 +59,20 @@
                                                 <img src="${order.orderDetail.product.imageUrl}" alt="${order.orderDetail.product.name}" class="me-3">
                                                 <div class="flex-grow-1">
                                                     <h6 class="mb-1">${order.orderDetail.product.name}</h6>
-                                                    <p class="mb-1 text-muted">Số lượng: ${order.orderDetail.quantity}</p>
-                                                    <p class="mb-0 text-muted">Đơn giá: 
+                                                    <p class="mb-1 text-muted">Quantity: ${order.orderDetail.quantity}</p>
+                                                    <p class="mb-0 text-muted">Price: 
                                                         <fmt:formatNumber value="${order.orderDetail.price}" pattern="#,##0.000"/> VNĐ
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <p class="mb-0 fw-bold">
+                                                        <fmt:formatNumber value="${order.orderDetail.price * order.orderDetail.quantity}" pattern="#,##0.000"/> VNĐ
                                                     </p>
                                                 </div>
                                             </div>
                                         </c:when>
                                         <c:otherwise>
-                                            <p class="text-muted text-center">Không có sản phẩm trong đơn hàng.</p>
+                                            <p class="text-muted text-center">There are no products in the order.</p>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -81,5 +89,4 @@
         </c:otherwise>
     </c:choose>
 </div>
-
 <%@include file="/WEB-INF/include/btn-to-top.jsp" %>

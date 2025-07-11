@@ -24,11 +24,16 @@ public class Product {
     private Brand brand;
     private int soldQuantity;
     private Discount discount;
+    private String madeIn;
+    private int yearOfManufacture;
+    private String material;
+    
+    public Product() {}
 
-    public Product() {
-    }
-
-    public Product(int productId, String name, String description, BigDecimal price, int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, Brand brand, Discount discount, int soldQuantity) {
+    public Product(int productId, String name, String description, BigDecimal price, 
+            int stockQuantity, Category category, String imageUrl, LocalDateTime createDateTime, 
+            Brand brand, Discount discount, int soldQuantity, String material, int yearOfManufacture,
+            String madeIn) {
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -40,6 +45,9 @@ public class Product {
         this.brand = brand;
         this.discount = discount;
         this.soldQuantity = soldQuantity;
+        this.madeIn = madeIn;
+        this.material = material;
+        this.yearOfManufacture = yearOfManufacture;
     }
 
     public String getName() {
@@ -130,8 +138,32 @@ public class Product {
         this.soldQuantity = soldQuantity;
     }
 
+    public String getMadeIn() {
+        return madeIn;
+    }
+
+    public void setMadeIn(String madeIn) {
+        this.madeIn = madeIn;
+    }
+
+    public int getYearOfManufacture() {
+        return yearOfManufacture;
+    }
+
+    public void setYearOfManufacture(int yearOfManufacture) {
+        this.yearOfManufacture = yearOfManufacture;
+    }
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
     @Override
     public String toString() {
-        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + ", soldQuantity=" + soldQuantity + ", discount=" + discount + '}';
+        return "Product{" + "productId=" + productId + ", name=" + name + ", description=" + description + ", price=" + price + ", stockQuantity=" + stockQuantity + ", category=" + category + ", imageUrl=" + imageUrl + ", createDateTime=" + createDateTime + ", brand=" + brand + ", soldQuantity=" + soldQuantity + ", discount=" + discount + ", madeIn=" + madeIn + ", yearOfManufacture=" + yearOfManufacture + ", material=" + material + '}';
     }
 }
