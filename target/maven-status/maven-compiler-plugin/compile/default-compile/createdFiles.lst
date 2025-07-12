@@ -1,6 +1,7 @@
 model\DiscountCODE.class
 controller\AddressServlet.class
 dao\OrderDAO.class
+controller\CartServlet.class
 util\RelatedProduct.class
 dao\CategoryDAO.class
 model\ShippingFee.class
@@ -36,6 +37,7 @@ dao\CartDAO.class
 enums\OrderStatus.class
 controller\PianoServlet.class
 model\SubCategory.class
+controller\AvatarServlet.class
 dao\DiscountDAO.class
 model\UserAddress.class
 model\Role.class

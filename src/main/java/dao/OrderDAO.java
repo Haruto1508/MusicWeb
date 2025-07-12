@@ -8,8 +8,11 @@ import db.JDBCUtil;
 import enums.OrderStatus;
 import enums.PaymentMethod;
 import enums.PaymentStatus;
+import enums.ShippingMethod;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import model.Address;
@@ -21,6 +24,8 @@ import model.Brand;
 import model.Category;
 import model.OrderDetail;
 import model.OrderViewModel;
+import model.Payment;
+import model.Shipping;
 
 public class OrderDAO extends JDBCUtil {
 
@@ -45,18 +50,31 @@ public class OrderDAO extends JDBCUtil {
         }
     }
 
-    public int createOrder(int userId, int addressId, int productId, int quantity, Integer discountId, int paymentMethod) throws SQLException {
+    public int createOrder(int userId, int addressId, int productId, int quantity,
+            Integer discountId, int paymentMethod) throws SQLException {
         String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?)}";
-        Object[] params = {userId, addressId, productId, quantity, discountId, paymentMethod};
+        Object[] params = {
+            userId,
+            addressId,
+            productId,
+            quantity,
+            discountId,
+            paymentMethod,
+            null // OUTPUT order_id
+        };
+
         System.out.println("OrderDAO - Creating order for userId: " + userId + ", productId: " + productId);
-        return execStoredProcedure(procedureCall, params, 7);
+        return execStoredProcedure(procedureCall, params, 7); // Tổng 7 tham số
     }
 
     public Order getOrderById(int orderId) {
-        String sql = "SELECT o.*, a.street, a.city, a.district, a.ward, a.type, a.is_default "
-                + "FROM Orders o "
-                + "LEFT JOIN Address a ON o.address_id = a.address_id "
-                + "WHERE o.order_id = ?";
+        String sql = "SELECT o.*, p.*, s.*, a.street, a.city, a.district,"
+                + "     a.ward, a.type, a.is_default  \n"
+                + "     FROM Orders o  \n"
+                + "     LEFT JOIN Address a ON o.address_id = a.address_id  \n"
+                + "	LEFT JOIN Payments p ON p.payment_id = o.payment_id\n"
+                + "     LEFT JOIN Shipping s ON s.shipping_id = o.shipping_id\n"
+                + "     WHERE o.order_id = ?";
 
         Object[] params = {orderId};
 
@@ -85,6 +103,33 @@ public class OrderDAO extends JDBCUtil {
                 int statusInt = rs.getInt("status");
                 OrderStatus status = OrderStatus.fromInt(statusInt);
 
+                // Payment
+                Payment payment = new Payment();
+                if (rs.getTimestamp("payment_date") != null) {
+                    payment.setPayDate(rs.getDate("payment_date").toLocalDate());
+                }
+                payment.setAmount(rs.getBigDecimal("amount"));
+                payment.setPaymentMethod(PaymentMethod.fromCode(rs.getInt("payment_method")));
+                payment.setPaymentStatus(PaymentStatus.fromCode(rs.getInt("status"))); // dùng alias nếu trùng
+
+                // Shipping
+                Shipping shipping = new Shipping();
+                shipping.setShipping_id(rs.getInt("shipping_id"));
+                shipping.setShippingMethod(ShippingMethod.fromValue(rs.getInt("shipping_method")));
+                shipping.setTrackingNumber(rs.getString("tracking_number"));
+
+                // Xử lý ngày giao hàng thực tế
+                LocalDate shippedDate = null;
+                if (rs.getDate("shipped_date") != null) {
+                    shippedDate = rs.getDate("shipped_date").toLocalDate();
+                }
+
+                // Xử lý ngày giao dự kiến
+                LocalDate estimatedDelivery = null;
+                if (rs.getTimestamp("estimated_delivery") != null) {
+                    estimatedDelivery = rs.getTimestamp("estimated_delivery").toLocalDateTime().toLocalDate();
+                }
+
                 Order order = new Order(
                         rs.getInt("order_id"),
                         user,
@@ -93,7 +138,11 @@ public class OrderDAO extends JDBCUtil {
                         rs.getBigDecimal("total_amount"),
                         discount,
                         rs.getBigDecimal("discount_amount"),
-                        address
+                        address,
+                        shipping,
+                        payment,
+                        shippedDate,
+                        estimatedDelivery
                 );
 
                 return order;
@@ -160,7 +209,18 @@ public class OrderDAO extends JDBCUtil {
                 int statusInt = rs.getInt("status");
                 OrderStatus status = OrderStatus.fromInt(statusInt);
 
-                // Tạo Order với enum status
+                // Xử lý ngày giao hàng thực tế
+                LocalDate shippedDate = null;
+                if (rs.getDate("shipped_date") != null) {
+                    shippedDate = rs.getDate("shipped_date").toLocalDate();
+                }
+
+                // Xử lý ngày giao dự kiến
+                LocalDate estimatedDelivery = null;
+                if (rs.getTimestamp("estimated_delivery") != null) {
+                    estimatedDelivery = rs.getTimestamp("estimated_delivery").toLocalDateTime().toLocalDate();
+                }
+
                 Order order = new Order(
                         orderId,
                         user,
@@ -169,7 +229,11 @@ public class OrderDAO extends JDBCUtil {
                         rs.getBigDecimal("total_amount"),
                         discount,
                         rs.getBigDecimal("discount_amount"),
-                        address
+                        address,
+                        null,
+                        null,
+                        shippedDate,
+                        estimatedDelivery
                 );
 
                 // Tạo Product đại diện
@@ -183,56 +247,11 @@ public class OrderDAO extends JDBCUtil {
                 od.setProduct(product);
                 od.setQuantity(rs.getInt("quantity"));
                 od.setPrice(rs.getBigDecimal("price"));
-                
+
                 order.setOrderDetail(od);
                 orders.add(order);
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return orders;
-    }
-
-    public List<Order> getAllOrders() {
-        List<Order> orders = new ArrayList<>();
-        String sql = "SELECT * FROM Orders";
-
-        try ( ResultSet rs = execSelectQuery(sql)) {
-            while (rs.next()) {
-                User user = new User();
-                user.setUserId(rs.getInt("user_id"));
-                user.setFullName(rs.getString("name"));
-
-                Discount discount = null;
-                int discountId = rs.getInt("discount_id");
-                if (!rs.wasNull() && discountId != 0) {
-                    discount = new Discount();
-                    discount.setDiscountId(discountId);
-                    discount.setDiscountValue(rs.getBigDecimal("discount_amount"));
-                }
-
-                Address address = new Address();
-                address.setAddressId(rs.getInt("address_id"));
-
-                // Chuyển int status thành enum OrderStatus
-                int statusInt = rs.getInt("status");
-                OrderStatus status = OrderStatus.fromInt(statusInt);
-
-                Order order = new Order(
-                        rs.getInt("order_id"),
-                        user,
-                        rs.getTimestamp("order_date").toLocalDateTime(),
-                        status,
-                        rs.getBigDecimal("total_amount"),
-                        discount,
-                        rs.getBigDecimal("discount_amount"),
-                        address
-                );
-
-                orders.add(order);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -387,7 +406,7 @@ public class OrderDAO extends JDBCUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
- 
+
         return orderView;
     }
 

@@ -16,16 +16,14 @@ public class Shipping {
     private Order order;
     private ShippingMethod shippingMethod;
     private String trackingNumber;
-    private LocalDate shppedDate;
-    private LocalDate estimatedDelivery;
+    
 
-    public Shipping(int shipping_id, Order order, ShippingMethod shippingMethod, String trackingNumber, LocalDate shppedDate, LocalDate estimatedDelivery) {
+    public Shipping(int shipping_id, Order order, ShippingMethod shippingMethod, String trackingNumber) {
         this.shipping_id = shipping_id;
         this.order = order;
         this.shippingMethod = shippingMethod;
         this.trackingNumber = trackingNumber;
-        this.shppedDate = shppedDate;
-        this.estimatedDelivery = estimatedDelivery;
+        
     }
     
     public Shipping() {}
@@ -61,25 +59,9 @@ public class Shipping {
     public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
     }
-
-    public LocalDate getShppedDate() {
-        return shppedDate;
-    }
-
-    public void setShppedDate(LocalDate shppedDate) {
-        this.shppedDate = shppedDate;
-    }
-
-    public LocalDate getEstimatedDelivery() {
-        return estimatedDelivery;
-    }
-
-    public void setEstimatedDelivery(LocalDate estimatedDelivery) {
-        this.estimatedDelivery = estimatedDelivery;
-    }
-
+    
     @Override
     public String toString() {
-        return "Shipping{" + "shipping_id=" + shipping_id + ", order=" + order + ", shippingMethod=" + shippingMethod + ", trackingNumber=" + trackingNumber + ", shppedDate=" + shppedDate + ", estimatedDelivery=" + estimatedDelivery + '}';
+        return "Shipping{" + "shipping_id=" + shipping_id + ", order=" + order + ", shippingMethod=" + shippingMethod + ", trackingNumber=" + trackingNumber + '}';
     }
 }

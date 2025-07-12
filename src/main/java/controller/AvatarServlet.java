@@ -6,7 +6,6 @@ package controller;
 
 import dao.UserDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -32,11 +33,12 @@ import model.User;
         maxFileSize = 1024 * 1024 * 5, // 5MB
         maxRequestSize = 1024 * 1024 * 10 // 10MB
 )
-@WebServlet(name = "AvatarServlet", urlPatterns = {"/avatar"})
+@WebServlet(name = "AvatarServlet", urlPatterns = {"/avatar", "/avatars/*"})
 public class AvatarServlet extends HttpServlet {
 
+    private static final String UPLOAD_PATH = "D:/Java_Web/MusicShop/upload/avatar";
     private static final Logger LOGGER = Logger.getLogger(AvatarServlet.class.getName());
-    private static final String UPLOAD_DIR = "uploads/avatars";
+    private static final String AVATAR_URL_PREFIX = "/avatars";
     private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"};
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -51,7 +53,36 @@ public class AvatarServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+// Lấy đường dẫn file từ URL: /avatars/abc.jpg
+        String requestedFile = request.getPathInfo(); // "/abc.jpg"
 
+        if (requestedFile == null || requestedFile.equals("/")) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "File name missing.");
+            return;
+        }
+
+        File file = new File(UPLOAD_PATH, requestedFile);
+
+        if (!file.exists() || file.isDirectory()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found.");
+            return;
+        }
+
+        String mimeType = Files.probeContentType(file.toPath());
+        if (mimeType == null) {
+            mimeType = "application/octet-stream";
+        }
+
+        response.setContentType(mimeType);
+        response.setContentLengthLong(file.length());
+
+        try ( OutputStream out = response.getOutputStream();  FileInputStream in = new FileInputStream(file)) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
     }
 
     /**
@@ -105,27 +136,29 @@ public class AvatarServlet extends HttpServlet {
 
         // Generate unique filename
         String newFileName = UUID.randomUUID().toString() + fileExt;
-        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
-        File uploadDir = new File(uploadPath);
+        File uploadDir = new File(UPLOAD_PATH);
 
         // Create upload directory if it doesn't exist
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
 
-        String filePath = uploadPath + File.separator + newFileName;
-        String avatarUrl = request.getContextPath() + "/" + UPLOAD_DIR + "/" + newFileName;
+        String filePath = UPLOAD_PATH + File.separator + newFileName;
+        String avatarUrl = AVATAR_URL_PREFIX + "/" + newFileName;
+
 
         try {
             // Save the new avatar file
             filePart.write(filePath);
+            LOGGER.log(Level.INFO, "File saved to: {0}", filePath);
+            LOGGER.log(Level.INFO, "Avatar URL: {0}", avatarUrl);
 
             // Delete old avatar if it exists and is not the default
             if (user.getImageUrl() != null && !user.getImageUrl().contains("default")) {
-                String oldPath = getServletContext().getRealPath("")
-                        + File.separator
-                        + user.getImageUrl().substring(request.getContextPath().length() + 1);
+                String oldFileName = user.getImageUrl().substring(user.getImageUrl().lastIndexOf("/") + 1);
+                String oldPath = UPLOAD_PATH + File.separator + oldFileName;
                 Files.deleteIfExists(Paths.get(oldPath));
+                LOGGER.log(Level.INFO, "Deleted old avatar: {0}", oldPath);
             }
 
             // Update avatar URL in the database
@@ -135,7 +168,6 @@ public class AvatarServlet extends HttpServlet {
                 updateFail = "Failed to update avatar in the database.";
                 session.setAttribute("updateFail", updateFail);
                 session.setAttribute("avatarUpdateFail", true);
-                // Delete the uploaded file if database update fails
                 Files.deleteIfExists(Paths.get(filePath));
                 response.sendRedirect(request.getContextPath() + "/account?view=info");
                 return;
@@ -150,11 +182,9 @@ public class AvatarServlet extends HttpServlet {
             updateFail = "Failed to upload avatar. Please try again.";
             session.setAttribute("updateFail", updateFail);
             session.setAttribute("avatarUpdateFail", true);
-            // Delete the uploaded file if an error occurs
             Files.deleteIfExists(Paths.get(filePath));
         }
 
         response.sendRedirect(request.getContextPath() + "/account?view=info");
     }
 }
-

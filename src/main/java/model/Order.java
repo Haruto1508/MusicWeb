@@ -6,6 +6,7 @@ package model;
 
 import enums.OrderStatus;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -23,13 +24,19 @@ public class Order {
     private Discount discount; // có thể null
     private BigDecimal discountAmount;
     private Address address;
-
+    private Shipping shipping;
+    private Payment payment;
     private OrderDetail orderDetail;
+    private LocalDate shippedDate;
+    private LocalDate estimatedDelivery;
 
     public Order() {
     }
 
-    public Order(int orderId, User user, LocalDateTime orderDate, OrderStatus status, BigDecimal totalAmount, Discount discount, BigDecimal discountAmount, Address address) {
+    public Order(int orderId, User user, LocalDateTime orderDate, OrderStatus status, 
+            BigDecimal totalAmount, Discount discount, BigDecimal discountAmount, 
+            Address address, Shipping shipping, Payment payment, LocalDate shppedDate,
+            LocalDate estimatedDelivery) {
         this.orderId = orderId;
         this.user = user;
         this.orderDate = orderDate;
@@ -38,6 +45,10 @@ public class Order {
         this.discount = discount;
         this.discountAmount = discountAmount;
         this.address = address;
+        this.shipping = shipping;
+        this.payment = payment;
+        this.shippedDate = shppedDate;
+        this.estimatedDelivery = estimatedDelivery;
     }
 
     public Order(int orderId) {
@@ -121,9 +132,40 @@ public class Order {
         return orderDate != null ? Date.from(orderDate.atZone(ZoneId.systemDefault()).toInstant()) : null;
     }
 
+    public Shipping getShipping() {
+        return shipping;
+    }
+
+    public void setShipping(Shipping shipping) {
+        this.shipping = shipping;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+    }
+
+    public LocalDate getShippedDate() {
+        return shippedDate;
+    }
+
+    public void setShippedDate(LocalDate shippedDate) {
+        this.shippedDate = shippedDate;
+    }
+
+    public LocalDate getEstimatedDelivery() {
+        return estimatedDelivery;
+    }
+
+    public void setEstimatedDelivery(LocalDate estimatedDelivery) {
+        this.estimatedDelivery = estimatedDelivery;
+    }
+
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", address=" + address + ", orderDetail=" + orderDetail + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", address=" + address + ", shipping=" + shipping + ", payment=" + payment + ", orderDetail=" + orderDetail + ", shippedDate=" + shippedDate + ", estimatedDelivery=" + estimatedDelivery + '}';
     }
-    
 }

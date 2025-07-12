@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import model.Address;
 import model.Discount;
+import model.Shipping;
 import model.User;
 
 /**
@@ -139,16 +140,17 @@ public class OrderSubmitServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
             return;
         }
+        
+        // get Shipping emthod
+        
 
         // Gọi OrderDAO để tạo đơn hàng
         OrderDAO orderDAO = new OrderDAO();
         try {
             int orderId = orderDAO.createOrder(user.getUserId(), addressId, productId, quantity, voucherId, paymentMethod);
             request.setAttribute("orderId", orderId);
-            request.getRequestDispatcher("/WEB-INF/user/order-success.jsp").forward(request, response);
-            return;
+            request.getRequestDispatcher("/WEB-INF/user/order-success.jsp").forward(request, response);            
         } catch (SQLException e) {
-            e.printStackTrace();
             String errorMessage = e.getMessage();
             if (errorMessage.contains("Invalid address")) {
                 request.setAttribute("error", "Invalid address");

@@ -126,6 +126,29 @@ CREATE TABLE ProductImages (
 );
 GO
 
+
+-- PAYMENTS TABLE
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY IDENTITY(1,1),
+    order_id INT,
+    payment_date DATETIME DEFAULT GETDATE(),
+    amount DECIMAL(15,3) NOT NULL,
+    payment_method INT DEFAULT 2 CHECK (payment_method IN (1, 2)), -- 1 credit card, 2 money
+    status INT DEFAULT 2 CHECK (status IN (1, 2, 3)),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+);
+GO
+
+-- SHIPPING TABLE
+CREATE TABLE Shipping (
+    shipping_id INT PRIMARY KEY IDENTITY(1,1),
+    order_id INT,
+    shipping_method NVARCHAR(100),
+    tracking_number NVARCHAR(100),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+);
+GO
+
 -- ORDERS TABLE
 CREATE TABLE Orders (
     order_id INT PRIMARY KEY IDENTITY(1,1),
@@ -136,9 +159,15 @@ CREATE TABLE Orders (
     discount_id INT,
     discount_amount DECIMAL(15,3) DEFAULT 0,
     address_id INT,
+	shipping_id INT,
+	payment_id INT,
+	shipped_date DATETIME,
+    estimated_delivery DATETIME,
     FOREIGN KEY (address_id) REFERENCES Address(address_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id)
+    FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id),
+	FOREIGN KEY (payment_id) REFERENCES Payments(payment_id),
+	FOREIGN KEY (shipping_id) REFERENCES Shipping(shipping_id)
 );
 GO
 
@@ -177,30 +206,6 @@ CREATE TABLE Reviews (
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
-);
-GO
-
--- PAYMENTS TABLE
-CREATE TABLE Payments (
-    payment_id INT PRIMARY KEY IDENTITY(1,1),
-    order_id INT,
-    payment_date DATETIME DEFAULT GETDATE(),
-    amount DECIMAL(15,3) NOT NULL,
-    payment_method INT DEFAULT 2 CHECK (payment_method IN (1, 2)), -- 1 credit card, 2 money
-    status INT DEFAULT 2 CHECK (status IN (1, 2, 3)),
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
-);
-GO
-
--- SHIPPING TABLE
-CREATE TABLE Shipping (
-    shipping_id INT PRIMARY KEY IDENTITY(1,1),
-    order_id INT,
-    shipping_method NVARCHAR(100),
-    tracking_number NVARCHAR(100),
-    shipped_date DATETIME,
-    estimated_delivery DATETIME,
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
 );
 GO
 

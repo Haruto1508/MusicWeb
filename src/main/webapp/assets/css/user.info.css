@@ -4,7 +4,7 @@
 */
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .modern-container {
@@ -262,7 +262,7 @@ body {
 .form-control-file {
     display: none;
 }
-.profile-img, .preview-img {
+.preview-img {
     width: 100px;
     height: 100px;
     object-fit: cover;

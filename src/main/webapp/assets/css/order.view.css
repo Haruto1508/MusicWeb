@@ -6,6 +6,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     Created on : Jun 30, 2025, 11:43:28 PM
     Author     : Nguyen Hoang Thai Vinh - CE190384
 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .order-confirmation {
     background-color: #fff;
     border-radius: 10px;

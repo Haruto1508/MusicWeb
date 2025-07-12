@@ -17,23 +17,35 @@
     <!-- FontAwesome CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.address.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/footer.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.profile.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.order.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.address.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.cart.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.changePassword.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.info.css"/>
 </head>
 <body>
     <!-- Header -->
     <%@include file="/WEB-INF/include/header.jsp" %>
 
     <!-- Content -->
-    <div class="container-fluid" style="margin-top: 120px">
-        <div class="row">
+    <div class="container" style="margin-top: 120px">
+        <div class="d-flex justify-content-between">
             <div class="col-md-4 col-lg-3"> 
                 <div class="sidebar">
                     <div class="text-center">
-                        <img src="${user.imageUrl}" alt="Profile Picture" class="profile-img">
+                        <c:choose>
+                            <c:when test="${not empty user.imageUrl}">
+                                <img src="${pageContext.request.contextPath}${user.imageUrl}?t=${System.currentTimeMillis()}"
+                                     alt="Profile Picture" class="profile-img rounded-circle">
+                            </c:when>
+                            <c:otherwise>
+                                <img src="${pageContext.request.contextPath}/assets/images/default-avatar.png"
+                                     alt="Default Avatar" class="profile-img rounded-circle">
+                            </c:otherwise>
+                        </c:choose>
                         <h4>${user.fullName}</h4>
                     </div>
                     <hr>

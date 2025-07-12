@@ -22,7 +22,7 @@ BEGIN
     DECLARE @usage_limit INT;
     DECLARE @used_count INT;
     DECLARE @error_message NVARCHAR(255);
-    DECLARE @shipping_fee DECIMAL(15,3) = 30000; -- Giả sử phí vận chuyển là 30,000 VNĐ như trong ShippingFee.SHIPPING_FEE
+    DECLARE @shipping_fee DECIMAL(15,3) = 30000;
 
     BEGIN TRY
         BEGIN TRANSACTION;
@@ -108,10 +108,6 @@ BEGIN
         -- Thêm vào bảng OrderDetails
         INSERT INTO OrderDetails (order_id, product_id, quantity, price)
         VALUES (@order_id, @product_id, @quantity, @product_price);
-
-        -- Thêm vào bảng Payments
-        INSERT INTO Payments (order_id, payment_date, amount, payment_method, status)
-        VALUES (@order_id, GETDATE(), @total_amount, @payment_method, 2);
 
         COMMIT TRANSACTION;
     END TRY

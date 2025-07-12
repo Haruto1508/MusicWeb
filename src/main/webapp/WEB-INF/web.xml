@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <web-app version="4.0" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd">
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
@@ -8,7 +9,10 @@
             100
         </session-timeout>
     </session-config>
-    
+    <context-param>
+        <param-name>avatars</param-name>
+        <param-value>D:/Java_Web/MusicShop/upload/avatar</param-value>
+    </context-param>
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>

@@ -12,7 +12,7 @@
 
 
 <div class="container my-5">
-    <h2 class="mb-4 text-center text-primary"><i class="fa-solid fa-receipt me-2"></i>Your order</h2>
+    <h2 class="mb-4 fw-bold text-center text-primary">Your order</h2>
 
     <c:choose>
         <c:when test="${not empty orders}">

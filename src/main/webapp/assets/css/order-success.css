@@ -9,7 +9,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 body {
     background: linear-gradient(120deg, #f3e8ff 0%, #e0e7ff 100%);
     min-height: 100vh;
-    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .success-container {
     max-width: 420px;

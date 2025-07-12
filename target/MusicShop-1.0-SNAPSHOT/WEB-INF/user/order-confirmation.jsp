@@ -110,16 +110,29 @@
                     <select id="paymentMethodSelect" name="paymentMethod" class="form-select w-auto" style="min-width:220px;">
                         <option value="1" <c:if test="${paymentMethod == '1' || empty paymentMethod}">selected</c:if>>Cash on Delivery (COD)</option>
                         <option value="2" <c:if test="${paymentMethod == '2'}">selected</c:if>>Bank transfer</option>
-                    </select>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tổng kết -->
-            <div class="musicshop-section">
-                <div class="musicshop-section-title">Order Summary</div>
-                <div class="musicshop-summary-row">
-                    <span>Discount</span>
-                    <span id="discountAmount">-<fmt:formatNumber value="${discountAmount}" pattern="#,##0.000"/>đ</span>
+                <!-- Phương thức vận chuyển -->
+                <div class="musicshop-section">
+                    <div class="musicshop-section-title">Shipping method</div>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <i class="fa fa-truck me-2"></i>
+                        <select id="shippingMethodSelect" name="shippingMethod" class="form-select w-auto" style="min-width:220px;">
+                            <option value="1" <c:if test="${shippingMethod == '1' || empty shippingMethod}">selected</c:if>>Standard Shipping</option>
+                        <option value="2" <c:if test="${shippingMethod == '2'}">selected</c:if>>Express Shipping</option>
+                        <option value="3" <c:if test="${shippingMethod == '3'}">selected</c:if>>In-Store Pickup</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tổng kết -->
+                <div class="musicshop-section">
+                    <div class="musicshop-section-title">Order Summary</div>
+                    <div class="musicshop-summary-row">
+                        <span>Discount</span>
+                        <span id="discountAmount">-<fmt:formatNumber value="${discountAmount}" pattern="#,##0.000"/>đ</span>
                 </div>
                 <div class="musicshop-summary-row">
                     <span>Total product price</span>
@@ -143,22 +156,22 @@
                 <input type="hidden" name="voucherId" id="voucherIdInput" value="${selectedDiscount != null ? selectedDiscount.discountId : ''}" />
                 <input type="hidden" name="paymentMethod" id="paymentMethodInput" value="${paymentMethod != null ? paymentMethod : '1'}" />
                 <button type="submit" class="musicshop-btn-order" <c:if test="${empty defaultAddress}">disabled</c:if>>
-                    <i class="fa fa-check me-2"></i>Order
-                </button>
-            </form>
-        </div>
+                        <i class="fa fa-check me-2"></i>Order
+                    </button>
+                </form>
+            </div>
 
-        <!-- Modal địa chỉ -->
-        <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><i class="fa fa-map-marker-alt me-2"></i>Select Delivery Address</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div id="addressListSection">
-                            <div class="list-group" id="addressListContainer">
+            <!-- Modal địa chỉ -->
+            <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fa fa-map-marker-alt me-2"></i>Select Delivery Address</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="addressListSection">
+                                <div class="list-group" id="addressListContainer">
                                 <c:if test="${not empty addressList}">
                                     <form action="${pageContext.request.contextPath}/address" method="post">
                                         <input type="hidden" name="productId" value="${product.productId}">

@@ -6,13 +6,13 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.changePassword.css"/>
+
 
 <div class="change-password-container">
     <div class="icon-lock">
         <i class="fa fa-lock"></i>
     </div>
-    <h2 class="mb-4 text-center mt-4" style="color:#8b5cf6;">Change password</h2>
+    <h2 class="mb-4 text-center mt-4 " style="color:#8b5cf6;">Change password</h2>
 
     <form id="changePasswordForm" action="change-password" method="post">
         <div class="mb-3">

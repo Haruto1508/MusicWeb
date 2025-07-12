@@ -6,9 +6,9 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.cart.css"/>
+
 <div class="container">
-    <h2 class="mb-4 text-center text-primary">🛒 Your Cart</h2>
+    <h2 class="mb-4 fw-bold text-center text-primary">🛒 Your Cart</h2>
 
     <c:choose>
         <c:when test="${not empty carts}">
