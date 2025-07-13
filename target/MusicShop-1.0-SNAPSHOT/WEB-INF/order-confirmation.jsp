@@ -1,9 +1,3 @@
-<%-- 
-    Document   : order-confirmation
-    Created on : Jul 1, 2025, 4:46:51 PM
-    Author     : Nguyen Hoang Thai Vinh - CE190384
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -28,12 +22,12 @@
                 <i class="fa fa-shopping-bag"></i> Order Confirmation
             </div>
 
-            <!-- Địa chỉ nhận hàng -->
+            <!-- Delivery address -->
             <div class="musicshop-section">
                 <div class="musicshop-section-title"><i class="fa fa-map-marker-alt me-2"></i>Delivery address</div>
-                <div class="musicshop-address"> 
+                <div class="musicshop-address">
                     <c:if test="${not empty addressFail}">
-                        <div class="alert alert-warning">You have no saved address. Please add your delivery address in <a href="${pageContext.request.contextPath}/address-management">Address Management</a>.</div>
+                        <div class="alert alert-warning">You have no saved address. Please add your delivery address in <a href="${pageContext.request.contextPath}/account?view=address">Address Management</a>.</div>
                     </c:if>
                     <c:if test="${not empty defaultAddress}">
                         <div>
@@ -48,7 +42,7 @@
                 </div>
             </div>
 
-            <!-- Sản phẩm -->
+            <!-- Product -->
             <div class="musicshop-section">
                 <div class="musicshop-section-title">Product</div>
                 <div class="musicshop-product-row">
@@ -61,7 +55,7 @@
                 </div>
             </div>
 
-            <!-- Chọn voucher -->
+            <!-- Select voucher -->
             <div class="musicshop-section">
                 <div class="musicshop-section-title">
                     <i class="fa fa-ticket-alt me-2"></i>Select voucher
@@ -71,6 +65,7 @@
                         <input type="hidden" name="productId" value="${product.productId}" />
                         <input type="hidden" name="quantity" value="${quantity}" />
                         <input type="hidden" name="paymentMethod" id="voucherPaymentMethod" value="${paymentMethod != null ? paymentMethod : '1'}" />
+                        <input type="hidden" name="shippingMethod" id="voucherShippingMethod" value="${shippingMethod != null ? shippingMethod : '1'}" />
                         <select class="form-select w-auto" id="voucherSelect" name="voucherId" style="min-width:180px;">
                             <option value="not">-- Not applicable --</option>
                             <c:forEach var="discount" items="${discountList}">
@@ -102,7 +97,7 @@
                 </c:if>
             </div>
 
-            <!-- Phương thức thanh toán -->
+            <!-- Payment method -->
             <div class="musicshop-section">
                 <div class="musicshop-section-title">Payment method</div>
                 <div class="d-flex align-items-center flex-wrap gap-2">
@@ -114,7 +109,7 @@
                     </div>
                 </div>
 
-                <!-- Phương thức vận chuyển -->
+                <!-- Shipping method -->
                 <div class="musicshop-section">
                     <div class="musicshop-section-title">Shipping method</div>
                     <div class="d-flex align-items-center flex-wrap gap-2">
@@ -127,7 +122,7 @@
                     </div>
                 </div>
 
-                <!-- Tổng kết -->
+                <!-- Order Summary -->
                 <div class="musicshop-section">
                     <div class="musicshop-section-title">Order Summary</div>
                     <div class="musicshop-summary-row">
@@ -136,7 +131,7 @@
                 </div>
                 <div class="musicshop-summary-row">
                     <span>Total product price</span>
-                    <span><fmt:formatNumber value="${productPrice}" pattern="#,##0.000"/>đ</span>
+                    <span><fmt:formatNumber value="${productPrice}" type="number" pattern="#,##0.000"/>đ</span>
                 </div>
                 <div class="musicshop-summary-row">
                     <span>Shipping fee</span>
@@ -148,50 +143,52 @@
                 </div>
             </div>
 
-            <!-- Form đặt hàng -->
+            <!-- Order Form -->
             <form id="orderForm" method="post" action="${pageContext.request.contextPath}/order-submit">
                 <input type="hidden" name="addressId" id="addressIdInput" value="${defaultAddress.addressId}" />
                 <input type="hidden" name="productId" value="${product.productId}" />
                 <input type="hidden" name="quantity" value="${quantity}" />
-                <input type="hidden" name="voucherId" id="voucherIdInput" value="${selectedDiscount != null ? selectedDiscount.discountId : ''}" />
+                <input type="hidden" name="voucherId" id="voucherIdInput" value="${selectedDiscount != null ? selectedDiscount.discountId : '1'}" />
                 <input type="hidden" name="paymentMethod" id="paymentMethodInput" value="${paymentMethod != null ? paymentMethod : '1'}" />
+                <input type="hidden" name="shippingMethod" id="shippingMethodInput" value="${shippingMethod != null ? shippingMethod : '1'}" />
                 <button type="submit" class="musicshop-btn-order" <c:if test="${empty defaultAddress}">disabled</c:if>>
                         <i class="fa fa-check me-2"></i>Order
                     </button>
                 </form>
-            </div>
 
-            <!-- Modal địa chỉ -->
-            <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title"><i class="fa fa-map-marker-alt me-2"></i>Select Delivery Address</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="addressListSection">
-                                <div class="list-group" id="addressListContainer">
-                                <c:if test="${not empty addressList}">
-                                    <form action="${pageContext.request.contextPath}/address" method="post">
-                                        <input type="hidden" name="productId" value="${product.productId}">
-                                        <input type="hidden" name="quantity" value="${quantity}">
-                                        <input type="hidden" name="action" value="updateDefaultAddress">
-                                        <input type="hidden" name="page" value="orderConfirm">
-                                        <input type="hidden" name="userId" value="${user.userId}">
-                                        <input type="hidden" name="voucherId" value="${selectedDiscount != null ? selectedDiscount.discountId : ''}">
-                                        <input type="hidden" name="paymentMethod" value="${paymentMethod != null ? paymentMethod : '1'}">
-                                        <c:forEach var="address" items="${addressList}">
-                                            <button type="submit" name="addressId" value="${address.addressId}" class="list-group-item list-group-item-action">
-                                                ${address.receiverName} | ${address.receiverPhone}<br>
-                                                <small>${address.fullAddress}</small>
-                                            </button>
-                                        </c:forEach>
-                                    </form>
-                                </c:if>
-                                <c:if test="${empty addressList}">
-                                    <div class="text-muted">You have no addresses. Please add a new one in <a href="${pageContext.request.contextPath}/address-management">Address Management</a>.</div>
-                                </c:if>
+                <!-- Address Modal -->
+                <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fa fa-map-marker-alt me-2"></i>Select Delivery Address</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="addressListSection">
+                                    <div class="list-group" id="addressListContainer">
+                                    <c:if test="${not empty addressList}">
+                                        <form action="${pageContext.request.contextPath}/address" method="post">
+                                            <input type="hidden" name="productId" value="${product.productId}">
+                                            <input type="hidden" name="quantity" value="${quantity}">
+                                            <input type="hidden" name="action" value="updateDefaultAddress">
+                                            <input type="hidden" name="page" value="orderConfirm">
+                                            <input type="hidden" name="userId" value="${user.userId}">
+                                            <input type="hidden" name="voucherId" value="${selectedDiscount != null ? selectedDiscount.discountId : '1'}">
+                                            <input type="hidden" name="paymentMethod" value="${paymentMethod != null ? paymentMethod : '1'}">
+                                            <input type="hidden" name="shippingMethod" value="${shippingMethod != null ? shippingMethod : '1'}">
+                                            <c:forEach var="address" items="${addressList}">
+                                                <button type="submit" name="addressId" value="${address.addressId}" class="list-group-item list-group-item-action">
+                                                    ${address.receiverName} | ${address.receiverPhone}<br>
+                                                    <small>${address.fullAddress}</small>
+                                                </button>
+                                            </c:forEach>
+                                        </form>
+                                    </c:if>
+                                    <c:if test="${empty addressList}">
+                                        <div class="text-muted">You have no addresses. Please add a new one in <a href="${pageContext.request.contextPath}/address-management">Address Management</a>.</div>
+                                    </c:if>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -199,6 +196,7 @@
             </div>
         </div>
         <!-- Scripts -->
+        <%@include file="/WEB-INF/include/toast.jsp" %>
         <script src="${pageContext.request.contextPath}/assets/js/order-confirm.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

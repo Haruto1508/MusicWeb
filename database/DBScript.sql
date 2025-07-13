@@ -139,6 +139,12 @@ CREATE TABLE Payments (
 );
 GO
 
+CREATE TABLE ShippingFees (
+    shipping_method_id INT PRIMARY KEY,
+    shipping_fee DECIMAL(15,3) NOT NULL
+);
+GO
+
 -- SHIPPING TABLE
 CREATE TABLE Shipping (
     shipping_id INT PRIMARY KEY IDENTITY(1,1),
@@ -159,8 +165,8 @@ CREATE TABLE Orders (
     discount_id INT,
     discount_amount DECIMAL(15,3) DEFAULT 0,
     address_id INT,
-	shipping_id INT,
-	payment_id INT,
+	shipping_id INT NOT NULL,
+	payment_id INT NOT NULL,
 	shipped_date DATETIME,
     estimated_delivery DATETIME,
     FOREIGN KEY (address_id) REFERENCES Address(address_id),
@@ -366,6 +372,12 @@ VALUES
 
 INSERT INTO Payments (order_id, amount, payment_method, status)
 VALUES (5, 989.98, 1, 1); -- bank_transfer, paid
+
+INSERT INTO ShippingFees (shipping_method_id, shipping_fee)
+VALUES 
+    (1, 30000.000),
+    (2, 50000.000),
+    (3, 0.000);
 
 INSERT INTO Shipping (order_id, shipping_method, tracking_number, shipped_date, estimated_delivery)
 VALUES (5, 'Standard Shipping', 'STD20250610', '2025-06-11', '2025-06-16');

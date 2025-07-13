@@ -80,7 +80,7 @@ public class ProductServlet extends HttpServlet {
 
         request.setAttribute("product", product);
         request.setAttribute("relatedList", relatedList);
-        request.getRequestDispatcher("/WEB-INF/user/product-view.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/product-view.jsp").forward(request, response);
 
     }
 

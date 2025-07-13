@@ -243,26 +243,27 @@ public class AddressServlet extends HttpServlet {
         String quantity = request.getParameter("quantity");
         String voucherId = request.getParameter("voucherId");
         String paymentMethod = request.getParameter("paymentMethod");
+        String shippingMethod = request.getParameter("shippingMethod");
 
         String addressIdStr = request.getParameter("addressId");
         int addressId;
         try {
             addressId = Integer.parseInt(addressIdStr);
         } catch (NumberFormatException e) {
-            setErrorAndForward(request, response, "Invalid address ID", page, productId, quantity, voucherId, paymentMethod);
+            setErrorAndForward(request, response, "Invalid address ID", page, productId, quantity, voucherId, paymentMethod, shippingMethod);
             return;
         }
 
         if (!addressDAO.setDefaultAddress(user.getUserId(), addressId)) {
-            setErrorAndForward(request, response, "Failed to update default address", page, productId, quantity, voucherId, paymentMethod);
+            setErrorAndForward(request, response, "Failed to update default address", page, productId, quantity, voucherId, paymentMethod, shippingMethod);
             return;
         }
 
-        response.sendRedirect(buildRedirectUrl(request, page, productId, quantity, voucherId, paymentMethod));
+        response.sendRedirect(buildRedirectUrl(request, page, productId, quantity, voucherId, paymentMethod, shippingMethod));
     }
 
     private void setErrorAndForward(HttpServletRequest request, HttpServletResponse response, String errorMessage,
-            String page, String productId, String quantity, String voucherId, String paymentMethod)
+            String page, String productId, String quantity, String voucherId, String paymentMethod, String shippingMethod)
             throws ServletException, IOException {
         request.setAttribute("inputError", errorMessage);
         if ("orderConfirm".equals(page)) {
@@ -270,20 +271,22 @@ public class AddressServlet extends HttpServlet {
             request.setAttribute("quantity", quantity);
             request.setAttribute("voucherId", voucherId);
             request.setAttribute("paymentMethod", paymentMethod);
-            request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
+            request.setAttribute("shippingMethod", shippingMethod);
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
         } else {
             request.getRequestDispatcher("/WEB-INF/user/address-management.jsp").forward(request, response);
         }
     }
 
     private String buildRedirectUrl(HttpServletRequest request, String page, String productId, String quantity,
-            String voucherId, String paymentMethod) {
+            String voucherId, String paymentMethod, String shippingMethod) {
         if ("orderConfirm".equals(page)) {
             String redirectUrl = request.getContextPath() + "/order-confirm?productId=" + productId + "&quantity=" + quantity;
             if (voucherId != null && !voucherId.isEmpty() && !voucherId.equals("not")) {
                 redirectUrl += "&voucherId=" + voucherId;
             }
             redirectUrl += "&paymentMethod=" + (paymentMethod != null ? paymentMethod : "1");
+            redirectUrl += "&shippingMethod=" + (shippingMethod != null ? shippingMethod : "1");
             return redirectUrl;
         } else {
             return request.getContextPath() + "/address-management";

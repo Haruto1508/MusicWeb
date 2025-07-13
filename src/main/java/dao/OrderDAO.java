@@ -12,7 +12,6 @@ import enums.ShippingMethod;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import model.Address;
@@ -51,20 +50,20 @@ public class OrderDAO extends JDBCUtil {
     }
 
     public int createOrder(int userId, int addressId, int productId, int quantity,
-            Integer discountId, int paymentMethod) throws SQLException {
-        String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?)}";
+                           Integer discountId, int paymentId, int shippingId) throws SQLException {
+        String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?, ?)}";
         Object[] params = {
             userId,
             addressId,
             productId,
             quantity,
             discountId,
-            paymentMethod,
+            paymentId,
+            shippingId,
             null // OUTPUT order_id
         };
 
-        System.out.println("OrderDAO - Creating order for userId: " + userId + ", productId: " + productId);
-        return execStoredProcedure(procedureCall, params, 7); // Tổng 7 tham số
+        return execStoredProcedure(procedureCall, params, 8); // output param index 8
     }
 
     public Order getOrderById(int orderId) {

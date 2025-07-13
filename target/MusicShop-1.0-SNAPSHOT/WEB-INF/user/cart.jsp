@@ -30,16 +30,6 @@
                     </div>
                 </c:forEach>
             </div>
-
-            <!-- Tổng tiền -->
-            <div class="mt-4 text-end">
-                <p class="cart-total">Total amount: 
-                    <strong>
-                        <c:out value="${total}" /> VNĐ
-                    </strong>
-                </p>
-                <a href="checkout-all" class="btn btn-primary">🧾 Pay all</a>
-            </div>
         </c:when>
 
         <c:otherwise>

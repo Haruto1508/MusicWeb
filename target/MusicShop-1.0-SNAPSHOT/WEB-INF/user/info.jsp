@@ -8,12 +8,6 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/user.info.css"/>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-    
-</style>
 
 <!-- Set default gender value if null -->
 <c:set var="genderValue" value="${not empty tempGender ? tempGender : user.gender.gender}" />
@@ -199,8 +193,7 @@
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    
 <script>
     window.addEventListener("DOMContentLoaded", function () {
         const editUserBtn = document.getElementById("editUserBtn");

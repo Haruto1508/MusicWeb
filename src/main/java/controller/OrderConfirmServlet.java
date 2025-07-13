@@ -62,14 +62,14 @@ public class OrderConfirmServlet extends HttpServlet {
         String productIdParam = request.getParameter("productId");
         String quantityStr = request.getParameter("quantity");
         String voucherIdStr = request.getParameter("voucherId");
-        String paymentMethod = request.getParameter("paymentMethod"); // Lấy paymentMethod từ request
+        String paymentMethod = request.getParameter("paymentMethod");
+        String shippingMethod = request.getParameter("shippingMethod");
 
-        // Log để gỡ lỗi
-        System.out.println("OrderConfirmServlet - paymentMethod received: " + paymentMethod);
-
-        // Nếu không có paymentMethod trong request, đặt mặc định là "1" (COD)
         if (paymentMethod == null || paymentMethod.isEmpty()) {
             paymentMethod = "1";
+        }
+        if (shippingMethod == null || shippingMethod.isEmpty()) {
+            shippingMethod = "1";
         }
 
         int productId = 0, quantity = 1;
@@ -83,11 +83,12 @@ public class OrderConfirmServlet extends HttpServlet {
 
         request.setAttribute("productId", String.valueOf(productId));
         request.setAttribute("quantity", String.valueOf(quantity));
-        request.setAttribute("paymentMethod", paymentMethod); // Truyền paymentMethod vào request
+        request.setAttribute("paymentMethod", paymentMethod);
+        request.setAttribute("shippingMethod", shippingMethod);
 
         Product product = new ProductDAO().getProductById(productId);
         if (product == null) {
-            response.sendRedirect("shop");
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
             return;
         }
 
@@ -165,8 +166,9 @@ public class OrderConfirmServlet extends HttpServlet {
         request.setAttribute("discountList", validDiscounts);
         request.setAttribute("defaultAddress", defaultAddress);
         request.setAttribute("addressList", addressList);
+        request.setAttribute("shippingMethod", shippingMethod);
 
-        request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
     }
 
     private boolean isDiscountValid(Discount discount) {

@@ -40,7 +40,7 @@ public class OrderServlet extends HttpServlet {
         OrderViewModel order = dao.getOrderView(orderId);
 
         request.setAttribute("order", order);
-        request.getRequestDispatcher("/WEB-INF/user/order-view.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/order-view.jsp").forward(request, response);
 
     }
 

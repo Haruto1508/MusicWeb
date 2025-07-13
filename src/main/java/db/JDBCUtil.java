@@ -95,10 +95,7 @@ public class JDBCUtil {
     }
 
     public int execStoredProcedure(String procedureCall, Object[] params, int outputParamIndex) throws SQLException {
-        Connection conn = getConnection();
-        CallableStatement stmt = null;
-        try {
-            stmt = conn.prepareCall(procedureCall);
+        try ( Connection conn = getConnection();  CallableStatement stmt = conn.prepareCall(procedureCall)) {
             if (params != null) {
                 for (int i = 0; i < params.length; i++) {
                     if (params[i] == null) {
@@ -111,15 +108,7 @@ public class JDBCUtil {
             stmt.registerOutParameter(outputParamIndex, Types.INTEGER);
             stmt.execute();
             return stmt.getInt(outputParamIndex);
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            closeConnection(conn);
         }
     }
 }
+

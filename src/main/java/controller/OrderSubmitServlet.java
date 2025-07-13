@@ -2,14 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-
 package controller;
 
 import dao.AddressDAO;
 import dao.OrderDAO;
 import dao.ProductDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,43 +18,19 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import model.Address;
 import model.Discount;
-import model.Shipping;
 import model.User;
 
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
  */
-@WebServlet(name="OrderSubmitServlet", urlPatterns={"/order-submit"})
+@WebServlet(name = "OrderSubmitServlet", urlPatterns = {"/order-submit"})
 public class OrderSubmitServlet extends HttpServlet {
-   
-    /** 
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet OrderSubmitServlet</title>");  
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet OrderSubmitServlet at " + request.getContextPath () + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
+    /**
      * Handles the HTTP <code>GET</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -64,12 +38,13 @@ public class OrderSubmitServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        processRequest(request, response);
-    } 
+            throws ServletException, IOException {
 
-    /** 
+    }
+
+    /**
      * Handles the HTTP <code>POST</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -77,7 +52,7 @@ public class OrderSubmitServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         User user = (User) session.getAttribute("user");
         if (user == null) {
@@ -86,35 +61,67 @@ public class OrderSubmitServlet extends HttpServlet {
         }
 
         // Lấy tham số từ form
-        String addressIdStr = request.getParameter("addressId");
         String productIdStr = request.getParameter("productId");
         String quantityStr = request.getParameter("quantity");
+        String addressIdStr = request.getParameter("addressId");
         String voucherIdStr = request.getParameter("voucherId");
         String paymentMethodStr = request.getParameter("paymentMethod");
+        String shippingMethodStr = request.getParameter("shippingMethod");
 
-        // Xác thực tham số
-        int addressId, productId, quantity, paymentMethod;
+        System.out.println("productIdStr = " + productIdStr);
+        System.out.println("quantityStr = " + quantityStr);
+        System.out.println("addressIdStr = " + addressIdStr);
+        System.out.println("voucherIdStr = " + voucherIdStr);
+        System.out.println("paymentMethodStr = " + paymentMethodStr);
+        System.out.println("shippingMethodStr = " + shippingMethodStr);
+
+        // Lưu lại để hiển thị lại khi có lỗi
+        request.setAttribute("productId", productIdStr);
+        request.setAttribute("quantity", quantityStr);
+        request.setAttribute("addressId", addressIdStr);
+        request.setAttribute("voucherId", voucherIdStr);
+        request.setAttribute("paymentMethod", paymentMethodStr);
+        request.setAttribute("shippingMethod", shippingMethodStr);
+
+        int addressId, productId, quantity, paymentMethod, shippingMethod;
         Integer voucherId = null;
+
         try {
             addressId = Integer.parseInt(addressIdStr);
             productId = Integer.parseInt(productIdStr);
             quantity = Integer.parseInt(quantityStr);
             paymentMethod = Integer.parseInt(paymentMethodStr);
+            shippingMethod = Integer.parseInt(shippingMethodStr);
+
             if (quantity <= 0) {
                 throw new NumberFormatException("Quantity must be positive");
             }
             if (paymentMethod != 1 && paymentMethod != 2) {
                 throw new NumberFormatException("Invalid payment method");
             }
+            if (shippingMethod <= 0 || shippingMethod > 3) {
+                throw new NumberFormatException("Invalid shipping method");
+            }
             if (voucherIdStr != null && !voucherIdStr.equals("not")) {
                 voucherId = Integer.parseInt(voucherIdStr);
             }
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "Invalid input data");
-            request.setAttribute("productId", productIdStr);
-            request.setAttribute("quantity", quantityStr);
-            request.setAttribute("paymentMethod", paymentMethodStr);
-            request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
+            String error;
+            switch (e.getMessage()) {
+                case "Quantity must be positive":
+                    error = "Quantity must be positive";
+                    break;
+                case "Invalid payment method":
+                    error = "Invalid payment method";
+                    break;
+                case "Invalid shipping method":
+                    error = "Invalid shipping method";
+                    break;
+                default:
+                    error = "Invalid input data";
+            }
+            request.setAttribute("error", error);
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
             return;
         }
 
@@ -123,10 +130,7 @@ public class OrderSubmitServlet extends HttpServlet {
         Address address = addressDAO.getAddressById(addressId, user.getUserId());
         if (address == null) {
             request.setAttribute("error", "Invalid address");
-            request.setAttribute("productId", productIdStr);
-            request.setAttribute("quantity", quantityStr);
-            request.setAttribute("paymentMethod", paymentMethodStr);
-            request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
             return;
         }
 
@@ -134,22 +138,25 @@ public class OrderSubmitServlet extends HttpServlet {
         ProductDAO productDAO = new ProductDAO();
         if (productDAO.getProductById(productId) == null) {
             request.setAttribute("error", "Product not found");
-            request.setAttribute("productId", productIdStr);
-            request.setAttribute("quantity", quantityStr);
-            request.setAttribute("paymentMethod", paymentMethodStr);
-            request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
             return;
         }
-        
-        // get Shipping emthod
-        
 
-        // Gọi OrderDAO để tạo đơn hàng
+        // Gọi OrderDAO
         OrderDAO orderDAO = new OrderDAO();
         try {
-            int orderId = orderDAO.createOrder(user.getUserId(), addressId, productId, quantity, voucherId, paymentMethod);
+            int orderId = orderDAO.createOrder(
+                    user.getUserId(),
+                    addressId,
+                    productId,
+                    quantity,
+                    voucherId,
+                    paymentMethod,
+                    shippingMethod
+            );
+
             request.setAttribute("orderId", orderId);
-            request.getRequestDispatcher("/WEB-INF/user/order-success.jsp").forward(request, response);            
+            request.getRequestDispatcher("/WEB-INF/order-success.jsp").forward(request, response);
         } catch (SQLException e) {
             String errorMessage = e.getMessage();
             if (errorMessage.contains("Invalid address")) {
@@ -162,13 +169,21 @@ public class OrderSubmitServlet extends HttpServlet {
                 request.setAttribute("error", "Invalid or expired discount");
             } else if (errorMessage.contains("Order value does not meet")) {
                 request.setAttribute("error", "Order value does not meet discount requirements");
+            } else if (errorMessage.contains("Invalid shipping method")) {
+                request.setAttribute("error", "Invalid shipping method");
             } else {
                 request.setAttribute("error", "Failed to create order");
             }
+
+            // Giữ lại các giá trị người dùng đã chọn
             request.setAttribute("productId", productIdStr);
             request.setAttribute("quantity", quantityStr);
             request.setAttribute("paymentMethod", paymentMethodStr);
-            request.getRequestDispatcher("/WEB-INF/user/order-confirmation.jsp").forward(request, response);
+            request.setAttribute("shippingMethod", shippingMethodStr);
+            request.setAttribute("voucherId", voucherIdStr);
+            request.setAttribute("addressId", addressIdStr);
+
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
         }
     }
 
