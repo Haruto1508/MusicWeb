@@ -1,4 +1,4 @@
-﻿-- Tạo database nếu chưa tồn tại
+﻿O-- Tạo database nếu chưa tồn tại
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'MusicShop')
 BEGIN
     CREATE DATABASE MusicShop;
@@ -169,6 +169,7 @@ CREATE TABLE Orders (
 	payment_id INT NOT NULL,
 	shipped_date DATETIME,
     estimated_delivery DATETIME,
+	quantity INT NOT NULL,
     FOREIGN KEY (address_id) REFERENCES Address(address_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id),
@@ -177,12 +178,14 @@ CREATE TABLE Orders (
 );
 GO
 
+alter table Orders
+add quantity INT default 1 not null
+
 -- ORDER DETAILS TABLE
 CREATE TABLE OrderDetails (
     order_detail_id INT PRIMARY KEY IDENTITY(1,1),
     order_id INT,
     product_id INT,
-    quantity INT NOT NULL,
     price DECIMAL(15,3) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(product_id)

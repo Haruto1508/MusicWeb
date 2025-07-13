@@ -9,11 +9,16 @@ import enums.OrderStatus;
 import enums.PaymentMethod;
 import enums.PaymentStatus;
 import enums.ShippingMethod;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Address;
 import model.Discount;
 import model.Order;
@@ -50,7 +55,7 @@ public class OrderDAO extends JDBCUtil {
     }
 
     public int createOrder(int userId, int addressId, int productId, int quantity,
-                           Integer discountId, int paymentId, int shippingId) throws SQLException {
+            Integer discountId, int paymentId, int shippingId) throws SQLException {
         String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?, ?)}";
         Object[] params = {
             userId,
@@ -155,107 +160,102 @@ public class OrderDAO extends JDBCUtil {
 
     public List<Order> getOrdersByUserId(int userId) {
         List<Order> orders = new ArrayList<>();
-        String sql = "WITH OrderWithProduct AS (\n"
-                + "    SELECT \n"
-                + "        o.order_id, o.order_date, o.status, o.total_amount,\n"
-                + "        o.discount_amount, o.address_id, o.user_id, o.discount_id,\n"
-                + "        od.quantity, od.price,\n"
-                + "        u.full_name AS user_full_name,\n"
-                + "        d.discount_value,\n"
-                + "        a.street, a.city, a.ward, a.district,\n"
-                + "        p.product_id, p.name AS product_name, p.image_url,\n"
-                + "        ROW_NUMBER() OVER (PARTITION BY o.order_id ORDER BY od.order_detail_id) AS rn\n"
-                + "    FROM Orders o\n"
-                + "    JOIN Users u ON o.user_id = u.user_id\n"
-                + "    LEFT JOIN Discounts d ON o.discount_id = d.discount_id\n"
-                + "    LEFT JOIN Address a ON o.address_id = a.address_id\n"
-                + "    JOIN OrderDetails od ON o.order_id = od.order_id\n"
-                + "    JOIN Products p ON od.product_id = p.product_id\n"
-                + "    WHERE o.user_id = ?\n"
-                + ")\n"
-                + "SELECT *\n"
-                + "FROM OrderWithProduct\n"
-                + "WHERE rn = 1\n"
-                + "ORDER BY order_date DESC;";
+        Map<Integer, Order> orderMap = new LinkedHashMap<>(); // Đảm bảo không trùng order_id
+
+        String sql = "SELECT \n"
+                + "    o.*, \n"
+                + "    a.city, a.district, a.ward, a.street, \n"
+                + "    a.receiver_name, a.receiver_phone, \n"
+                + "    od.order_detail_id, od.quantity, od.price as [order_detail_price],\n"
+                + "    p.product_id, p.name AS product_name, p.image_url \n"
+                + "FROM Orders o \n"
+                + "JOIN OrderDetails od ON o.order_id = od.order_id \n"
+                + "LEFT JOIN Address a ON o.address_id = a.address_id \n"
+                + "LEFT JOIN Products p ON od.product_id = p.product_id \n"
+                + "WHERE o.user_id = ? \n"
+                + "ORDER BY o.order_id DESC;";
 
         try ( ResultSet rs = execSelectQuery(sql, new Object[]{userId})) {
             while (rs.next()) {
                 int orderId = rs.getInt("order_id");
 
-                // Tạo User
-                User user = new User();
-                user.setUserId(rs.getInt("user_id"));
-                user.setFullName(rs.getString("user_full_name"));
+                // Nếu order chưa được tạo, thì tạo mới
+                Order order = orderMap.get(orderId);
+                if (order == null) {
+                    // Tạo User
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
 
-                // Tạo Discount nếu có
-                Discount discount = null;
-                int discountId = rs.getInt("discount_id");
-                if (!rs.wasNull() && discountId != 0) {
-                    discount = new Discount();
-                    discount.setDiscountId(discountId);
-                    discount.setDiscountValue(rs.getBigDecimal("discount_value"));
+                    // Tạo Address
+                    Address address = new Address();
+                    address.setAddressId(rs.getInt("address_id"));
+                    address.setStreet(rs.getString("street"));
+                    address.setCity(rs.getString("city"));
+                    address.setWard(rs.getString("ward"));
+                    address.setDistrict(rs.getString("district"));
+                    address.setReceiverName(rs.getString("receiver_name"));
+                    address.setReceiverPhone(rs.getString("receiver_phone"));
+
+                    // Trạng thái đơn hàng
+                    OrderStatus status = OrderStatus.fromInt(rs.getInt("status"));
+
+                    // Ngày đặt hàng
+                    LocalDateTime orderDate = null;
+                    Timestamp orderTimestamp = rs.getTimestamp("order_date");
+                    if (orderTimestamp != null) {
+                        orderDate = orderTimestamp.toLocalDateTime();
+                    }
+
+                    // Ngày giao hàng thực tế
+                    LocalDate shippedDate = null;
+                    Date shippedSqlDate = rs.getDate("shipped_date");
+                    if (shippedSqlDate != null) {
+                        shippedDate = shippedSqlDate.toLocalDate();
+                    }
+
+                    // Ngày giao dự kiến
+                    LocalDate estimatedDelivery = null;
+                    Timestamp estimatedTimestamp = rs.getTimestamp("estimated_delivery");
+                    if (estimatedTimestamp != null) {
+                        estimatedDelivery = estimatedTimestamp.toLocalDateTime().toLocalDate();
+                    }
+
+                    // Tạo đối tượng Order
+                    order = new Order();
+                    order.setOrderId(orderId);
+                    order.setUser(user);
+                    order.setAddress(address);
+                    order.setStatus(status);
+                    order.setOrderDate(orderDate);
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+                    order.setShippedDate(shippedDate);
+                    order.setEstimatedDelivery(estimatedDelivery);
+
+                    orderMap.put(orderId, order);
                 }
 
-                // Tạo Address
-                Address address = new Address();
-                address.setAddressId(rs.getInt("address_id"));
-                address.setStreet(rs.getString("street"));
-                address.setCity(rs.getString("city"));
-                address.setWard(rs.getString("ward"));
-                address.setDistrict(rs.getString("district"));
-
-                // Chuyển đổi int sang enum cho status
-                int statusInt = rs.getInt("status");
-                OrderStatus status = OrderStatus.fromInt(statusInt);
-
-                // Xử lý ngày giao hàng thực tế
-                LocalDate shippedDate = null;
-                if (rs.getDate("shipped_date") != null) {
-                    shippedDate = rs.getDate("shipped_date").toLocalDate();
-                }
-
-                // Xử lý ngày giao dự kiến
-                LocalDate estimatedDelivery = null;
-                if (rs.getTimestamp("estimated_delivery") != null) {
-                    estimatedDelivery = rs.getTimestamp("estimated_delivery").toLocalDateTime().toLocalDate();
-                }
-
-                Order order = new Order(
-                        orderId,
-                        user,
-                        rs.getTimestamp("order_date").toLocalDateTime(),
-                        status,
-                        rs.getBigDecimal("total_amount"),
-                        discount,
-                        rs.getBigDecimal("discount_amount"),
-                        address,
-                        null,
-                        null,
-                        shippedDate,
-                        estimatedDelivery
-                );
-
-                // Tạo Product đại diện
+                // Tạo Product
                 Product product = new Product();
                 product.setProductId(rs.getInt("product_id"));
                 product.setName(rs.getString("product_name"));
                 product.setImageUrl(rs.getString("image_url"));
 
-                OrderDetail od = new OrderDetail();
-                od.setOrder(order);
-                od.setProduct(product);
-                od.setQuantity(rs.getInt("quantity"));
-                od.setPrice(rs.getBigDecimal("price"));
+                // Tạo OrderDetail
+                OrderDetail detail = new OrderDetail();
+                detail.setOrderDetailId(rs.getInt("order_detail_id"));
+                detail.setQuantity(rs.getInt("quantity"));
+                detail.setPrice(rs.getBigDecimal("order_detail_price"));
+                detail.setProduct(product);
 
-                order.setOrderDetail(od);
-                orders.add(order);
+                // Gán sản phẩm đại diện (nếu bạn muốn hiển thị 1 sp trong đơn)
+                order.setOrderDetail(detail);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return orders;
+        return new ArrayList<>(orderMap.values());
     }
 
     public Product getProductByOrderId(int orderId) {

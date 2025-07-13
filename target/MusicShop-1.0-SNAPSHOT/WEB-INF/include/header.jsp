@@ -5,18 +5,21 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/home"><i class="fa-solid fa-music"></i> MusicShop</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/home">
+            <i class="fa-solid fa-music me-1"></i> MusicShop
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item">
-                    <a class="nav-link active fw-semibold" href="${pageContext.request.contextPath}/home">Home</a>
+                    <a class="nav-link fw-semibold ${view == 'home' ? 'active' : ''}" href="${pageContext.request.contextPath}/home">Home</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle fw-semibold" href="#" id="productDropdown" role="button"
@@ -25,19 +28,14 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="productDropdown">
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/guitar?page=1">Guitar</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/piano?page=1">Piano & Keyboard</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/violin?page=1">Violin</a></li>
-                        
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="${pageContext.request.contextPath}/home">Introduce</a>
+                    <a class="nav-link fw-semibold" href="${pageContext.request.contextPath}/introduce">Introduce</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" href="#contact">Contact</a>
@@ -45,35 +43,38 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle fw-semibold" href="#" id="accountDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-user"></i> Account
+                        <i class="fa-solid fa-user me-1"></i> Account
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="accountDropdown">
                         <c:choose>
                             <c:when test="${not empty user}">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=info">Profile</a></li>
-                                <li><a class="dropdown-item" href="#">History</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/order">History</a></li>
                                 <c:if test="${not empty admin}">
                                     <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin">Admin</a></li>
                                 </c:if>
-                                <li><hr class="dropdown-divider"> </li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
                             </c:when>
                             <c:otherwise>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/path?page=login">Login in</a></li>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/path?page=register">Register</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=login">Login</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=register">Register</a></li>
                             </c:otherwise> 
                         </c:choose>
                     </ul>
                 </li>
                 <li class="nav-item mx-2">
-                    <form class="d-flex" role="search">
-                        <input class="form-control form-control-sm me-2 rounded-pill" type="search" placeholder="Search..." aria-label="Search">
-                        <button class="btn btn-light btn-sm rounded-pill px-3" type="submit"><i class="fa fa-search text-primary"></i></button>
+                    <form class="d-flex" role="search" action="${pageContext.request.contextPath}/search" method="get">
+                        <input class="form-control form-control-sm me-2 rounded-pill" type="search" name="query" placeholder="Search..." aria-label="Search">
+                        <button class="btn btn-light btn-sm rounded-pill px-3" type="submit">
+                            <i class="fa fa-search text-primary"></i>
+                        </button>
                     </form>
                 </li>
-                <li class="nav-item text-white">
-                    <a href="${pageContext.request.contextPath}/account?view=cart"class="${ view == 'cart' ? 'active' : ''} text-decoration-none text-reset ">
-                    <i class="fa-solid fa-cart-shopping"></i> Cart</a>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold ${view == 'cart' ? 'active' : ''}" href="${pageContext.request.contextPath}/account?view=cart">
+                        <i class="fa-solid fa-cart-shopping me-1"></i> Cart
+                    </a>
                 </li>
             </ul>
         </div>
@@ -87,11 +88,11 @@
     window.addEventListener('scroll', function () {
         const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
 
-        if (currentScroll > lastScrollTop) {
-            // Scroll down
+        if (currentScroll > lastScrollTop && currentScroll > 100) {
+            // Scroll down and past 100px
             navbar.style.top = "-100px";
         } else {
-            // Scroll up
+            // Scroll up or near top
             navbar.style.top = "0";
         }
 

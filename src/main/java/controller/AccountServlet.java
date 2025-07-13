@@ -102,11 +102,13 @@ public class AccountServlet extends HttpServlet {
 
             case "order":
                 OrderDAO orderDAO = new OrderDAO();
+                System.out.println(user.getUserId());
                 List<Order> orders = orderDAO.getOrdersByUserId(user.getUserId());
                 if (orders == null) {
                     orders = new ArrayList<>();
                     request.setAttribute("error", "Cannot load orders");
                 }
+                System.out.println(orders + "co cocn c");
                 request.setAttribute("orders", orders);
                 break;
 

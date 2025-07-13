@@ -6,6 +6,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -45,7 +46,7 @@
                                     (150 Rate)
                                 </div>
                                 <div class="price">
-                                    Price: <strong>${product.price} đ</strong>
+                                    Price: <strong><fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>đ</strong>
                                 </div>
                                 <p class="text-muted">Quantity in stock: ${product.stockQuantity}</p>
                                 <p>
@@ -70,13 +71,13 @@
                                                 <input type="hidden" name="quantity" id="addToCartQuantity" value="1">
                                                 <input type="hidden" name="action" value="add">
                                                 <button type="submit" class="btn btn-danger add-to-cart">
-                                                    <i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng
+                                                    <i class="fa fa-cart-plus"></i> Add to cart
                                                 </button>
                                             </form>
                                         </c:if>
                                         <c:if test="${product.stockQuantity == 0}">
                                             <button type="button" class="btn btn-danger add-to-cart" disabled>
-                                                <i class="fa fa-cart-plus"></i> Hết hàng
+                                                <i class="fa fa-cart-plus"></i> Sold out
                                             </button>
                                         </c:if>
                                         <form id="buyNowForm" action="${pageContext.request.contextPath}/order-confirm" method="post" class="d-inline">
