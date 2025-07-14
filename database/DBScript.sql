@@ -130,7 +130,6 @@ GO
 -- PAYMENTS TABLE
 CREATE TABLE Payments (
     payment_id INT PRIMARY KEY IDENTITY(1,1),
-    order_id INT,
     payment_date DATETIME DEFAULT GETDATE(),
     amount DECIMAL(15,3) NOT NULL,
     payment_method INT DEFAULT 2 CHECK (payment_method IN (1, 2)), -- 1 credit card, 2 money
@@ -186,7 +185,6 @@ CREATE TABLE OrderDetails (
     order_detail_id INT PRIMARY KEY IDENTITY(1,1),
     order_id INT,
     product_id INT,
-    price DECIMAL(15,3) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(product_id)
 );
