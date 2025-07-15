@@ -42,7 +42,7 @@ CREATE TABLE Address (
     ward NVARCHAR(100),
     district NVARCHAR(100),
     city NVARCHAR(100) NOT NULL,
-    type NVARCHAR(50),
+    type INT DEFAULT 1, --1 home, 2 office, 3 other
 	is_deleted BIT NOT NULL DEFAULT 0,
     is_default BIT DEFAULT 0,
     receiver_name NVARCHAR(255),
