@@ -145,11 +145,11 @@
                                             <div class="product-name">${piano.name}</div>
                                             <div class="product-price">${piano.price} ₫</div>
                                             <div class="product-actions">
-                                                <button class="product-button buy">
-                                                    <a href="${pageContext.request.contextPath}/product?id=${piano.productId}" class="text-decoration-none text-white">
+                                                <a href="${pageContext.request.contextPath}/product?id=${piano.productId}" class="text-decoration-none text-white">
+                                                    <button class="product-button buy">
                                                         <i class="fa-solid fa-bolt"></i> Buy now
-                                                    </a>
-                                                </button>
+                                                    </button>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>

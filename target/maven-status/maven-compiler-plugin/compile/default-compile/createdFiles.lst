@@ -53,6 +53,7 @@ controller\LoginServlet.class
 controller\CheckoutServlet.class
 controller\DispatcherServlet.class
 enums\ShippingStatus.class
+util\DeliveryDate.class
 controller\OrderSubmitServlet.class
 model\PageSize.class
 controller\OrderConfirmServlet.class

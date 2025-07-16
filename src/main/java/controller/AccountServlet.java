@@ -132,7 +132,7 @@ public class AccountServlet extends HttpServlet {
             "nameError", "phoneError", "streetError", "cityError",
             "tempFullName", "tempAccount", "tempEmail", "tempPhone", "tempGender",
             "birth_day", "birth_month", "birth_year", "accountError", "fullNameError",
-            "emailError", "phoneError", "birthdateError", "genderError"};
+            "emailError", "birthdateError", "genderError", "style", "isDefault"};
         for (String attr : attributes) {
             Object val = session.getAttribute(attr);
             if (val != null) {

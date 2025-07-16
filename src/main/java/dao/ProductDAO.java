@@ -553,9 +553,71 @@ public class ProductDAO extends JDBCUtil {
         return 0;
     }
 
-    public static void main(String[] args) {
-        Product product = new ProductDAO().getProductById(3);
+    public List<Product> getRandomProducts(int category) {
+        List<Product> products = new ArrayList<>();
 
-        System.out.println(product.toString());
+        String sql = "SELECT TOP 10* \n"
+                + "  FROM Products p  \n"
+                + "  LEFT JOIN Categories c ON c.category_id = p.category_id \n"
+                + "  LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
+                + "  LEFT JOIN Discounts d ON d.discount_id = p.discount_id\n"
+                + "  WHERE p.category_id = ?\n"
+                + "  ORDER BY NEWID()";
+        Object[] params = {category};
+
+        try ( ResultSet rs = execSelectQuery(sql, params)) {
+            Category cate = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
+            Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
+            Discount discount = null;
+
+            int discountId = rs.getInt("discount_id");
+            if (!rs.wasNull() && discountId != 0) {
+                int discountType = rs.getInt("discount_type");
+                DiscountType type = DiscountType.fromType(discountType);
+                discount = new Discount(
+                        discountId,
+                        rs.getString("code"),
+                        rs.getString("description"),
+                        type,
+                        rs.getBigDecimal("discount_value"),
+                        rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
+                        rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
+                        rs.getBigDecimal("minimum_order_value"),
+                        rs.getInt("usage_limit"),
+                        rs.getInt("used_count"),
+                        rs.getBoolean("is_active")
+                );
+            }
+
+            Product product = new Product(
+                    rs.getInt("product_id"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getBigDecimal("price"),
+                    rs.getInt("stock_quantity"),
+                    cate,
+                    rs.getString("image_url"),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    brand,
+                    discount,
+                    rs.getInt("sold_quantity"),
+                    rs.getString("material"),
+                    rs.getInt("manufacturing_year"),
+                    rs.getString("made_in")
+            );
+            products.add(product);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return products;
+    }
+
+    public static void main(String[] args) {
+        List<Product> li = new ProductDAO().getRandomProducts(1);
+
+        for (Product p : li) {
+            System.out.println(p.toString());
+        }
     }
 }

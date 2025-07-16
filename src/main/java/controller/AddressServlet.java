@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpSession;
 import model.Address;
 import model.User;
 import java.io.IOException;
-import model.AddressStyle;
 
 @WebServlet(name = "AddressServlet", urlPatterns = {"/address"})
 public class AddressServlet extends HttpServlet {
@@ -31,28 +30,19 @@ public class AddressServlet extends HttpServlet {
         String action = request.getParameter("action");
         AddressDAO addressDAO = new AddressDAO();
 
-        try {
-            switch (action) {
-                case "add":
-                    addAddress(request, response, user, addressDAO, session);
-                    break;
-                case "update":
-                    updateAddress(request, response, user, addressDAO, session);
-                    break;
-                case "delete":
-                    deleteAddress(request, response, user, addressDAO, session);
-                    break;
-                case "updateDefaultAddress":
-                    updateDefaultAddress(request, response, user, addressDAO);
-                    break;
-                default:
-                    session.setAttribute("error", "Invalid action");
-                    response.sendRedirect(request.getContextPath() + "/account?view=address");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("error", "An error occurred");
-            response.sendRedirect(request.getContextPath() + "/account?view=address");
+        switch (action) {
+            case "add":
+                addAddress(request, response, user, addressDAO, session);
+                break;
+            case "update":
+                updateAddress(request, response, user, addressDAO, session);
+                break;
+            case "delete":
+                deleteAddress(request, response, user, addressDAO, session);
+                break;
+            case "updateDefaultAddress":
+                updateDefaultAddress(request, response, user, addressDAO);
+                break;
         }
     }
 
@@ -65,6 +55,7 @@ public class AddressServlet extends HttpServlet {
         String district = request.getParameter("district");
         String city = request.getParameter("city");
         String isSetDefault = request.getParameter("isDefault");
+        String styleStr = request.getParameter("style");
 
         if (receiverName == null || receiverPhone == null || street == null || city == null) {
             session.setAttribute("addFail", "Add address fail! All required fields must be filled.");
@@ -74,6 +65,7 @@ public class AddressServlet extends HttpServlet {
             session.setAttribute("ward", ward);
             session.setAttribute("district", district);
             session.setAttribute("city", city);
+            session.setAttribute("style", styleStr);
             session.setAttribute("isDefault", "true".equals(isSetDefault));
             response.sendRedirect(request.getContextPath() + "/account?view=address");
             return;
@@ -97,6 +89,18 @@ public class AddressServlet extends HttpServlet {
             hasError = true;
         }
 
+        int style = 1;
+        if (styleStr != null && !styleStr.trim().isEmpty()) {
+            try {
+                style = Integer.parseInt(styleStr);
+                if (style < 1 || style > 3) {
+                    style = 1; // fallback nếu ngoài range
+                }
+            } catch (NumberFormatException e) {
+                style = 1;
+            }
+        }
+
         if (hasError) {
             session.setAttribute("addFail", "Add address fail!");
             session.setAttribute("receiverName", receiverName);
@@ -105,6 +109,7 @@ public class AddressServlet extends HttpServlet {
             session.setAttribute("ward", ward);
             session.setAttribute("district", district);
             session.setAttribute("city", city);
+            session.setAttribute("style", styleStr);
             session.setAttribute("isDefault", "true".equals(isSetDefault));
             response.sendRedirect(request.getContextPath() + "/account?view=address");
             return;
@@ -118,7 +123,7 @@ public class AddressServlet extends HttpServlet {
         address.setWard(ward != null ? ward : null);
         address.setDistrict(district != null ? district : null);
         address.setCity(city);
-        address.setType(AddressStyle.ADDRESS_HOME_STYLE);
+        address.setType(enums.AddressStyle.fromStyle(style));
         address.setIsDefault("true".equals(isSetDefault));
 
         boolean isInsert = addressDAO.insertAddress(address);
@@ -142,6 +147,7 @@ public class AddressServlet extends HttpServlet {
         String district = request.getParameter("district");
         String city = request.getParameter("city");
         String isSetDefault = request.getParameter("isDefault");
+        String styleStr = request.getParameter("style");
 
         int addressId;
         try {
@@ -178,6 +184,18 @@ public class AddressServlet extends HttpServlet {
             hasError = true;
         }
 
+        int style = 1;
+        if (styleStr != null && !styleStr.trim().isEmpty()) {
+            try {
+                style = Integer.parseInt(styleStr);
+                if (style < 1 || style > 3) {
+                    style = 1; // fallback nếu ngoài range
+                }
+            } catch (NumberFormatException e) {
+                style = 1;
+            }
+        }
+
         if (hasError) {
             session.setAttribute("updateFail", "Update address failed!");
             session.setAttribute("receiverName", receiverName);
@@ -188,6 +206,7 @@ public class AddressServlet extends HttpServlet {
             session.setAttribute("city", city);
             session.setAttribute("editAddressId", addressIdStr);
             session.setAttribute("isDefault", "true".equals(isSetDefault));
+            session.setAttribute("style", styleStr);
             response.sendRedirect(request.getContextPath() + "/account?view=address");
             return;
         }
@@ -201,7 +220,7 @@ public class AddressServlet extends HttpServlet {
         address.setWard(ward != null ? ward : null);
         address.setDistrict(district != null ? district : null);
         address.setCity(city);
-        address.setType(AddressStyle.ADDRESS_HOME_STYLE);
+        address.setType(enums.AddressStyle.fromStyle(style));
         address.setIsDefault("true".equals(isSetDefault));
 
         if (!addressDAO.updateAddress(address)) {

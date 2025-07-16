@@ -6,8 +6,9 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <!-- Address Section -->
-<div class="address-container">
+<div class="container my-5">
     <!-- Header -->
     <div class="text-center mb-4">
         <h2 class="text-primary fw-bold">
@@ -34,17 +35,18 @@
                                 </div>
                                 <div class="btn-group">
                                     <button class="btn btn-outline-primary btn-sm" 
-                                            onclick="openAddressModal('edit', ${address.addressId}, '${address.receiverName.replace("'", "\\'")}', '${address.receiverPhone}', '${address.street.replace("'", "\\'")}', '${address.ward != null ? address.ward.replace("'", "\\'") : ''}', '${address.district != null ? address.district.replace("'", "\\'") : ''}', '${address.city.replace("'", "\\'")}', ${address.isDefault})"
-                                            data-bs-toggle="modal" data-bs-target="#addressModal">
+                                            onclick="openAddressModal('edit', ${address.addressId}, '${address.receiverName.replace("'", "\\'")}',
+                                                            '${address.receiverPhone}', '${address.street.replace("'", "\\'")}',
+                                                            '${address.ward != null ? address.ward.replace("'", "\\'") : ''}',
+                                                            '${address.district != null ? address.district.replace("'", "\\'") : ''}',
+                                                            '${address.city.replace("'", "\\'")}', ${address.isDefault})">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <form method="post" action="${pageContext.request.contextPath}/address">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="addressId" value="${address.addressId}">
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this address?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <!-- Nút mở modal xác nhận -->
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                            data-address-id="${address.addressId}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -57,7 +59,6 @@
             </c:when>
             <c:otherwise>
                 <div class="card address-card shadow text-center mt-5 py-5 w-100">
-                    <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No Addresses Found</h5>
                     <p class="text-muted">You have not added any addresses yet.</p>
                 </div>
@@ -65,9 +66,28 @@
         </c:choose>
         <!-- Add Address Button -->
         <div class="text-center mt-5">
-            <button type="button" class="btn btn-primary" onclick="openAddressModal('add')" data-bs-toggle="modal" data-bs-target="#addressModal">
+            <button type="button" class="btn btn-primary" onclick="openAddressModal('add')">
                 <i class="fas fa-plus me-2"></i> Add New Address
             </button>
+        </div>
+    </div>
+
+    <!-- delete Address Model -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"> 
+            <div class="modal-content">
+                <form method="post" action="${pageContext.request.contextPath}/address">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="addressId" id="deleteAddressId">
+                    <div class="modal-body text-center">
+                        <p class="mb-0">Are you sure you want to delete this address?</p>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -128,10 +148,30 @@
                             </div>
                         </div>
                         <div class="row mb-3 align-items-center">
+                            <label class="col-sm-4 col-form-label text-end">Set Address type?</label>
+                            <div class="col-sm-8">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="style1" name="style" value="1"
+                                           ${empty style or style == '1' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="style1">Home</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="style2" name="style" value="2"
+                                           ${style == '2' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="style2">Office</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="style3" name="style" value="3"
+                                           ${style == '3' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="style3">Other</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3 align-items-center">
                             <label class="col-sm-4 col-form-label text-end">Set as Default Address?</label>
                             <div class="col-sm-8">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="isDefault" name="isDefault" value="true" ${isDefault ? 'checked' : ''}>
+                                    <input class="form-check-input" type="checkbox" id="isDefault" name="isDefault" value="true" ${isDefault eq 'true' ? 'checked' : ''}>
                                     <label class="form-check-label" for="isDefault">Yes, set as default</label>
                                 </div>
                             </div>
@@ -147,3 +187,14 @@
     </div>
 </div>
 
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const hasError = ${not empty addFail or not empty updateFail ? "true" : "false"};
+        if (hasError) {
+            populateCitySelect('city');
+            const modalEl = document.getElementById('addressModal');
+            const modalInstance = new bootstrap.Modal(modalEl);
+            modalInstance.show();
+        }
+    });
+</script>

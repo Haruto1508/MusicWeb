@@ -7,11 +7,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     Author     : Nguyen Hoang Thai Vinh - CE190384
 */
 
-.address-container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 0 15px;
-}
 .address-card {
     border-radius: 12px;
     transition: all 0.3s ease;
@@ -79,10 +74,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     color: #dc3545;
 }
 @media (max-width: 576px) {
-    .address-container {
-        margin: 20px auto;
-        padding: 0 10px;
-    }
     .address-card {
         padding: 15px !important;
     }

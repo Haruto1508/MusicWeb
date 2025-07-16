@@ -7,8 +7,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="container">
-    <h2 class="mb-4 fw-bold text-center text-primary">🛒 Your Cart</h2>
+<div class="container my-5">
+    <h2 class="mb-4 fw-bold text-center text-primary">Your Cart</h2>
 
     <c:choose>
         <c:when test="${not empty carts}">
@@ -33,8 +33,9 @@
         </c:when>
 
         <c:otherwise>
-            <div class="alert alert-info text-center mt-5">
-                🛒 Your cart is empty!
+            <div class="card address-card shadow text-center mt-5 py-5 w-100">
+                <h5 class="text-muted">No Cart Found</h5>
+                <p class="text-muted">You have not add any products yet.</p>
             </div>
         </c:otherwise>
     </c:choose>

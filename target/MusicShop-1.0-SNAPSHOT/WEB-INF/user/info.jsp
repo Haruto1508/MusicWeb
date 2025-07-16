@@ -16,7 +16,7 @@
     <fmt:parseNumber var="birthYearInt" integerOnly="true" value="${birthYear}" />
 </c:if>
 
-<div class="container">
+<div class="container my-5">
     <h1 class="text-center fw-bold py-4 text-primary">User Information</h1>
 
     <div class="card-body">

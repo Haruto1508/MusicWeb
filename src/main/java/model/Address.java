@@ -4,6 +4,8 @@
  */
 package model;
 
+import enums.AddressStyle;
+
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
@@ -15,7 +17,7 @@ public class Address {
     private String ward;
     private String district;
     private String city;
-    private String type;
+    private AddressStyle type;
     private boolean isDefault;
     private String receiverPhone;
     private String receiverName;
@@ -23,7 +25,7 @@ public class Address {
 
     public Address() {}
     
-    public Address(int addressId, User user, String street, String ward, String district, String city, String type, boolean isDefault, String receiverName, String receiverPhone, boolean isDelete) {
+    public Address(int addressId, User user, String street, String ward, String district, String city, AddressStyle type, boolean isDefault, String receiverName, String receiverPhone, boolean isDelete) {
         this.addressId = addressId;
         this.user = user;
         this.street = street;
@@ -85,11 +87,11 @@ public class Address {
         this.city = city;
     }
 
-    public String getType() {
+    public AddressStyle getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(AddressStyle type) {
         this.type = type;
     }
 

@@ -5,6 +5,7 @@
 package dao;
 
 import db.JDBCUtil;
+import enums.AddressStyle;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class AddressDAO extends JDBCUtil {
     public boolean insertAddress(Address address) {
         String sql = "INSERT INTO Address (user_id, street, ward, district, city, type, is_default, receiver_name, receiver_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Object[] params = {
-            address.getUser().getUserId(), address.getStreet(), address.getWard(), address.getDistrict(), address.getCity(), address.getType(), address.isIsDefault(), address.getReceiverName(), address.getReceiverPhone()
+            address.getUser().getUserId(), address.getStreet(), address.getWard(), address.getDistrict(), address.getCity(), address.getType().getStyle(), address.isIsDefault(), address.getReceiverName(), address.getReceiverPhone()
         };
         try {
             return execQuery(sql, params) > 0;
@@ -58,7 +59,7 @@ public class AddressDAO extends JDBCUtil {
                         rs.getString("ward"),
                         rs.getString("district"),
                         rs.getString("city"),
-                        rs.getString("type"),
+                        AddressStyle.fromStyle(rs.getInt("type")),
                         rs.getBoolean("is_default"),
                         rs.getString("receiver_phone"),
                         rs.getString("receiver_name"),
@@ -98,7 +99,7 @@ public class AddressDAO extends JDBCUtil {
                         rs.getString("ward"),
                         rs.getString("district"),
                         rs.getString("city"),
-                        rs.getString("type"),
+                        AddressStyle.fromStyle(rs.getInt("type")),
                         rs.getBoolean("is_default"),
                         rs.getString("receiver_phone"),
                         rs.getString("receiver_name"),
@@ -121,7 +122,7 @@ public class AddressDAO extends JDBCUtil {
             address.getWard(),
             address.getDistrict(),
             address.getCity(),
-            address.getType(),
+            address.getType().getStyle(),
             address.isIsDefault(),
             address.getAddressId(),
             address.getUser().getUserId()
@@ -170,7 +171,7 @@ public class AddressDAO extends JDBCUtil {
                         rs.getString("ward"),
                         rs.getString("district"),
                         rs.getString("city"),
-                        rs.getString("type"),
+                        AddressStyle.fromStyle(rs.getInt("type")),
                         rs.getBoolean("is_default"),
                         rs.getString("receiver_phone"),
                         rs.getString("receiver_name"),

@@ -83,8 +83,9 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div class="alert alert-info text-center py-4">
-                <i class="fa-solid fa-cart-shopping me-2"></i> Bạn chưa có đơn hàng nào!
+            <div class="card address-card shadow text-center mt-5 py-5 w-100">
+                <h5 class="text-muted">No Order Found</h5>
+                <p class="text-muted">You have not order any products yet.</p>
             </div>
         </c:otherwise>
     </c:choose>

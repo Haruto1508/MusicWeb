@@ -23,32 +23,10 @@ import model.Product;
 @WebServlet(name = "HomeServlet", urlPatterns = {"/home"})
 public class HomeServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet HomeServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet HomeServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
+    private final int GUITAR_CATE = 1;
+    private final int PIANO_CATE = 2;
+    private final int VIOLIN_CATE = 3;
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -61,43 +39,20 @@ public class HomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Kiểm tra và khởi tạo dữ liệu nếu chưa có
-        if (getServletContext().getAttribute("guitars") == null) {
-            ProductDAO productDAO = new ProductDAO();
+        // Initialize ProductDAO
+        ProductDAO productDAO = new ProductDAO();
 
-            // Lấy tất cả dữ liệu cùng lúc
-            List<Product> guitars = productDAO.getProductsByCategory(1);
-            List<Product> pianos = productDAO.getProductsByCategory(2);
-            List<Product> violins = productDAO.getProductsByCategory(3);
-
-            System.out.println("lay duoc");
-            // Lưu vào ServletContext
-            getServletContext().setAttribute("guitars", guitars);
-            getServletContext().setAttribute("pianos", pianos);
-            getServletContext().setAttribute("violins", violins);
-        }
-
-        // Lấy dữ liệu từ ServletContext
-        List<Product> guitars = (List<Product>) getServletContext().getAttribute("guitars");
-        List<Product> pianos = (List<Product>) getServletContext().getAttribute("pianos");
-        List<Product> violins = (List<Product>) getServletContext().getAttribute("violins");
-
-        // Đặt vào request attribute
+        List<Product> guitars = productDAO.getRandomProducts(GUITAR_CATE);
+        List<Product> pianos = productDAO.getRandomProducts(PIANO_CATE);
+        List<Product> violins = productDAO.getRandomProducts(VIOLIN_CATE);
+        // Check if random products are already stored in ServletContext
+       
         request.setAttribute("guitars", guitars);
         request.setAttribute("pianos", pianos);
         request.setAttribute("violins", violins);
 
+        // Forward to home.jsp
         request.getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
     }
-    
-    protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-        String[] attributes = {"addFail, addSuccess"};
-        for (String attr : attributes) {
-            Object val = session.getAttribute(attr);
-            if (val != null) {
-                request.setAttribute(attr, val);
-                session.removeAttribute(attr);
-            }
-        }
-    }
+
 }
