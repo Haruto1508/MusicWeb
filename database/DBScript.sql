@@ -21,7 +21,7 @@ CREATE TABLE Users (
     user_id INT PRIMARY KEY IDENTITY(1,1),
     full_name NVARCHAR(100) NOT NULL,
     email NVARCHAR(100) UNIQUE NOT NULL,
-    password NVARCHAR(128) NOT NULL,
+    password NVARCHAR(256) NOT NULL,
     phone NVARCHAR(20),
     role_id INT DEFAULT 2,
     created_at DATETIME DEFAULT GETDATE(),
@@ -84,7 +84,6 @@ CREATE TABLE Discounts (
     discount_value DECIMAL(15,3) CHECK (discount_value >= 0),
     start_date DATE,
     end_date DATE,
-    minimum_order_value DECIMAL(15,3),
     usage_limit INT,
     used_count INT DEFAULT 0,
     is_active BIT DEFAULT 1
@@ -134,20 +133,6 @@ CREATE TABLE Payments (
 );
 GO
 
-CREATE TABLE ShippingFees (
-	shipping_fee_id INT PRIMARY KEY IDENTITY(1,1),
-    shipping_fee DECIMAL(15,3) NOT NULL CHECK (shipping_fee >= 0)
-);
-GO
-
--- SHIPPING TABLE
-CREATE TABLE Shipping (
-    shipping_id INT PRIMARY KEY IDENTITY(1,1),
-    shipping_method NVARCHAR(100),
-    tracking_number NVARCHAR(100)
-);
-GO
-
 -- ORDERS TABLE
 CREATE TABLE Orders (
     order_id INT PRIMARY KEY IDENTITY(1,1),
@@ -156,17 +141,14 @@ CREATE TABLE Orders (
     status INT DEFAULT 1 CHECK (status BETWEEN 1 AND 5),
     total_amount DECIMAL(15,3) NOT NULL,
     discount_id INT,
-    discount_amount DECIMAL(15,3) DEFAULT 0,
     address_id INT,
-	shipping_id INT NOT NULL,
 	payment_id INT NOT NULL,
 	shipped_date DATETIME,
     estimated_delivery DATETIME,
     FOREIGN KEY (address_id) REFERENCES Address(address_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id),
-	FOREIGN KEY (payment_id) REFERENCES Payments(payment_id),
-	FOREIGN KEY (shipping_id) REFERENCES Shipping(shipping_id)
+	FOREIGN KEY (payment_id) REFERENCES Payments(payment_id)
 );
 GO
 
@@ -231,6 +213,7 @@ CREATE INDEX idx_orders_user_id ON Orders(user_id);
 CREATE INDEX idx_orderdetails_product_id ON OrderDetails(product_id);
 CREATE INDEX idx_carts_product_id ON Carts(product_id);
 CREATE INDEX idx_reviews_product_id ON Reviews(product_id);
+CREATE INDEX idx_address_user_id ON Address(user_id);
 GO
 
 -- Procedure
@@ -240,130 +223,119 @@ CREATE OR ALTER PROCEDURE sp_CreateOrder
     @product_id INT,
     @quantity INT,
     @discount_id INT = NULL,
-	@shipping_id INT,
-	@payment_id INT,
+    @payment_id INT,
     @order_id INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @product_price DECIMAL(15,3);
-    DECLARE @stock_quantity INT;
-    DECLARE @discount_value DECIMAL(15,3);
-    DECLARE @discount_type INT;
-    DECLARE @discount_amount DECIMAL(15,3) = 0;
-    DECLARE @total_amount DECIMAL(15,3);
-    DECLARE @error_message NVARCHAR(255);
-
     BEGIN TRY
+        -- Bắt đầu giao dịch
         BEGIN TRANSACTION;
+        SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
-        -- Kiểm tra địa chỉ có thuộc về user không
-        IF NOT EXISTS (
-            SELECT 1 FROM Address 
-            WHERE address_id = @address_id AND user_id = @user_id
-        )
-        BEGIN
-            SET @error_message = 'Invalid address for user';
-            THROW 50001, @error_message, 1;
-        END
+        -- Kiểm tra user_id hợp lệ
+        IF NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @user_id AND is_active = 1)
+            THROW 50001, 'Invalid or inactive user', 1;
 
-        -- Lấy giá và kiểm tra tồn kho sản phẩm
-        SELECT @product_price = price, @stock_quantity = stock_quantity
-        FROM Products
+        -- Kiểm tra address_id hợp lệ
+        IF NOT EXISTS (SELECT 1 FROM Address WHERE address_id = @address_id AND user_id = @user_id)
+            THROW 50002, 'Invalid address for this user', 1;
+
+        -- Kiểm tra product_id và lấy giá, số lượng tồn kho
+        DECLARE @product_price DECIMAL(15,3); -- Sửa kiểu dữ liệu để khớp với bảng Products
+        DECLARE @stock INT;
+        SELECT @product_price = price, @stock = stock_quantity
+        FROM Products WITH (UPDLOCK)
         WHERE product_id = @product_id AND is_active = 1;
 
         IF @product_price IS NULL
-        BEGIN
-            SET @error_message = 'Product not found or inactive';
-            THROW 50002, @error_message, 1;
-        END
+            THROW 50003, 'Product not found or inactive', 1;
 
-        IF @stock_quantity < @quantity
-        BEGIN
-            SET @error_message = 'Insufficient stock';
-            THROW 50003, @error_message, 1;
-        END
+        IF @stock < @quantity
+            THROW 50004, 'Insufficient stock', 1;
 
-        -- Tính tổng tiền sản phẩm
+        -- Tính tổng giá sản phẩm
         DECLARE @product_total_price DECIMAL(15,3) = @product_price * @quantity;
+        DECLARE @discount_amount DECIMAL(15,3) = 0;
 
-        -- Tính giảm giá nếu có
+        -- Kiểm tra và áp dụng mã giảm giá (nếu có)
         IF @discount_id IS NOT NULL
         BEGIN
-            SELECT 
-                @discount_value = discount_value,
-                @discount_type = discount_type
+            DECLARE @discount_type INT;
+            DECLARE @discount_value DECIMAL(15,3);
+            DECLARE @min_order_value DECIMAL(15,3);
+            DECLARE @start_date DATE;
+            DECLARE @end_date DATE;
+            DECLARE @is_active BIT;
+            DECLARE @usage_limit INT;
+            DECLARE @used_count INT;
+
+            SELECT @discount_type = discount_type, 
+                   @discount_value = discount_value, 
+                   @min_order_value = minimum_order_value,
+                   @start_date = start_date, 
+                   @end_date = end_date, 
+                   @is_active = is_active,
+                   @usage_limit = usage_limit, 
+                   @used_count = used_count
             FROM Discounts
-            WHERE discount_id = @discount_id AND is_active = 1 
-                  AND GETDATE() BETWEEN start_date AND end_date;
+            WHERE discount_id = @discount_id;
 
-            IF @discount_value IS NULL
-            BEGIN
-                SET @error_message = 'Invalid or expired discount';
-                THROW 50004, @error_message, 1;
-            END
+            IF @discount_type IS NULL
+                THROW 50005, 'Invalid or expired discount', 1;
 
-            IF @discount_type = 1 -- % giảm
+            -- Sửa điều kiện kiểm tra mã giảm giá
+            IF @is_active = 0 OR 
+               @start_date > GETDATE() OR 
+               @end_date < GETDATE() OR 
+               (@usage_limit > 0 AND @used_count >= @usage_limit)
+                THROW 50005, 'Invalid or expired discount', 1;
+
+            IF @min_order_value IS NOT NULL AND @product_total_price < @min_order_value
+                THROW 50006, 'Order value does not meet discount requirements', 1;
+
+            -- Tính giá trị giảm giá
+            IF @discount_type = 1 -- Percent
                 SET @discount_amount = @product_total_price * (@discount_value / 100.0);
-            ELSE IF @discount_type = 2 -- giảm cố định
-            BEGIN
+            ELSE -- Fixed
                 SET @discount_amount = @discount_value;
-                IF @discount_amount > @product_total_price
-                    SET @discount_amount = @product_total_price;
-            END
-        END
+        END;
 
-        -- Tổng tiền cần thanh toán
-        SET @total_amount = @product_total_price - @discount_amount;
+        -- Tính tổng giá trị đơn hàng
+        DECLARE @total_amount DECIMAL(15,3) = @product_total_price - @discount_amount;
 
-        -- Insert đơn hàng
-		INSERT INTO Orders (
-			user_id, order_date, status, total_amount, 
-			discount_id, discount_amount, address_id, shipping_id, payment_id
-		) VALUES (
-			@user_id, GETDATE(), 1, @total_amount, 
-			@discount_id, @discount_amount, @address_id, @shipping_id, @payment_id
-		);
+        -- Chèn vào bảng Orders
+        INSERT INTO Orders (user_id, address_id, discount_id, payment_id, total_amount, order_date, status)
+        VALUES (@user_id, @address_id, @discount_id, @payment_id, @total_amount, GETDATE(), 1);
 
+        -- Lấy order_id vừa tạo
         SET @order_id = SCOPE_IDENTITY();
 
-        -- Insert chi tiết đơn hàng
-        INSERT INTO OrderDetails (
-            order_id, product_id, quantity, price
-        ) VALUES (
-            @order_id, @product_id, @quantity, @product_price
-        );
+        -- Chèn vào bảng OrderDetails
+        INSERT INTO OrderDetails (order_id, product_id, quantity, price)
+        VALUES (@order_id, @product_id, @quantity, @product_price);
 
+        -- Cập nhật số lượng tồn kho
+        UPDATE Products
+        SET stock_quantity = stock_quantity - @quantity
+        WHERE product_id = @product_id;
 
+        -- Commit giao dịch
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
+        -- Rollback giao dịch nếu có lỗi
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
 
-        THROW 50006, 'Can not create order', 1;
-    END CATCH
-END;
-GO
+        -- Ném lỗi với thông tin chi tiết
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
 
-CREATE OR ALTER TRIGGER tr_UpdateStockQuantity
-ON OrderDetails
-AFTER INSERT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    UPDATE p
-    SET p.stock_quantity = p.stock_quantity - i.quantity
-    FROM Products p
-    INNER JOIN inserted i ON p.product_id = i.product_id
-    WHERE p.stock_quantity >= i.quantity;
-
-    IF @@ROWCOUNT = 0
-    BEGIN
-        THROW 50006, 'Insufficient stock quantity for product', 1;
-    END
+        THROW @ErrorSeverity, @ErrorMessage, @ErrorState;
+    END CATCH;
 END;
 GO
 
@@ -373,21 +345,25 @@ AFTER INSERT
 AS
 BEGIN
     SET NOCOUNT ON;
+    BEGIN TRY
+        -- Update used_count in Discounts
+        UPDATE d
+        SET d.used_count = d.used_count + 1
+        FROM Discounts d
+        INNER JOIN inserted i ON d.discount_id = i.discount_id
+        WHERE i.discount_id IS NOT NULL;
 
-    -- Cập nhật used_count trong Discounts
-    UPDATE d
-    SET d.used_count = d.used_count + 1
-    FROM Discounts d
-    INNER JOIN inserted i ON d.discount_id = i.discount_id
-    WHERE i.discount_id IS NOT NULL;
-
-    -- Thêm vào DiscountUsers
-    INSERT INTO DiscountUsers (discount_id, user_id, used_at)
-    SELECT i.discount_id, i.user_id, GETDATE()
-    FROM inserted i
-    WHERE i.discount_id IS NOT NULL;
+        -- Insert into DiscountUsers
+        INSERT INTO DiscountUsers (discount_id, user_id, used_at)
+        SELECT i.discount_id, i.user_id, GETDATE()
+        FROM inserted i
+        WHERE i.discount_id IS NOT NULL;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH;
 END;
-GO
+
 
 -- Role
 INSERT INTO Roles (name, description) VALUES
@@ -470,629 +446,178 @@ INSERT INTO Subcategories (name, category_id) VALUES
 -- Discount
 INSERT INTO Discounts (code, description, discount_type, discount_value, start_date, end_date, minimum_order_value, usage_limit)
 VALUES
-('WELCOME10', N'10% off for new customers', 1, 10.0, '2025-01-01', '2026-01-01', 0, 100),
-('SUMMER50', N'Giảm 50k cho đơn hàng trên 500k', 2, 50000, '2025-06-01', '2025-08-31', 500000, 200),
-('VIP20', N'20% for VIP customers', 1, 20.0, '2025-01-01', '2026-12-31', 1000000, 50);
+('WELCOME10', N'10% off for new customers', 1, 10.0, '2025-01-01', '2026-01-01', 100),
+('SUMMER50', N'Giảm 50k cho đơn hàng trên 500k', 2, 50000, '2025-06-01', '2025-08-31', 200),
+('VIP20', N'20% for VIP customers', 1, 20.0, '2025-01-01', '2026-12-31', 50);
 
 -- Payment
 INSERT INTO Payments (payment_method) VALUES
 (1), -- Credit Card
 (2); -- Cash
 
--- Shipping fees
-INSERT INTO ShippingFees (shipping_fee) VALUES
-(20000),  -- Giao tiêu chuẩn
-(40000),  -- Giao nhanh
-(60000);  -- Hỏa tốc
-
--- Shipping
-INSERT INTO Shipping (shipping_method, tracking_number) VALUES
-('Standard Delivery', NULL),
-('Express Delivery', NULL),
-('Same Day Delivery', NULL);
 
 -- Product
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Three Guitar Model 964', N'This is a high-quality guitar suitable for all levels.', 6393434.291, 58, 1, 1, 'guitar5.jpg', N'South Korea', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Image Guitar Model 902', N'This is a high-quality guitar suitable for all levels.', 12617940.651, 66, 1, 6, 'guitar10.jpg', N'Japan', 2022, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Son Guitar Model 388', N'This is a high-quality guitar suitable for all levels.', 2956440.99, 17, 1, 10, 'guitar5.jpg', N'South Korea', 2023, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Voice Guitar Model 250', N'This is a high-quality guitar suitable for all levels.', 5342065.97, 98, 1, 2, 'guitar6.jpg', N'Germany', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Kitchen Guitar Model 462', N'This is a high-quality guitar suitable for all levels.', 7078405.696, 83, 1, 4, 'guitar9.jpg', N'Germany', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Amount Guitar Model 366', N'This is a high-quality guitar suitable for all levels.', 1871914.232, 75, 1, 1, 'guitar2.jpg', N'Vietnam', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Event Guitar Model 827', N'This is a high-quality guitar suitable for all levels.', 12547829.68, 90, 1, 1, 'guitar10.jpg', N'Germany', 2024, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Much Guitar Model 349', N'This is a high-quality guitar suitable for all levels.', 11223900.069, 95, 1, 2, 'guitar4.jpg', N'South Korea', 2019, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Mention Guitar Model 922', N'This is a high-quality guitar suitable for all levels.', 14545563.504, 74, 1, 8, 'guitar2.jpg', N'USA', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Interview Guitar Model 601', N'This is a high-quality guitar suitable for all levels.', 2526809.843, 75, 1, 5, 'guitar2.jpg', N'South Korea', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Why Guitar Model 308', N'This is a high-quality guitar suitable for all levels.', 14493739.644, 82, 1, 9, 'guitar10.jpg', N'China', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Step Guitar Model 710', N'This is a high-quality guitar suitable for all levels.', 12171090.27, 45, 1, 10, 'guitar4.jpg', N'China', 2019, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Themselves Guitar Model 941', N'This is a high-quality guitar suitable for all levels.', 3614213.396, 83, 1, 5, 'guitar8.jpg', N'USA', 2018, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Floor Guitar Model 875', N'This is a high-quality guitar suitable for all levels.', 2823142.307, 24, 1, 1, 'guitar2.jpg', N'Vietnam', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Me Guitar Model 799', N'This is a high-quality guitar suitable for all levels.', 6478144.703, 95, 1, 9, 'guitar5.jpg', N'South Korea', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Help Guitar Model 969', N'This is a high-quality guitar suitable for all levels.', 4012818.132, 91, 1, 10, 'guitar7.jpg', N'South Korea', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Past Guitar Model 604', N'This is a high-quality guitar suitable for all levels.', 10243435.301, 94, 1, 6, 'guitar2.jpg', N'China', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Wait Guitar Model 598', N'This is a high-quality guitar suitable for all levels.', 9219045.824, 47, 1, 4, 'guitar4.jpg', N'USA', 2023, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Whatever Guitar Model 219', N'This is a high-quality guitar suitable for all levels.', 10874663.614, 52, 1, 3, 'guitar6.jpg', N'Germany', 2024, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Discover Guitar Model 203', N'This is a high-quality guitar suitable for all levels.', 11963659.138, 94, 1, 4, 'guitar1.jpg', N'South Korea', 2023, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Mother Guitar Model 716', N'This is a high-quality guitar suitable for all levels.', 10528247.856, 8, 1, 2, 'guitar4.jpg', N'South Korea', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Chair Guitar Model 222', N'This is a high-quality guitar suitable for all levels.', 6476931.731, 52, 1, 2, 'guitar1.jpg', N'South Korea', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Father Guitar Model 289', N'This is a high-quality guitar suitable for all levels.', 11053586.57, 66, 1, 4, 'guitar1.jpg', N'Vietnam', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Challenge Guitar Model 535', N'This is a high-quality guitar suitable for all levels.', 9688399.594, 38, 1, 2, 'guitar4.jpg', N'USA', 2023, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Someone Guitar Model 458', N'This is a high-quality guitar suitable for all levels.', 7104961.071, 12, 1, 9, 'guitar8.jpg', N'USA', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Beyond Guitar Model 816', N'This is a high-quality guitar suitable for all levels.', 14835292.082, 30, 1, 5, 'guitar6.jpg', N'Vietnam', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Present Guitar Model 273', N'This is a high-quality guitar suitable for all levels.', 10767758.991, 31, 1, 1, 'guitar3.jpg', N'Japan', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Successful Guitar Model 356', N'This is a high-quality guitar suitable for all levels.', 2640979.814, 61, 1, 3, 'guitar1.jpg', N'Germany', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Enough Guitar Model 682', N'This is a high-quality guitar suitable for all levels.', 13247265.72, 44, 1, 6, 'guitar7.jpg', N'Vietnam', 2020, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Where Guitar Model 674', N'This is a high-quality guitar suitable for all levels.', 10671518.61, 63, 1, 2, 'guitar6.jpg', N'Vietnam', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'No Guitar Model 387', N'This is a high-quality guitar suitable for all levels.', 2887726.496, 66, 1, 6, 'guitar10.jpg', N'China', 2023, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Season Guitar Model 704', N'This is a high-quality guitar suitable for all levels.', 14256681.699, 86, 1, 10, 'guitar3.jpg', N'Vietnam', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Take Guitar Model 866', N'This is a high-quality guitar suitable for all levels.', 6801851.836, 88, 1, 2, 'guitar1.jpg', N'South Korea', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Play Guitar Model 442', N'This is a high-quality guitar suitable for all levels.', 3241116.906, 33, 1, 8, 'guitar7.jpg', N'Vietnam', 2023, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Week Guitar Model 995', N'This is a high-quality guitar suitable for all levels.', 6801689.554, 56, 1, 10, 'guitar7.jpg', N'Vietnam', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Choice Guitar Model 269', N'This is a high-quality guitar suitable for all levels.', 7234930.656, 38, 1, 3, 'guitar8.jpg', N'South Korea', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Force Guitar Model 718', N'This is a high-quality guitar suitable for all levels.', 11576786.742, 9, 1, 8, 'guitar6.jpg', N'China', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Bit Guitar Model 151', N'This is a high-quality guitar suitable for all levels.', 12326642.003, 58, 1, 4, 'guitar9.jpg', N'Vietnam', 2018, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Show Guitar Model 233', N'This is a high-quality guitar suitable for all levels.', 14815500.723, 56, 1, 7, 'guitar6.jpg', N'USA', 2019, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Back Guitar Model 834', N'This is a high-quality guitar suitable for all levels.', 11566553.489, 91, 1, 9, 'guitar10.jpg', N'USA', 2019, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Way Guitar Model 722', N'This is a high-quality guitar suitable for all levels.', 10089715.949, 43, 1, 5, 'guitar3.jpg', N'USA', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'To Guitar Model 742', N'This is a high-quality guitar suitable for all levels.', 2138835.835, 40, 1, 8, 'guitar2.jpg', N'China', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Return Guitar Model 633', N'This is a high-quality guitar suitable for all levels.', 12441825.07, 87, 1, 6, 'guitar2.jpg', N'Japan', 2020, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Give Guitar Model 143', N'This is a high-quality guitar suitable for all levels.', 1569285.831, 92, 1, 5, 'guitar9.jpg', N'China', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Marriage Guitar Model 969', N'This is a high-quality guitar suitable for all levels.', 1588063.448, 100, 1, 10, 'guitar8.jpg', N'Vietnam', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Opportunity Guitar Model 755', N'This is a high-quality guitar suitable for all levels.', 7096168.646, 73, 1, 3, 'guitar4.jpg', N'Germany', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Blood Guitar Model 109', N'This is a high-quality guitar suitable for all levels.', 2938397.289, 39, 1, 6, 'guitar6.jpg', N'China', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Health Guitar Model 446', N'This is a high-quality guitar suitable for all levels.', 11911836.823, 9, 1, 1, 'guitar5.jpg', N'Japan', 2019, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Leader Guitar Model 396', N'This is a high-quality guitar suitable for all levels.', 6052692.559, 75, 1, 3, 'guitar5.jpg', N'USA', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Four Guitar Model 345', N'This is a high-quality guitar suitable for all levels.', 14072557.112, 44, 1, 3, 'guitar9.jpg', N'Vietnam', 2018, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Popular Guitar Model 512', N'This is a high-quality guitar suitable for all levels.', 12697836.299, 43, 1, 7, 'guitar2.jpg', N'USA', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Push Guitar Model 585', N'This is a high-quality guitar suitable for all levels.', 5719127.624, 48, 1, 2, 'guitar8.jpg', N'USA', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'While Guitar Model 536', N'This is a high-quality guitar suitable for all levels.', 1529541.315, 47, 1, 3, 'guitar3.jpg', N'Vietnam', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Democratic Guitar Model 925', N'This is a high-quality guitar suitable for all levels.', 14643847.301, 86, 1, 2, 'guitar2.jpg', N'USA', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Old Guitar Model 326', N'This is a high-quality guitar suitable for all levels.', 1856186.192, 6, 1, 2, 'guitar7.jpg', N'South Korea', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Me Guitar Model 559', N'This is a high-quality guitar suitable for all levels.', 13882137.558, 79, 1, 4, 'guitar7.jpg', N'USA', 2020, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Level Guitar Model 367', N'This is a high-quality guitar suitable for all levels.', 9193191.818, 26, 1, 7, 'guitar4.jpg', N'China', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Tree Guitar Model 941', N'This is a high-quality guitar suitable for all levels.', 13090105.22, 94, 1, 1, 'guitar9.jpg', N'Germany', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Near Guitar Model 306', N'This is a high-quality guitar suitable for all levels.', 2664744.012, 55, 1, 5, 'guitar4.jpg', N'Vietnam', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ever Guitar Model 738', N'This is a high-quality guitar suitable for all levels.', 3048962.857, 30, 1, 8, 'guitar7.jpg', N'China', 2022, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Assume Guitar Model 207', N'This is a high-quality guitar suitable for all levels.', 14841658.446, 67, 1, 3, 'guitar10.jpg', N'Germany', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Support Guitar Model 533', N'This is a high-quality guitar suitable for all levels.', 13287192.161, 68, 1, 6, 'guitar8.jpg', N'Germany', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Why Guitar Model 995', N'This is a high-quality guitar suitable for all levels.', 3827878.323, 83, 1, 4, 'guitar1.jpg', N'China', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Official Guitar Model 425', N'This is a high-quality guitar suitable for all levels.', 12453657.333, 9, 1, 9, 'guitar3.jpg', N'China', 2022, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Whole Guitar Model 962', N'This is a high-quality guitar suitable for all levels.', 6306071.521, 42, 1, 8, 'guitar2.jpg', N'USA', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Address Guitar Model 167', N'This is a high-quality guitar suitable for all levels.', 4151269.151, 10, 1, 5, 'guitar1.jpg', N'Germany', 2020, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Better Guitar Model 919', N'This is a high-quality guitar suitable for all levels.', 3083472.864, 88, 1, 8, 'guitar6.jpg', N'South Korea', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Serve Guitar Model 614', N'This is a high-quality guitar suitable for all levels.', 1470652.208, 16, 1, 9, 'guitar10.jpg', N'USA', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Though Guitar Model 872', N'This is a high-quality guitar suitable for all levels.', 3885467.649, 73, 1, 10, 'guitar7.jpg', N'Germany', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Inside Guitar Model 722', N'This is a high-quality guitar suitable for all levels.', 9209438.378, 7, 1, 1, 'guitar3.jpg', N'China', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'See Guitar Model 360', N'This is a high-quality guitar suitable for all levels.', 5657601.393, 68, 1, 5, 'guitar5.jpg', N'Germany', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Thank Guitar Model 163', N'This is a high-quality guitar suitable for all levels.', 3293135.933, 21, 1, 4, 'guitar5.jpg', N'Vietnam', 2024, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Still Guitar Model 156', N'This is a high-quality guitar suitable for all levels.', 14186069.388, 66, 1, 7, 'guitar3.jpg', N'Germany', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Relate Guitar Model 834', N'This is a high-quality guitar suitable for all levels.', 2142674.963, 94, 1, 3, 'guitar6.jpg', N'Germany', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Process Guitar Model 577', N'This is a high-quality guitar suitable for all levels.', 6413562.077, 11, 1, 2, 'guitar8.jpg', N'Japan', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ability Guitar Model 712', N'This is a high-quality guitar suitable for all levels.', 9643605.932, 85, 1, 6, 'guitar2.jpg', N'Vietnam', 2022, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Population Guitar Model 454', N'This is a high-quality guitar suitable for all levels.', 3729630.689, 67, 1, 2, 'guitar1.jpg', N'South Korea', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Minute Guitar Model 729', N'This is a high-quality guitar suitable for all levels.', 9852376.961, 48, 1, 2, 'guitar10.jpg', N'China', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Their Guitar Model 496', N'This is a high-quality guitar suitable for all levels.', 12190776.96, 100, 1, 2, 'guitar9.jpg', N'Japan', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Trip Guitar Model 555', N'This is a high-quality guitar suitable for all levels.', 6202142.988, 29, 1, 8, 'guitar6.jpg', N'Vietnam', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Goal Guitar Model 140', N'This is a high-quality guitar suitable for all levels.', 7806311.41, 8, 1, 9, 'guitar10.jpg', N'South Korea', 2019, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Either Guitar Model 195', N'This is a high-quality guitar suitable for all levels.', 11868797.015, 85, 1, 9, 'guitar9.jpg', N'Germany', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Show Guitar Model 216', N'This is a high-quality guitar suitable for all levels.', 3039665.907, 77, 1, 7, 'guitar2.jpg', N'USA', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Gas Guitar Model 201', N'This is a high-quality guitar suitable for all levels.', 6812260.321, 24, 1, 1, 'guitar8.jpg', N'Germany', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Score Guitar Model 130', N'This is a high-quality guitar suitable for all levels.', 7952746.845, 46, 1, 5, 'guitar2.jpg', N'China', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Truth Guitar Model 467', N'This is a high-quality guitar suitable for all levels.', 10684852.111, 49, 1, 6, 'guitar3.jpg', N'USA', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'At Guitar Model 938', N'This is a high-quality guitar suitable for all levels.', 6121234.648, 81, 1, 3, 'guitar4.jpg', N'USA', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Cut Guitar Model 789', N'This is a high-quality guitar suitable for all levels.', 11249420.681, 20, 1, 1, 'guitar5.jpg', N'China', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Whose Guitar Model 719', N'This is a high-quality guitar suitable for all levels.', 4260083.467, 23, 1, 3, 'guitar8.jpg', N'USA', 2021, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Out Guitar Model 824', N'This is a high-quality guitar suitable for all levels.', 14428401.289, 21, 1, 1, 'guitar4.jpg', N'China', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Doctor Guitar Model 399', N'This is a high-quality guitar suitable for all levels.', 5148852.983, 75, 1, 6, 'guitar3.jpg', N'South Korea', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Edge Guitar Model 646', N'This is a high-quality guitar suitable for all levels.', 9131891.342, 25, 1, 7, 'guitar3.jpg', N'Japan', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Suggest Guitar Model 423', N'This is a high-quality guitar suitable for all levels.', 8116654.272, 35, 1, 3, 'guitar5.jpg', N'China', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Change Guitar Model 147', N'This is a high-quality guitar suitable for all levels.', 13053644.447, 81, 1, 1, 'guitar7.jpg', N'USA', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Suggest Guitar Model 235', N'This is a high-quality guitar suitable for all levels.', 6883243.83, 75, 1, 7, 'guitar3.jpg', N'South Korea', 2021, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Of Guitar Model 752', N'This is a high-quality guitar suitable for all levels.', 5963897.624, 36, 1, 8, 'guitar6.jpg', N'Vietnam', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Line Guitar Model 485', N'This is a high-quality guitar suitable for all levels.', 6720767.097, 58, 1, 6, 'guitar8.jpg', N'Japan', 2020, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Benefit Guitar Model 582', N'This is a high-quality guitar suitable for all levels.', 2274790.833, 28, 1, 2, 'guitar5.jpg', N'USA', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Be Guitar Model 804', N'This is a high-quality guitar suitable for all levels.', 3154303.708, 94, 1, 8, 'guitar7.jpg', N'Japan', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Front Guitar Model 542', N'This is a high-quality guitar suitable for all levels.', 3446320.828, 63, 1, 6, 'guitar9.jpg', N'Japan', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Type Piano Model 746', N'This is a high-quality piano suitable for all levels.', 9922249.341, 66, 2, 14, 'piano5.jpg', N'USA', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Movie Piano Model 559', N'This is a high-quality piano suitable for all levels.', 9662297.252, 5, 2, 14, 'piano5.jpg', N'USA', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Worker Piano Model 408', N'This is a high-quality piano suitable for all levels.', 8632913.623, 24, 2, 17, 'piano8.jpg', N'USA', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Might Piano Model 878', N'This is a high-quality piano suitable for all levels.', 14452853.197, 74, 2, 17, 'piano5.jpg', N'Vietnam', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Boy Piano Model 376', N'This is a high-quality piano suitable for all levels.', 13372052.262, 10, 2, 11, 'piano5.jpg', N'Germany', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Fish Piano Model 827', N'This is a high-quality piano suitable for all levels.', 6547289.79, 18, 2, 15, 'piano6.jpg', N'China', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ok Piano Model 300', N'This is a high-quality piano suitable for all levels.', 9335738.817, 9, 2, 12, 'piano5.jpg', N'China', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Film Piano Model 221', N'This is a high-quality piano suitable for all levels.', 8422596.127, 36, 2, 13, 'piano2.jpg', N'Germany', 2024, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Seat Piano Model 389', N'This is a high-quality piano suitable for all levels.', 8277677.431, 78, 2, 19, 'piano4.jpg', N'South Korea', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Capital Piano Model 749', N'This is a high-quality piano suitable for all levels.', 8610024.122, 99, 2, 15, 'piano5.jpg', N'Germany', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Officer Piano Model 743', N'This is a high-quality piano suitable for all levels.', 2929378.496, 20, 2, 12, 'piano7.jpg', N'Germany', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Go Piano Model 242', N'This is a high-quality piano suitable for all levels.', 8834584.112, 43, 2, 16, 'piano8.jpg', N'Vietnam', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Teacher Piano Model 588', N'This is a high-quality piano suitable for all levels.', 7844014.255, 69, 2, 16, 'piano8.jpg', N'Vietnam', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Win Piano Model 407', N'This is a high-quality piano suitable for all levels.', 2999360.028, 68, 2, 11, 'piano10.jpg', N'Japan', 2018, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Now Piano Model 582', N'This is a high-quality piano suitable for all levels.', 6473524.693, 6, 2, 19, 'piano2.jpg', N'Vietnam', 2024, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Democrat Piano Model 802', N'This is a high-quality piano suitable for all levels.', 14290329.713, 90, 2, 17, 'piano1.jpg', N'China', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Successful Piano Model 735', N'This is a high-quality piano suitable for all levels.', 1052365.184, 39, 2, 15, 'piano4.jpg', N'Japan', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Player Piano Model 394', N'This is a high-quality piano suitable for all levels.', 3676860.761, 60, 2, 18, 'piano6.jpg', N'Germany', 2019, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Officer Piano Model 531', N'This is a high-quality piano suitable for all levels.', 10072069.381, 92, 2, 17, 'piano3.jpg', N'Germany', 2023, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'People Piano Model 636', N'This is a high-quality piano suitable for all levels.', 5425003.766, 31, 2, 13, 'piano8.jpg', N'China', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Field Piano Model 537', N'This is a high-quality piano suitable for all levels.', 12295844.263, 54, 2, 14, 'piano4.jpg', N'Germany', 2019, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Light Piano Model 827', N'This is a high-quality piano suitable for all levels.', 1697105.711, 54, 2, 11, 'piano4.jpg', N'Vietnam', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Benefit Piano Model 472', N'This is a high-quality piano suitable for all levels.', 1797866.72, 86, 2, 13, 'piano4.jpg', N'South Korea', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Pick Piano Model 188', N'This is a high-quality piano suitable for all levels.', 10868931.95, 70, 2, 15, 'piano6.jpg', N'Germany', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Success Piano Model 747', N'This is a high-quality piano suitable for all levels.', 10755270.684, 90, 2, 19, 'piano7.jpg', N'South Korea', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Image Piano Model 360', N'This is a high-quality piano suitable for all levels.', 10857635.443, 32, 2, 16, 'piano5.jpg', N'USA', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Free Piano Model 266', N'This is a high-quality piano suitable for all levels.', 5897231.266, 42, 2, 11, 'piano3.jpg', N'USA', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Parent Piano Model 796', N'This is a high-quality piano suitable for all levels.', 4110331.115, 82, 2, 17, 'piano9.jpg', N'Japan', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Effort Piano Model 447', N'This is a high-quality piano suitable for all levels.', 9516463.395, 82, 2, 12, 'piano6.jpg', N'China', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Fill Piano Model 432', N'This is a high-quality piano suitable for all levels.', 4576997.969, 71, 2, 11, 'piano4.jpg', N'China', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Create Piano Model 990', N'This is a high-quality piano suitable for all levels.', 8343204.445, 29, 2, 14, 'piano5.jpg', N'Vietnam', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Current Piano Model 408', N'This is a high-quality piano suitable for all levels.', 5371249.342, 54, 2, 15, 'piano8.jpg', N'China', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Term Piano Model 345', N'This is a high-quality piano suitable for all levels.', 1623040.619, 75, 2, 12, 'piano1.jpg', N'Germany', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Culture Piano Model 548', N'This is a high-quality piano suitable for all levels.', 1664559.49, 57, 2, 18, 'piano8.jpg', N'Germany', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Alone Piano Model 183', N'This is a high-quality piano suitable for all levels.', 4376021.559, 24, 2, 17, 'piano4.jpg', N'Germany', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Position Piano Model 937', N'This is a high-quality piano suitable for all levels.', 6977098.225, 55, 2, 11, 'piano3.jpg', N'Japan', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Realize Piano Model 231', N'This is a high-quality piano suitable for all levels.', 12766426.147, 40, 2, 16, 'piano6.jpg', N'Germany', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ever Piano Model 392', N'This is a high-quality piano suitable for all levels.', 9541147.959, 30, 2, 15, 'piano8.jpg', N'South Korea', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Maybe Piano Model 649', N'This is a high-quality piano suitable for all levels.', 9880988.089, 39, 2, 14, 'piano1.jpg', N'USA', 2022, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Authority Piano Model 201', N'This is a high-quality piano suitable for all levels.', 3416066.514, 58, 2, 14, 'piano4.jpg', N'China', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Behind Piano Model 106', N'This is a high-quality piano suitable for all levels.', 11386901.777, 70, 2, 17, 'piano1.jpg', N'USA', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Respond Piano Model 379', N'This is a high-quality piano suitable for all levels.', 2655420.375, 99, 2, 20, 'piano6.jpg', N'Japan', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Sometimes Piano Model 820', N'This is a high-quality piano suitable for all levels.', 8652925.039, 41, 2, 14, 'piano4.jpg', N'USA', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Case Piano Model 790', N'This is a high-quality piano suitable for all levels.', 5582331.205, 52, 2, 18, 'piano5.jpg', N'South Korea', 2019, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Under Piano Model 929', N'This is a high-quality piano suitable for all levels.', 1216982.661, 69, 2, 16, 'piano6.jpg', N'South Korea', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Citizen Piano Model 931', N'This is a high-quality piano suitable for all levels.', 2817519.995, 55, 2, 13, 'piano3.jpg', N'South Korea', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Wind Piano Model 883', N'This is a high-quality piano suitable for all levels.', 3891059.346, 68, 2, 20, 'piano4.jpg', N'Japan', 2023, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'American Piano Model 935', N'This is a high-quality piano suitable for all levels.', 4271654.044, 54, 2, 16, 'piano10.jpg', N'South Korea', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Thousand Piano Model 610', N'This is a high-quality piano suitable for all levels.', 13611337.951, 18, 2, 20, 'piano1.jpg', N'South Korea', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Be Piano Model 600', N'This is a high-quality piano suitable for all levels.', 7378440.621, 6, 2, 14, 'piano9.jpg', N'Vietnam', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Water Piano Model 606', N'This is a high-quality piano suitable for all levels.', 12329312.722, 99, 2, 18, 'piano9.jpg', N'China', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Scene Piano Model 365', N'This is a high-quality piano suitable for all levels.', 2924219.88, 56, 2, 14, 'piano6.jpg', N'China', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Wind Piano Model 313', N'This is a high-quality piano suitable for all levels.', 1536030.117, 97, 2, 14, 'piano6.jpg', N'Germany', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Themselves Piano Model 775', N'This is a high-quality piano suitable for all levels.', 10209637.442, 38, 2, 16, 'piano3.jpg', N'China', 2018, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Now Piano Model 687', N'This is a high-quality piano suitable for all levels.', 8553186.274, 98, 2, 13, 'piano6.jpg', N'USA', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Result Piano Model 162', N'This is a high-quality piano suitable for all levels.', 1343905.489, 10, 2, 11, 'piano4.jpg', N'Vietnam', 2020, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Include Piano Model 940', N'This is a high-quality piano suitable for all levels.', 1873680.747, 89, 2, 17, 'piano3.jpg', N'Japan', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Third Piano Model 245', N'This is a high-quality piano suitable for all levels.', 6012491.885, 27, 2, 16, 'piano7.jpg', N'Germany', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Season Piano Model 370', N'This is a high-quality piano suitable for all levels.', 8471878.137, 99, 2, 18, 'piano1.jpg', N'South Korea', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Network Piano Model 499', N'This is a high-quality piano suitable for all levels.', 3398418.65, 69, 2, 13, 'piano10.jpg', N'Vietnam', 2022, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Fact Piano Model 816', N'This is a high-quality piano suitable for all levels.', 3074350.41, 47, 2, 14, 'piano3.jpg', N'Japan', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Nearly Piano Model 860', N'This is a high-quality piano suitable for all levels.', 12027539.49, 92, 2, 19, 'piano3.jpg', N'Vietnam', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Task Piano Model 985', N'This is a high-quality piano suitable for all levels.', 9370297.562, 84, 2, 18, 'piano3.jpg', N'South Korea', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Eat Piano Model 358', N'This is a high-quality piano suitable for all levels.', 5763504.366, 99, 2, 17, 'piano1.jpg', N'Vietnam', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Time Piano Model 191', N'This is a high-quality piano suitable for all levels.', 6017112.42, 90, 2, 13, 'piano8.jpg', N'Japan', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Dinner Piano Model 266', N'This is a high-quality piano suitable for all levels.', 11296996.016, 56, 2, 16, 'piano5.jpg', N'Germany', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Want Piano Model 418', N'This is a high-quality piano suitable for all levels.', 8424788.375, 41, 2, 19, 'piano8.jpg', N'USA', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Respond Piano Model 684', N'This is a high-quality piano suitable for all levels.', 8729336.125, 92, 2, 11, 'piano8.jpg', N'Germany', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Perform Piano Model 513', N'This is a high-quality piano suitable for all levels.', 5852243.848, 11, 2, 11, 'piano5.jpg', N'Vietnam', 2018, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'That Piano Model 797', N'This is a high-quality piano suitable for all levels.', 10525509.82, 94, 2, 15, 'piano4.jpg', N'South Korea', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Kind Piano Model 495', N'This is a high-quality piano suitable for all levels.', 14698363.719, 37, 2, 14, 'piano2.jpg', N'South Korea', 2020, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Particularly Piano Model 700', N'This is a high-quality piano suitable for all levels.', 10434094.504, 73, 2, 16, 'piano3.jpg', N'Japan', 2020, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Face Piano Model 939', N'This is a high-quality piano suitable for all levels.', 1127289.773, 11, 2, 20, 'piano3.jpg', N'China', 2020, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Little Piano Model 740', N'This is a high-quality piano suitable for all levels.', 5107939.411, 68, 2, 17, 'piano10.jpg', N'Germany', 2019, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Mind Piano Model 907', N'This is a high-quality piano suitable for all levels.', 2970622.39, 10, 2, 18, 'piano3.jpg', N'China', 2018, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Recent Piano Model 591', N'This is a high-quality piano suitable for all levels.', 13738684.41, 90, 2, 15, 'piano10.jpg', N'Japan', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Put Piano Model 534', N'This is a high-quality piano suitable for all levels.', 4901900.987, 27, 2, 19, 'piano3.jpg', N'USA', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'School Piano Model 261', N'This is a high-quality piano suitable for all levels.', 9115617.376, 69, 2, 19, 'piano10.jpg', N'Germany', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Whom Piano Model 372', N'This is a high-quality piano suitable for all levels.', 5359568.79, 6, 2, 17, 'piano5.jpg', N'China', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Student Piano Model 667', N'This is a high-quality piano suitable for all levels.', 5451021.536, 48, 2, 14, 'piano7.jpg', N'Japan', 2024, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Heavy Piano Model 868', N'This is a high-quality piano suitable for all levels.', 8158779.101, 89, 2, 20, 'piano7.jpg', N'China', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Beautiful Piano Model 675', N'This is a high-quality piano suitable for all levels.', 13774007.259, 86, 2, 20, 'piano4.jpg', N'USA', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Garden Piano Model 262', N'This is a high-quality piano suitable for all levels.', 10523611.476, 85, 2, 16, 'piano8.jpg', N'USA', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Position Piano Model 355', N'This is a high-quality piano suitable for all levels.', 9001822.922, 35, 2, 15, 'piano3.jpg', N'Germany', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Business Piano Model 558', N'This is a high-quality piano suitable for all levels.', 4314269.963, 96, 2, 18, 'piano9.jpg', N'Vietnam', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Message Piano Model 268', N'This is a high-quality piano suitable for all levels.', 7166941.665, 13, 2, 17, 'piano7.jpg', N'China', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'People Piano Model 875', N'This is a high-quality piano suitable for all levels.', 11828710.101, 83, 2, 16, 'piano2.jpg', N'China', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Professor Piano Model 111', N'This is a high-quality piano suitable for all levels.', 11675375.577, 30, 2, 17, 'piano7.jpg', N'Germany', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Government Piano Model 740', N'This is a high-quality piano suitable for all levels.', 10423070.248, 94, 2, 11, 'piano10.jpg', N'Germany', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Through Piano Model 229', N'This is a high-quality piano suitable for all levels.', 8901814.043, 40, 2, 16, 'piano1.jpg', N'Germany', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Customer Piano Model 238', N'This is a high-quality piano suitable for all levels.', 1582207.509, 77, 2, 16, 'piano6.jpg', N'USA', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Eight Piano Model 834', N'This is a high-quality piano suitable for all levels.', 2551349.412, 74, 2, 18, 'piano1.jpg', N'China', 2024, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Admit Piano Model 422', N'This is a high-quality piano suitable for all levels.', 6497080.704, 21, 2, 15, 'piano7.jpg', N'Vietnam', 2019, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Sign Piano Model 251', N'This is a high-quality piano suitable for all levels.', 6658846.23, 44, 2, 19, 'piano1.jpg', N'Japan', 2019, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Experience Piano Model 592', N'This is a high-quality piano suitable for all levels.', 10874382.548, 96, 2, 11, 'piano9.jpg', N'USA', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'But Piano Model 807', N'This is a high-quality piano suitable for all levels.', 11418069.897, 85, 2, 17, 'piano3.jpg', N'China', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Season Piano Model 932', N'This is a high-quality piano suitable for all levels.', 2159186.878, 76, 2, 13, 'piano5.jpg', N'Japan', 2024, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Discussion Piano Model 435', N'This is a high-quality piano suitable for all levels.', 10805678.963, 37, 2, 15, 'piano9.jpg', N'Germany', 2019, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Hot Piano Model 665', N'This is a high-quality piano suitable for all levels.', 3139467.676, 85, 2, 20, 'piano3.jpg', N'Vietnam', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Study Piano Model 875', N'This is a high-quality piano suitable for all levels.', 5425122.853, 14, 2, 14, 'piano8.jpg', N'South Korea', 2019, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Conference Violin Model 634', N'This is a high-quality violin suitable for all levels.', 3231455.937, 47, 3, 23, 'violin8.jpg', N'South Korea', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Go Violin Model 184', N'This is a high-quality violin suitable for all levels.', 12488319.362, 48, 3, 21, 'violin2.jpg', N'USA', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Last Violin Model 460', N'This is a high-quality violin suitable for all levels.', 8983838.695, 47, 3, 27, 'violin9.jpg', N'China', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Team Violin Model 221', N'This is a high-quality violin suitable for all levels.', 2905518.759, 7, 3, 23, 'violin3.jpg', N'USA', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Assume Violin Model 297', N'This is a high-quality violin suitable for all levels.', 1617953.105, 87, 3, 21, 'violin5.jpg', N'Germany', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Blood Violin Model 885', N'This is a high-quality violin suitable for all levels.', 12122283.071, 26, 3, 26, 'violin2.jpg', N'Germany', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Stay Violin Model 463', N'This is a high-quality violin suitable for all levels.', 9457985.629, 84, 3, 25, 'violin5.jpg', N'South Korea', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Child Violin Model 522', N'This is a high-quality violin suitable for all levels.', 3529327.858, 63, 3, 25, 'violin4.jpg', N'Germany', 2018, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Top Violin Model 198', N'This is a high-quality violin suitable for all levels.', 2727118.763, 49, 3, 21, 'violin3.jpg', N'Germany', 2022, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Save Violin Model 769', N'This is a high-quality violin suitable for all levels.', 13557989.047, 46, 3, 28, 'violin9.jpg', N'Vietnam', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Discuss Violin Model 607', N'This is a high-quality violin suitable for all levels.', 7671456.107, 11, 3, 29, 'violin7.jpg', N'China', 2018, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Answer Violin Model 628', N'This is a high-quality violin suitable for all levels.', 2340052.662, 15, 3, 26, 'violin6.jpg', N'USA', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Technology Violin Model 257', N'This is a high-quality violin suitable for all levels.', 13726782.286, 85, 3, 25, 'violin1.jpg', N'USA', 2021, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Painting Violin Model 260', N'This is a high-quality violin suitable for all levels.', 14221796.123, 94, 3, 23, 'violin3.jpg', N'Japan', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Protect Violin Model 755', N'This is a high-quality violin suitable for all levels.', 10517718.594, 84, 3, 26, 'violin1.jpg', N'Germany', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Where Violin Model 507', N'This is a high-quality violin suitable for all levels.', 1618359.783, 35, 3, 25, 'violin6.jpg', N'Japan', 2019, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Would Violin Model 331', N'This is a high-quality violin suitable for all levels.', 3290698.903, 58, 3, 28, 'violin6.jpg', N'South Korea', 2019, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Nor Violin Model 678', N'This is a high-quality violin suitable for all levels.', 11790631.758, 25, 3, 30, 'violin1.jpg', N'Vietnam', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Play Violin Model 920', N'This is a high-quality violin suitable for all levels.', 3407472.074, 24, 3, 21, 'violin1.jpg', N'China', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Response Violin Model 139', N'This is a high-quality violin suitable for all levels.', 1660874.165, 19, 3, 30, 'violin10.jpg', N'Japan', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Back Violin Model 789', N'This is a high-quality violin suitable for all levels.', 12015887.702, 8, 3, 27, 'violin7.jpg', N'South Korea', 2023, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Agreement Violin Model 828', N'This is a high-quality violin suitable for all levels.', 4471422.068, 22, 3, 26, 'violin9.jpg', N'Japan', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Capital Violin Model 174', N'This is a high-quality violin suitable for all levels.', 2817166.758, 77, 3, 26, 'violin2.jpg', N'Germany', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Prove Violin Model 582', N'This is a high-quality violin suitable for all levels.', 6344630.131, 55, 3, 24, 'violin8.jpg', N'Germany', 2022, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Current Violin Model 955', N'This is a high-quality violin suitable for all levels.', 4533161.953, 40, 3, 29, 'violin6.jpg', N'South Korea', 2018, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Police Violin Model 726', N'This is a high-quality violin suitable for all levels.', 11914326.226, 35, 3, 25, 'violin1.jpg', N'South Korea', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Then Violin Model 741', N'This is a high-quality violin suitable for all levels.', 2493241.947, 11, 3, 23, 'violin7.jpg', N'USA', 2024, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Parent Violin Model 848', N'This is a high-quality violin suitable for all levels.', 13183231.739, 55, 3, 27, 'violin2.jpg', N'Vietnam', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Call Violin Model 573', N'This is a high-quality violin suitable for all levels.', 3259306.672, 48, 3, 28, 'violin7.jpg', N'Japan', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Include Violin Model 880', N'This is a high-quality violin suitable for all levels.', 8049880.472, 52, 3, 26, 'violin3.jpg', N'Vietnam', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Benefit Violin Model 745', N'This is a high-quality violin suitable for all levels.', 8262041.916, 11, 3, 24, 'violin5.jpg', N'Japan', 2023, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Hospital Violin Model 432', N'This is a high-quality violin suitable for all levels.', 5144596.527, 86, 3, 21, 'violin5.jpg', N'South Korea', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'These Violin Model 798', N'This is a high-quality violin suitable for all levels.', 6747657.029, 53, 3, 24, 'violin6.jpg', N'Japan', 2019, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Business Violin Model 727', N'This is a high-quality violin suitable for all levels.', 5997491.839, 8, 3, 27, 'violin10.jpg', N'Germany', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Although Violin Model 757', N'This is a high-quality violin suitable for all levels.', 10950777.724, 92, 3, 22, 'violin7.jpg', N'South Korea', 2023, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Police Violin Model 241', N'This is a high-quality violin suitable for all levels.', 3369262.041, 31, 3, 23, 'violin4.jpg', N'USA', 2022, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Age Violin Model 938', N'This is a high-quality violin suitable for all levels.', 7902589.284, 84, 3, 25, 'violin6.jpg', N'Vietnam', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Day Violin Model 891', N'This is a high-quality violin suitable for all levels.', 13085054.663, 25, 3, 26, 'violin9.jpg', N'China', 2022, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Crime Violin Model 248', N'This is a high-quality violin suitable for all levels.', 13770342.389, 99, 3, 29, 'violin5.jpg', N'Japan', 2021, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Serious Violin Model 499', N'This is a high-quality violin suitable for all levels.', 14281972.934, 70, 3, 25, 'violin7.jpg', N'Germany', 2024, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Candidate Violin Model 799', N'This is a high-quality violin suitable for all levels.', 14625065.179, 23, 3, 21, 'violin10.jpg', N'South Korea', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Measure Violin Model 629', N'This is a high-quality violin suitable for all levels.', 2495395.092, 87, 3, 24, 'violin10.jpg', N'Vietnam', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Develop Violin Model 213', N'This is a high-quality violin suitable for all levels.', 4733509.985, 98, 3, 30, 'violin3.jpg', N'Germany', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Short Violin Model 110', N'This is a high-quality violin suitable for all levels.', 2615579.147, 51, 3, 28, 'violin6.jpg', N'USA', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Such Violin Model 477', N'This is a high-quality violin suitable for all levels.', 9179540.588, 37, 3, 28, 'violin4.jpg', N'Japan', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ask Violin Model 947', N'This is a high-quality violin suitable for all levels.', 13525479.861, 70, 3, 23, 'violin1.jpg', N'Vietnam', 2024, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Write Violin Model 999', N'This is a high-quality violin suitable for all levels.', 14912291.0, 57, 3, 30, 'violin4.jpg', N'Germany', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Respond Violin Model 514', N'This is a high-quality violin suitable for all levels.', 4697786.05, 80, 3, 23, 'violin7.jpg', N'Japan', 2021, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Agency Violin Model 154', N'This is a high-quality violin suitable for all levels.', 13827598.477, 16, 3, 30, 'violin7.jpg', N'China', 2019, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Off Violin Model 994', N'This is a high-quality violin suitable for all levels.', 7377347.235, 66, 3, 30, 'violin2.jpg', N'China', 2024, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Large Violin Model 602', N'This is a high-quality violin suitable for all levels.', 8711090.796, 55, 3, 28, 'violin5.jpg', N'Japan', 2019, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Pressure Violin Model 473', N'This is a high-quality violin suitable for all levels.', 3233556.347, 82, 3, 23, 'violin8.jpg', N'USA', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Blood Violin Model 502', N'This is a high-quality violin suitable for all levels.', 8925683.732, 57, 3, 29, 'violin2.jpg', N'China', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Thing Violin Model 934', N'This is a high-quality violin suitable for all levels.', 2552224.727, 23, 3, 26, 'violin2.jpg', N'Japan', 2023, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ever Violin Model 942', N'This is a high-quality violin suitable for all levels.', 10317640.781, 80, 3, 29, 'violin4.jpg', N'USA', 2018, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Available Violin Model 671', N'This is a high-quality violin suitable for all levels.', 10797023.479, 82, 3, 28, 'violin2.jpg', N'Germany', 2022, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Do Violin Model 995', N'This is a high-quality violin suitable for all levels.', 11920342.183, 17, 3, 21, 'violin4.jpg', N'Japan', 2021, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Away Violin Model 381', N'This is a high-quality violin suitable for all levels.', 4144626.067, 68, 3, 26, 'violin9.jpg', N'China', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Radio Violin Model 412', N'This is a high-quality violin suitable for all levels.', 9031337.067, 33, 3, 26, 'violin7.jpg', N'Japan', 2019, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Fish Violin Model 304', N'This is a high-quality violin suitable for all levels.', 11393432.951, 66, 3, 26, 'violin5.jpg', N'Germany', 2022, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Hard Violin Model 951', N'This is a high-quality violin suitable for all levels.', 11899785.322, 56, 3, 26, 'violin9.jpg', N'Germany', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Least Violin Model 826', N'This is a high-quality violin suitable for all levels.', 6235138.035, 50, 3, 27, 'violin5.jpg', N'China', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Couple Violin Model 389', N'This is a high-quality violin suitable for all levels.', 13131205.048, 66, 3, 25, 'violin2.jpg', N'Germany', 2019, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ask Violin Model 349', N'This is a high-quality violin suitable for all levels.', 11406505.098, 48, 3, 28, 'violin4.jpg', N'USA', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Most Violin Model 498', N'This is a high-quality violin suitable for all levels.', 7507458.323, 64, 3, 30, 'violin10.jpg', N'Japan', 2023, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Manage Violin Model 614', N'This is a high-quality violin suitable for all levels.', 5356877.765, 34, 3, 26, 'violin9.jpg', N'Vietnam', 2018, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Among Violin Model 583', N'This is a high-quality violin suitable for all levels.', 5440033.447, 34, 3, 27, 'violin1.jpg', N'South Korea', 2024, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Pick Violin Model 516', N'This is a high-quality violin suitable for all levels.', 2308694.763, 30, 3, 26, 'violin3.jpg', N'USA', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Blood Violin Model 472', N'This is a high-quality violin suitable for all levels.', 1395675.49, 10, 3, 21, 'violin7.jpg', N'South Korea', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Scene Violin Model 219', N'This is a high-quality violin suitable for all levels.', 12501078.55, 82, 3, 24, 'violin2.jpg', N'Vietnam', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Include Violin Model 968', N'This is a high-quality violin suitable for all levels.', 1020932.714, 84, 3, 27, 'violin2.jpg', N'South Korea', 2019, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Decision Violin Model 332', N'This is a high-quality violin suitable for all levels.', 13996499.105, 53, 3, 28, 'violin1.jpg', N'Germany', 2019, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Ever Violin Model 883', N'This is a high-quality violin suitable for all levels.', 1576735.769, 39, 3, 21, 'violin10.jpg', N'China', 2023, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Her Violin Model 946', N'This is a high-quality violin suitable for all levels.', 5722556.84, 63, 3, 23, 'violin10.jpg', N'South Korea', 2018, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'West Violin Model 205', N'This is a high-quality violin suitable for all levels.', 11007786.747, 39, 3, 21, 'violin3.jpg', N'South Korea', 2024, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Sign Violin Model 239', N'This is a high-quality violin suitable for all levels.', 6304725.594, 78, 3, 26, 'violin4.jpg', N'Germany', 2022, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Many Violin Model 223', N'This is a high-quality violin suitable for all levels.', 8834374.811, 93, 3, 28, 'violin2.jpg', N'South Korea', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'This Violin Model 282', N'This is a high-quality violin suitable for all levels.', 7368636.621, 48, 3, 23, 'violin7.jpg', N'China', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Week Violin Model 678', N'This is a high-quality violin suitable for all levels.', 8076157.381, 34, 3, 28, 'violin4.jpg', N'China', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Why Violin Model 124', N'This is a high-quality violin suitable for all levels.', 7257980.422, 5, 3, 29, 'violin7.jpg', N'Germany', 2019, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Over Violin Model 346', N'This is a high-quality violin suitable for all levels.', 4545035.606, 65, 3, 23, 'violin4.jpg', N'Germany', 2020, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Condition Violin Model 768', N'This is a high-quality violin suitable for all levels.', 7806595.686, 24, 3, 29, 'violin2.jpg', N'Japan', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Save Violin Model 746', N'This is a high-quality violin suitable for all levels.', 10424280.507, 12, 3, 23, 'violin6.jpg', N'USA', 2020, N'Plastic');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Remember Violin Model 924', N'This is a high-quality violin suitable for all levels.', 3244971.251, 64, 3, 27, 'violin4.jpg', N'Germany', 2021, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Democrat Violin Model 271', N'This is a high-quality violin suitable for all levels.', 6472512.712, 48, 3, 29, 'violin4.jpg', N'Vietnam', 2020, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Speak Violin Model 631', N'This is a high-quality violin suitable for all levels.', 13923183.438, 96, 3, 30, 'violin10.jpg', N'Germany', 2019, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Article Violin Model 805', N'This is a high-quality violin suitable for all levels.', 9647502.191, 89, 3, 30, 'violin4.jpg', N'South Korea', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Story Violin Model 348', N'This is a high-quality violin suitable for all levels.', 7828611.617, 82, 3, 26, 'violin9.jpg', N'Vietnam', 2019, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Require Violin Model 144', N'This is a high-quality violin suitable for all levels.', 1871706.485, 36, 3, 28, 'violin10.jpg', N'Japan', 2023, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Cold Violin Model 211', N'This is a high-quality violin suitable for all levels.', 13067291.375, 71, 3, 27, 'violin5.jpg', N'Vietnam', 2020, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Through Violin Model 801', N'This is a high-quality violin suitable for all levels.', 3690046.774, 52, 3, 29, 'violin6.jpg', N'Vietnam', 2021, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Color Violin Model 549', N'This is a high-quality violin suitable for all levels.', 14860337.431, 45, 3, 28, 'violin2.jpg', N'Japan', 2019, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Guess Violin Model 869', N'This is a high-quality violin suitable for all levels.', 3180782.76, 55, 3, 28, 'violin9.jpg', N'Japan', 2020, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Next Violin Model 147', N'This is a high-quality violin suitable for all levels.', 1297893.73, 31, 3, 22, 'violin7.jpg', N'South Korea', 2022, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Enough Violin Model 653', N'This is a high-quality violin suitable for all levels.', 3946550.42, 5, 3, 23, 'violin9.jpg', N'Vietnam', 2021, N'Spruce');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Buy Violin Model 489', N'This is a high-quality violin suitable for all levels.', 8614807.915, 13, 3, 22, 'violin10.jpg', N'Vietnam', 2021, N'Mahogany');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Picture Violin Model 308', N'This is a high-quality violin suitable for all levels.', 6870808.04, 51, 3, 25, 'violin2.jpg', N'Vietnam', 2018, N'Maple');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Will Violin Model 728', N'This is a high-quality violin suitable for all levels.', 14551614.807, 8, 3, 30, 'violin9.jpg', N'China', 2019, N'Rosewood');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Letter Violin Model 364', N'This is a high-quality violin suitable for all levels.', 2542596.909, 62, 3, 25, 'violin4.jpg', N'Germany', 2021, N'Composite');
-INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material)
-VALUES (N'Reduce Violin Model 618', N'This is a high-quality violin suitable for all levels.', 13983604.839, 34, 3, 30, 'violin5.jpg', N'USA', 2018, N'Maple');
+-- Insert 50 Guitar products
+INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material, discount_id)
+VALUES
+(N'Fender Stratocaster Standard', N'Classic electric guitar with maple neck', 15000000.000, 50, 1, 1, 'guitar_1.jpg', N'USA', 2022, N'Maple', NULL),
+(N'Gibson Les Paul Classic', N'Iconic electric guitar with rosewood fretboard', 25000000.000, 30, 1, 2, 'guitar_2.jpg', N'USA', 2021, N'Rosewood', NULL),
+(N'Yamaha FG800 Acoustic', N'Acoustic guitar for beginners', 6000000.000, 80, 1, 3, 'guitar_3.jpg', N'Japan', 2023, N'Spruce', NULL),
+(N'Ibanez RG550', N'Electric guitar for rock enthusiasts', 12000000.000, 40, 1, 4, 'guitar_4.jpg', N'Japan', 2020, N'Maple', NULL),
+(N'Epiphone SG Standard', N'Affordable electric guitar with mahogany body', 8000000.000, 60, 1, 5, 'guitar_5.jpg', N'China', 2022, N'Mahogany', NULL),
+(N'Taylor 214ce', N'Premium acoustic-electric guitar', 22000000.000, 25, 1, 6, 'guitar_6.jpg', N'USA', 2023, N'Rosewood', NULL),
+(N'Martin D-28', N'High-end acoustic guitar', 35000000.000, 20, 1, 7, 'guitar_7.jpg', N'USA', 2021, N'Spruce', NULL),
+(N'Gretsch G2622 Streamliner', N'Semi-hollow electric guitar', 14000000.000, 35, 1, 8, 'guitar_8.jpg', N'China', 2022, N'Maple', NULL),
+(N'Jackson Soloist SL1', N'High-performance electric guitar', 18000000.000, 30, 1, 9, 'guitar_9.jpg', N'USA', 2020, N'Maple', NULL),
+(N'ESP LTD EC-256', N'Electric guitar with versatile tones', 10000000.000, 45, 1, 10, 'guitar_10.jpg', N'China', 2023, N'Mahogany', NULL),
+(N'Fender Telecaster American', N'Classic telecaster with ash body', 20000000.000, 40, 1, 1, 'guitar_11.jpg', N'USA', 2022, N'Ash', NULL),
+(N'Gibson SG Special', N'Electric guitar with dual humbuckers', 17000000.000, 50, 1, 2, 'guitar_12.jpg', N'USA', 2021, N'Mahogany', NULL),
+(N'Yamaha Pacifica 112V', N'Versatile electric guitar', 7000000.000, 70, 1, 3, 'guitar_13.jpg', N'Japan', 2023, N'Alder', NULL),
+(N'Ibanez GRX70QA', N'Budget-friendly electric guitar', 5500000.000, 90, 1, 4, 'guitar_14.jpg', N'China', 2022, N'Poplar', NULL),
+(N'Epiphone Les Paul Studio', N'Electric guitar with classic design', 9000000.000, 60, 1, 5, 'guitar_15.jpg', N'China', 2021, N'Mahogany', NULL),
+(N'Taylor GS Mini', N'Compact acoustic guitar', 12000000.000, 50, 1, 6, 'guitar_16.jpg', N'USA', 2023, N'Spruce', NULL),
+(N'Martin OM-28', N'Orchestral model acoustic guitar', 30000000.000, 20, 1, 7, 'guitar_17.jpg', N'USA', 2022, N'Rosewood', NULL),
+(N'Gretsch G5420T', N'Hollow body electric guitar', 16000000.000, 30, 1, 8, 'guitar_18.jpg', N'China', 2021, N'Maple', NULL),
+(N'Jackson Dinky JS32', N'High-speed electric guitar', 11000000.000, 45, 1, 9, 'guitar_19.jpg', N'China', 2023, N'Poplar', NULL),
+(N'ESP LTD Viper-50', N'Electric guitar for metal players', 8500000.000, 60, 1, 10, 'guitar_20.jpg', N'China', 2022, N'Mahogany', NULL),
+(N'Fender Player Stratocaster', N'Versatile electric guitar', 14000000.000, 50, 1, 1, 'guitar_21.jpg', N'Mexico', 2023, N'Alder', NULL),
+(N'Gibson ES-335', N'Semi-hollow electric guitar', 28000000.000, 25, 1, 2, 'guitar_22.jpg', N'USA', 2021, N'Maple', NULL),
+(N'Yamaha APX600', N'Acoustic-electric guitar', 8000000.000, 70, 1, 3, 'guitar_23.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Ibanez AW54', N'Acoustic guitar with dreadnought body', 6000000.000, 80, 1, 4, 'guitar_24.jpg', N'China', 2023, N'Mahogany', NULL),
+(N'Epiphone Hummingbird', N'Acoustic guitar with iconic design', 11000000.000, 50, 1, 5, 'guitar_25.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Taylor 314ce', N'Premium acoustic-electric guitar', 24000000.000, 30, 1, 6, 'guitar_26.jpg', N'USA', 2023, N'Sapele', NULL),
+(N'Martin D-18', N'Classic dreadnought acoustic guitar', 32000000.000, 20, 1, 7, 'guitar_27.jpg', N'USA', 2021, N'Spruce', NULL),
+(N'Gretsch G5220', N'Electromatic jet guitar', 13000000.000, 40, 1, 8, 'guitar_28.jpg', N'China', 2022, N'Mahogany', NULL),
+(N'Jackson Pro Series Soloist', N'Electric guitar for shredders', 19000000.000, 35, 1, 9, 'guitar_29.jpg', N'USA', 2023, N'Maple', NULL),
+(N'ESP LTD M-1000', N'High-end electric guitar', 20000000.000, 30, 1, 10, 'guitar_30.jpg', N'Japan', 2022, N'Alder', NULL),
+(N'Fender American Ultra Strat', N'Premium electric guitar', 25000000.000, 25, 1, 1, 'guitar_31.jpg', N'USA', 2023, N'Alder', NULL),
+(N'Gibson Les Paul Studio', N'Electric guitar with modern design', 18000000.000, 40, 1, 2, 'guitar_32.jpg', N'USA', 2021, N'Mahogany', NULL),
+(N'Yamaha C40', N'Classical guitar for beginners', 4000000.000, 90, 1, 3, 'guitar_33.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Ibanez RG421', N'Electric guitar with fixed bridge', 9000000.000, 60, 1, 4, 'guitar_34.jpg', N'China', 2023, N'Mahogany', NULL),
+(N'Epiphone Casino', N'Semi-hollow electric guitar', 14000000.000, 50, 1, 5, 'guitar_35.jpg', N'China', 2022, N'Maple', NULL),
+(N'Taylor 110e', N'Acoustic-electric guitar', 16000000.000, 45, 1, 6, 'guitar_36.jpg', N'USA', 2023, N'Sapele', NULL),
+(N'Martin X Series', N'Affordable acoustic guitar', 12000000.000, 60, 1, 7, 'guitar_37.jpg', N'USA', 2021, N'HPL', NULL),
+(N'Gretsch G2627T', N'Streamliner center block guitar', 15000000.000, 40, 1, 8, 'guitar_38.jpg', N'China', 2022, N'Maple', NULL),
+(N'Jackson JS Series Dinky', N'Entry-level electric guitar', 6000000.000, 80, 1, 9, 'guitar_39.jpg', N'China', 2023, N'Poplar', NULL),
+(N'ESP LTD Snakebyte', N'Signature electric guitar', 22000000.000, 30, 1, 10, 'guitar_40.jpg', N'Japan', 2022, N'Mahogany', NULL),
+(N'Fender Player Telecaster', N'Versatile telecaster guitar', 14000000.000, 50, 1, 1, 'guitar_41.jpg', N'Mexico', 2023, N'Alder', NULL),
+(N'Gibson Flying V', N'Iconic electric guitar', 20000000.000, 35, 1, 2, 'guitar_42.jpg', N'USA', 2021, N'Mahogany', NULL),
+(N'Yamaha FS800', N'Compact acoustic guitar', 7000000.000, 70, 1, 3, 'guitar_43.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Ibanez AEG50N', N'Acoustic-electric classical guitar', 8000000.000, 60, 1, 4, 'guitar_44.jpg', N'China', 2023, N'Spruce', NULL),
+(N'Epiphone Dove Pro', N'Acoustic-electric guitar', 10000000.000, 50, 1, 5, 'guitar_45.jpg', N'China', 2022, N'Maple', NULL),
+(N'Taylor Academy 10', N'Entry-level acoustic guitar', 13000000.000, 45, 1, 6, 'guitar_46.jpg', N'USA', 2023, N'Sapele', NULL),
+(N'Martin D-10E', N'Acoustic-electric dreadnought', 20000000.000, 30, 1, 7, 'guitar_47.jpg', N'USA', 2021, N'Spruce', NULL),
+(N'Gretsch G5230T', N'Electromatic jet guitar', 14000000.000, 40, 1, 8, 'guitar_48.jpg', N'China', 2022, N'Mahogany', NULL),
+(N'Jackson King V', N'Electric guitar for metal', 16000000.000, 35, 1, 9, 'guitar_49.jpg', N'USA', 2023, N'Alder', NULL),
+(N'ESP LTD EC-1000', N'Premium electric guitar', 23000000.000, 25, 1, 10, 'guitar_50.jpg', N'Japan', 2022, N'Mahogany', NULL);
 
+-- Insert 50 Piano products
+INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material, discount_id)
+VALUES
+(N'Yamaha U1 Upright', N'Professional upright piano', 85000000.000, 15, 2, 11, 'piano_1.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Kawai K-300', N'High-quality upright piano', 90000000.000, 12, 2, 12, 'piano_2.jpg', N'Japan', 2021, N'Wood', NULL),
+(N'Steinway Model D', N'Concert grand piano', 450000000.000, 5, 2, 13, 'piano_3.jpg', N'USA', 2023, N'Spruce', NULL),
+(N'Casio CDP-S160', N'Compact digital piano', 12000000.000, 30, 2, 14, 'piano_4.jpg', N'China', 2022, N'Plastic', NULL),
+(N'Roland FP-30X', N'Portable digital piano', 18000000.000, 25, 2, 15, 'piano_5.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Korg B2', N'Digital piano for beginners', 10000000.000, 40, 2, 16, 'piano_6.jpg', N'China', 2022, N'Plastic', NULL),
+(N'Bösendorfer 200', N'Premium grand piano', 300000000.000, 8, 2, 17, 'piano_7.jpg', N'Austria', 2021, N'Spruce', NULL),
+(N'Samick JS-121FD', N'Upright piano for intermediates', 60000000.000, 20, 2, 18, 'piano_8.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Petrof P125', N'Classic upright piano', 95000000.000, 10, 2, 19, 'piano_9.jpg', N'Czech Republic', 2023, N'Spruce', NULL),
+(N'Young Chang Y121', N'Affordable upright piano', 55000000.000, 25, 2, 20, 'piano_10.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Yamaha P-125', N'Portable digital piano', 15000000.000, 35, 2, 11, 'piano_11.jpg', N'Japan', 2023, N'Plastic', NULL),
+(N'Kawai CN29', N'Digital piano with authentic touch', 22000000.000, 20, 2, 12, 'piano_12.jpg', N'Japan', 2022, N'Plastic', NULL),
+(N'Steinway Model B', N'Grand piano for professionals', 350000000.000, 6, 2, 13, 'piano_13.jpg', N'USA', 2021, N'Spruce', NULL),
+(N'Casio AP-270', N'Celviano digital piano', 20000000.000, 25, 2, 14, 'piano_14.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Roland HP704', N'High-end digital piano', 30000000.000, 15, 2, 15, 'piano_15.jpg', N'China', 2022, N'Plastic', NULL),
+(N'Korg SP-280', N'Portable digital piano', 14000000.000, 30, 2, 16, 'piano_16.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Bösendorfer 185', N'Grand piano with rich tone', 280000000.000, 7, 2, 17, 'piano_17.jpg', N'Austria', 2021, N'Spruce', NULL),
+(N'Samick NSG-158', N'Mid-size grand piano', 120000000.000, 10, 2, 18, 'piano_18.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Petrof P131', N'Tall upright piano', 100000000.000, 12, 2, 19, 'piano_19.jpg', N'Czech Republic', 2023, N'Spruce', NULL),
+(N'Young Chang Y150', N'Grand piano for studios', 150000000.000, 8, 2, 20, 'piano_20.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Yamaha YDP-144', N'Digital piano for home use', 18000000.000, 25, 2, 11, 'piano_21.jpg', N'Japan', 2023, N'Plastic', NULL),
+(N'Kawai K-500', N'Premium upright piano', 110000000.000, 10, 2, 12, 'piano_22.jpg', N'Japan', 2021, N'Wood', NULL),
+(N'Steinway Model A', N'Classic grand piano', 320000000.000, 5, 2, 13, 'piano_23.jpg', N'USA', 2022, N'Spruce', NULL),
+(N'Casio CDP-S350', N'Compact digital piano', 16000000.000, 30, 2, 14, 'piano_24.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Roland FP-60X', N'Portable digital piano', 25000000.000, 20, 2, 15, 'piano_25.jpg', N'China', 2022, N'Plastic', NULL),
+(N'Korg C1 Air', N'Slim digital piano', 13000000.000, 35, 2, 16, 'piano_26.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Bösendorfer 170', N'Compact grand piano', 260000000.000, 6, 2, 17, 'piano_27.jpg', N'Austria', 2021, N'Spruce', NULL),
+(N'Samick JS-143', N'Upright piano for schools', 70000000.000, 15, 2, 18, 'piano_28.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Petrof P118', N'Entry-level upright piano', 80000000.000, 12, 2, 19, 'piano_29.jpg', N'Czech Republic', 2023, N'Spruce', NULL),
+(N'Young Chang Y114', N'Compact upright piano', 50000000.000, 20, 2, 20, 'piano_30.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Yamaha CLP-735', N'Clavinova digital piano', 35000000.000, 15, 2, 11, 'piano_31.jpg', N'Japan', 2023, N'Plastic', NULL),
+(N'Kawai CA59', N'High-end digital piano', 40000000.000, 10, 2, 12, 'piano_32.jpg', N'Japan', 2022, N'Plastic', NULL),
+(N'Steinway Model M', N'Medium grand piano', 300000000.000, 5, 2, 13, 'piano_33.jpg', N'USA', 2021, N'Spruce', NULL),
+(N'Casio AP-470', N'Celviano digital piano', 22000000.000, 25, 2, 14, 'piano_34.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Roland HP702', N'Home digital piano', 28000000.000, 20, 2, 15, 'piano_35.jpg', N'China', 2022, N'Plastic', NULL),
+(N'Korg LP-380', N'Slim digital piano', 15000000.000, 30, 2, 16, 'piano_36.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Bösendorfer 214VC', N'Concert grand piano', 400000000.000, 4, 2, 17, 'piano_37.jpg', N'Austria', 2021, N'Spruce', NULL),
+(N'Samick NSG-175', N'Grand piano for professionals', 140000000.000, 8, 2, 18, 'piano_38.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Petrof P135', N'Tall upright piano', 110000000.000, 10, 2, 19, 'piano_39.jpg', N'Czech Republic', 2023, N'Spruce', NULL),
+(N'Young Chang Y131', N'Upright piano for studios', 65000000.000, 15, 2, 20, 'piano_40.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Yamaha YDP-164', N'Digital piano with authentic sound', 20000000.000, 25, 2, 11, 'piano_41.jpg', N'Japan', 2023, N'Plastic', NULL),
+(N'Kawai K-200', N'Entry-level upright piano', 75000000.000, 12, 2, 12, 'piano_42.jpg', N'Japan', 2022, N'Wood', NULL),
+(N'Steinway Model S', N'Compact grand piano', 250000000.000, 6, 2, 13, 'piano_43.jpg', N'USA', 2021, N'Spruce', NULL),
+(N'Casio CDP-S100', N'Ultra-slim digital piano', 10000000.000, 35, 2, 14, 'piano_44.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Roland FP-10', N'Entry-level digital piano', 12000000.000, 30, 2, 15, 'piano_45.jpg', N'China', 2022, N'Plastic', NULL),
+(N'Korg B1SP', N'Digital piano with stand', 11000000.000, 40, 2, 16, 'piano_46.jpg', N'China', 2023, N'Plastic', NULL),
+(N'Bösendorfer 155', N'Small grand piano', 240000000.000, 7, 2, 17, 'piano_47.jpg', N'Austria', 2021, N'Spruce', NULL),
+(N'Samick JS-115', N'Compact upright piano', 55000000.000, 20, 2, 18, 'piano_48.jpg', N'Korea', 2022, N'Wood', NULL),
+(N'Petrof P122', N'Upright piano for home', 85000000.000, 12, 2, 19, 'piano_49.jpg', N'Czech Republic', 2023, N'Spruce', NULL),
+(N'Young Chang Y116', N'Affordable upright piano', 60000000.000, 15, 2, 20, 'piano_50.jpg', N'Korea', 2022, N'Wood', NULL);
+
+-- Insert 50 Violin products
+INSERT INTO Products (name, description, price, stock_quantity, category_id, brand_id, image_url, made_in, manufacturing_year, material, discount_id)
+VALUES
+(N'Stentor Student I', N'Beginner violin outfit', 4000000.000, 50, 3, 21, 'violin_1.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Cremona SV-75', N'Entry-level violin for students', 3500000.000, 60, 3, 22, 'violin_2.jpg', N'China', 2023, N'Maple', NULL),
+(N'Yamaha V3SKA', N'Student violin with case', 7000000.000, 40, 3, 23, 'violin_3.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Fiddlerman Apprentice', N'Violin for beginners', 5000000.000, 45, 3, 24, 'violin_4.jpg', N'China', 2023, N'Maple', NULL),
+(N'Cecilio CVN-300', N'Intermediate violin outfit', 6000000.000, 50, 3, 25, 'violin_5.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Eastman VL80', N'Student violin with ebony fittings', 8000000.000, 35, 3, 26, 'violin_6.jpg', N'China', 2023, N'Maple', NULL),
+(N'D Z Strad Model 101', N'Handcrafted student violin', 10000000.000, 30, 3, 27, 'violin_7.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Scott Cao STV-017', N'Intermediate violin', 12000000.000, 25, 3, 28, 'violin_8.jpg', N'China', 2023, N'Maple', NULL),
+(N'Gliga Gems 2', N'Handmade violin for intermediates', 15000000.000, 20, 3, 29, 'violin_9.jpg', N'Romania', 2022, N'Spruce', NULL),
+(N'Knilling Bucharest', N'Professional violin outfit', 18000000.000, 15, 3, 30, 'violin_10.jpg', N'China', 2023, N'Maple', NULL),
+(N'Stentor Student II', N'Upgraded student violin', 4500000.000, 50, 3, 21, 'violin_11.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Cremona SV-150', N'Violin for advancing students', 5000000.000, 45, 3, 22, 'violin_12.jpg', N'China', 2023, N'Maple', NULL),
+(N'Yamaha V5SC', N'Acoustic violin for intermediates', 9000000.000, 35, 3, 23, 'violin_13.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Fiddlerman Soloist', N'Professional-grade violin', 12000000.000, 30, 3, 24, 'violin_14.jpg', N'China', 2023, N'Maple', NULL),
+(N'Cecilio CVN-500', N'Advanced student violin', 7000000.000, 40, 3, 25, 'violin_15.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Eastman VL100', N'Intermediate violin outfit', 10000000.000, 30, 3, 26, 'violin_16.jpg', N'China', 2023, N'Maple', NULL),
+(N'D Z Strad Model 220', N'Handcrafted violin for performers', 14000000.000, 25, 3, 27, 'violin_17.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Scott Cao STV-750', N'Professional violin', 16000000.000, 20, 3, 28, 'violin_18.jpg', N'China', 2023, N'Maple', NULL),
+(N'Gliga Gems 1', N'Handmade professional violin', 20000000.000, 15, 3, 29, 'violin_19.jpg', N'Romania', 2022, N'Spruce', NULL),
+(N'Knilling Sinfonia', N'High-end student violin', 11000000.000, 30, 3, 30, 'violin_20.jpg', N'China', 2023, N'Maple', NULL),
+(N'Stentor Conservatoire', N'Advanced student violin', 6000000.000, 40, 3, 21, 'violin_21.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Cremona SV-175', N'Violin for intermediate players', 5500000.000, 45, 3, 22, 'violin_22.jpg', N'China', 2023, N'Maple', NULL),
+(N'Yamaha V7SG', N'Acoustic violin for performers', 11000000.000, 30, 3, 23, 'violin_23.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Fiddlerman Concert', N'Concert-level violin', 13000000.000, 25, 3, 24, 'violin_24.jpg', N'China', 2023, N'Maple', NULL),
+(N'Cecilio CVN-600', N'Professional violin outfit', 8000000.000, 35, 3, 25, 'violin_25.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Eastman VL200', N'Advanced violin with ebony fittings', 12000000.000, 30, 3, 26, 'violin_26.jpg', N'China', 2023, N'Maple', NULL),
+(N'D Z Strad Model 300', N'Handcrafted professional violin', 16000000.000, 20, 3, 27, 'violin_27.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Scott Cao STV-850', N'Master violin for soloists', 18000000.000, 15, 3, 28, 'violin_28.jpg', N'China', 2023, N'Maple', NULL),
+(N'Gliga Maestro', N'Handmade master violin', 22000000.000, 10, 3, 29, 'violin_29.jpg', N'Romania', 2022, N'Spruce', NULL),
+(N'Knilling Perfection', N'High-end violin for professionals', 15000000.000, 20, 3, 30, 'violin_30.jpg', N'China', 2023, N'Maple', NULL),
+(N'Stentor Verona', N'Advanced violin outfit', 7000000.000, 35, 3, 21, 'violin_31.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Cremona SV-200', N'Intermediate violin with case', 6000000.000, 40, 3, 22, 'violin_32.jpg', N'China', 2023, N'Maple', NULL),
+(N'Yamaha V10G', N'Professional acoustic violin', 14000000.000, 25, 3, 23, 'violin_33.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Fiddlerman Master', N'Master-level violin', 16000000.000, 20, 3, 24, 'violin_34.jpg', N'China', 2023, N'Maple', NULL),
+(N'Cecilio CVN-EAV', N'Electric-acoustic violin', 9000000.000, 30, 3, 25, 'violin_35.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Eastman VL305', N'Professional violin outfit', 13000000.000, 25, 3, 26, 'violin_36.jpg', N'China', 2023, N'Maple', NULL),
+(N'D Z Strad Model 400', N'Handcrafted concert violin', 17000000.000, 20, 3, 27, 'violin_37.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Scott Cao STV-950', N'Master violin for orchestras', 20000000.000, 15, 3, 28, 'violin_38.jpg', N'China', 2023, N'Maple', NULL),
+(N'Gliga Professional', N'Handmade professional violin', 24000000.000, 10, 3, 29, 'violin_39.jpg', N'Romania', 2022, N'Spruce', NULL),
+(N'Knilling Heritage', N'High-end student violin', 12000000.000, 25, 3, 30, 'violin_40.jpg', N'China', 2023, N'Maple', NULL),
+(N'Stentor Messina', N'Advanced violin for performers', 8000000.000, 30, 3, 21, 'violin_41.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Cremona SV-500', N'Professional violin outfit', 10000000.000, 35, 3, 22, 'violin_42.jpg', N'China', 2023, N'Maple', NULL),
+(N'Yamaha EV-104', N'Electric violin for modern players', 15000000.000, 20, 3, 23, 'violin_43.jpg', N'Japan', 2022, N'Spruce', NULL),
+(N'Fiddlerman Artisan', N'Handcrafted artisan violin', 14000000.000, 25, 3, 24, 'violin_44.jpg', N'China', 2023, N'Maple', NULL),
+(N'Cecilio CVN-700', N'Advanced professional violin', 11000000.000, 30, 3, 25, 'violin_45.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Eastman VL405', N'Master violin with ebony fittings', 16000000.000, 20, 3, 26, 'violin_46.jpg', N'China', 2023, N'Maple', NULL),
+(N'D Z Strad Model 500', N'Concert-level violin', 18000000.000, 15, 3, 27, 'violin_47.jpg', N'China', 2022, N'Spruce', NULL),
+(N'Scott Cao STV-1000', N'Master violin for soloists', 22000000.000, 10, 3, 28, 'violin_48.jpg', N'China', 2023, N'Maple', NULL),
+(N'Gliga Gems 3', N'Handmade master violin', 25000000.000, 10, 3, 29, 'violin_49.jpg', N'Romania', 2022, N'Spruce', NULL),
+(N'Knilling Maestro', N'Professional violin outfit', 17000000.000, 15, 3, 30, 'violin_50.jpg', N'China', 2023, N'Maple', NULL);
 -- Product Image
 INSERT INTO ProductImages (product_id, image_url, caption, is_primary)
 VALUES 
