@@ -16,14 +16,6 @@ Click nbproject/project.properties to edit this template
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
-.order-header {
-    background: linear-gradient(135deg, #6d28d9, #a855f7);
-    color: white;
-    padding: 15px;
-    border-radius: 10px 10px 0 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
 .order-item {
     display: flex;
     align-items: center;
@@ -53,8 +45,6 @@ Click nbproject/project.properties to edit this template
     background-color: #dc3545;
 }
 .btn-view-detail {
-    background-color: #6d28d9;
-    color: white;
     border: none;
     padding: 10px 20px;
     font-size: 1.1rem;
@@ -63,6 +53,5 @@ Click nbproject/project.properties to edit this template
     transition: background-color 0.2s, transform 0.2s;
 }
 .btn-view-detail:hover {
-    background-color: #5b21b6;
     transform: scale(1.05);
 }

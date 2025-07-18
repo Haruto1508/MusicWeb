@@ -99,7 +99,6 @@ public class AccountServlet extends HttpServlet {
                 request.setAttribute("carts", carts);
                 request.setAttribute("total", total);
                 break;
-
             case "order":
                 OrderDAO orderDAO = new OrderDAO();
                 System.out.println(user.getUserId());
@@ -108,14 +107,22 @@ public class AccountServlet extends HttpServlet {
                     orders = new ArrayList<>();
                     request.setAttribute("error", "Cannot load orders");
                 }
-                System.out.println(orders + "co cocn c");
+                
                 request.setAttribute("orders", orders);
                 break;
-
-            case "setting":
+            case "history":
+                OrderDAO dao = new OrderDAO();
+                System.out.println(user.getUserId());
+                List<Order> histories = dao.getOrdersHistoryByUserId(user.getUserId());
+                if (histories == null) {
+                    orders = new ArrayList<>();
+                    request.setAttribute("error", "Cannot load orders");
+                }
+                
+                request.setAttribute("histories", histories);
+                break;
             case "password":
                 break;
-
             default:
                 request.setAttribute("error", "Invalid view parameter");
                 view = "info";

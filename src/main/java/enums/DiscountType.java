@@ -10,7 +10,8 @@ package enums;
  */
 public enum DiscountType {
     PERCENTAGE(1, "Percentage"),
-    FIXED(2, "Fixed");
+    FIXED(2, "Fixed"),
+    NONE(3, "None");
 
     private final int code;
     private final String label;

@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+
 /**
  *
  * @author Nguyen Hoang Thai Vinh - CE190384
@@ -22,9 +23,7 @@ public class Order {
     private OrderStatus status;  // pending, processing, shipped, delivered, cancelled
     private BigDecimal totalAmount;
     private Discount discount; // có thể null
-    private BigDecimal discountAmount;
     private Address address;
-    private Shipping shipping;
     private Payment payment;
     private OrderDetail orderDetail;
     private LocalDate shippedDate;
@@ -33,19 +32,16 @@ public class Order {
     public Order() {
     }
 
-    public Order(int orderId, User user, LocalDateTime orderDate, OrderStatus status, 
-            BigDecimal totalAmount, Discount discount, BigDecimal discountAmount, 
-            Address address, Shipping shipping, Payment payment, LocalDate shppedDate,
-            LocalDate estimatedDelivery) {
+    public Order(int orderId, User user, LocalDateTime orderDate, OrderStatus status,
+            BigDecimal totalAmount, Discount discount, Address address, Payment payment,
+            LocalDate shppedDate, LocalDate estimatedDelivery) {
         this.orderId = orderId;
         this.user = user;
         this.orderDate = orderDate;
         this.status = status;
         this.totalAmount = totalAmount;
         this.discount = discount;
-        this.discountAmount = discountAmount;
         this.address = address;
-        this.shipping = shipping;
         this.payment = payment;
         this.shippedDate = shppedDate;
         this.estimatedDelivery = estimatedDelivery;
@@ -86,7 +82,7 @@ public class Order {
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
     }
-    
+
     public BigDecimal getTotalAmount() {
         return totalAmount;
     }
@@ -101,14 +97,6 @@ public class Order {
 
     public void setDiscount(Discount discount) {
         this.discount = discount;
-    }
-
-    public BigDecimal getDiscountAmount() {
-        return discountAmount;
-    }
-
-    public void setDiscountAmount(BigDecimal discountAmount) {
-        this.discountAmount = discountAmount;
     }
 
     public Address getAddress() {
@@ -126,18 +114,9 @@ public class Order {
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
-    
-    // Thêm phương thức chuyển đổi LocalDateTime sang Date
+
     public Date getOrderDateAsDate() {
         return orderDate != null ? Date.from(orderDate.atZone(ZoneId.systemDefault()).toInstant()) : null;
-    }
-
-    public Shipping getShipping() {
-        return shipping;
-    }
-
-    public void setShipping(Shipping shipping) {
-        this.shipping = shipping;
     }
 
     public Payment getPayment() {
@@ -166,6 +145,6 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", discountAmount=" + discountAmount + ", address=" + address + ", shipping=" + shipping + ", payment=" + payment + ", orderDetail=" + orderDetail + ", shippedDate=" + shippedDate + ", estimatedDelivery=" + estimatedDelivery + '}';
+        return "Order{" + "orderId=" + orderId + ", user=" + user + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discount=" + discount + ", address=" + address + ", payment=" + payment + ", orderDetail=" + orderDetail + ", shippedDate=" + shippedDate + ", estimatedDelivery=" + estimatedDelivery + '}';
     }
 }

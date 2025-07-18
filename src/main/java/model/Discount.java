@@ -20,7 +20,6 @@ public class Discount {
     private BigDecimal discountValue;
     private LocalDate startDate;
     private LocalDate endDate;
-    private BigDecimal minimumOrderValue;
     private int usageLimit;
     private int usedCount;
     private boolean isActive;
@@ -29,7 +28,7 @@ public class Discount {
     public Discount() {}
     
     public Discount(int discountId, String code, String description, DiscountType discountType, BigDecimal discountValue,
-                    LocalDate startDate, LocalDate endDate, BigDecimal minimumOrderValue, int usageLimit,
+                    LocalDate startDate, LocalDate endDate, int usageLimit,
                     int usedCount, boolean isActive) {
         this.discountId = discountId;
         this.code = code;
@@ -38,7 +37,6 @@ public class Discount {
         this.discountValue = discountValue;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.minimumOrderValue = minimumOrderValue;
         this.usageLimit = usageLimit;
         this.usedCount = usedCount;
         this.isActive = isActive;
@@ -101,14 +99,6 @@ public class Discount {
         this.endDate = endDate;
     }
 
-    public BigDecimal getMinimumOrderValue() {
-        return minimumOrderValue;
-    }
-
-    public void setMinimumOrderValue(BigDecimal minimumOrderValue) {
-        this.minimumOrderValue = minimumOrderValue;
-    }
-
     public int getUsageLimit() {
         return usageLimit;
     }
@@ -135,7 +125,7 @@ public class Discount {
 
     @Override
     public String toString() {
-        return "Discount{" + "discountId=" + discountId + ", code=" + code + ", description=" + description + ", discountType=" + discountType + ", discountValue=" + discountValue + ", startDate=" + startDate + ", endDate=" + endDate + ", minimumOrderValue=" + minimumOrderValue + ", usageLimit=" + usageLimit + ", usedCount=" + usedCount + ", isActive=" + isActive + '}';
+        return "Discount{" + "discountId=" + discountId + ", code=" + code + ", description=" + description + ", discountType=" + discountType + ", discountValue=" + discountValue + ", startDate=" + startDate + ", endDate=" + endDate + ", usageLimit=" + usageLimit + ", usedCount=" + usedCount + ", isActive=" + isActive + '}';
     }
     
 }

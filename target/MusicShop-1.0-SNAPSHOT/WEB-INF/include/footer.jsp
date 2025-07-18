@@ -5,30 +5,40 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!-- Footer -->
-<footer class="footer" id="contact">
+<footer class="bg-dark text-white py-4">
     <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-3 mb-md-0 text-md-start text-center">
-                <h5 class="fw-bold mb-2"><i class="fa-solid fa-music"></i> MusicShop</h5>
-                <p class="mb-1"><i class="fa-solid fa-location-dot me-2"></i>123 Đường Âm Nhạc, Q.1, TP.HCM</p>
-                <p class="mb-1"><i class="fa-solid fa-phone me-2"></i>Hotline: <a href="tel:0123456789"
-                                                                                  class="text-white text-decoration-underline">0123 456 789</a></p>
-                <p class="mb-1"><i class="fa-solid fa-envelope me-2"></i>Email: <a href="mailto:info@musicshop.vn"
-                                                                                   class="text-white text-decoration-underline">info@musicshop.vn</a></p>
+        <div class="row g-3">
+            <!-- Links Section -->
+            <div class="col-6 col-md-3">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="${pageContext.request.contextPath}/home" class="text-white text-decoration-none">Home</a></li>
+                    <li><a href="${pageContext.request.contextPath}/products" class="text-white text-decoration-none">Products</a></li>
+                    <li><a href="${pageContext.request.contextPath}/order-history" class="text-white text-decoration-none">Order History</a></li>
+                    <li><a href="${pageContext.request.contextPath}/about" class="text-white text-decoration-none">About</a></li>
+                </ul>
             </div>
-            <div class="col-md-4 mb-3 mb-md-0 text-center">
-                <h6 class="fw-bold mb-2">Kết nối với chúng tôi</h6>
-                <a href="#" class="text-white me-3 fs-5"><i class="fa-brands fa-facebook-f"></i></a>
-                <a href="#" class="text-white me-3 fs-5"><i class="fa-brands fa-instagram"></i></a>
-                <a href="#" class="text-white fs-5"><i class="fa-brands fa-youtube"></i></a>
+            <!-- Contact Section -->
+            <div class="col-6 col-md-3">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li>123 Music Street, District 1, Ho Chi Minh City</li>
+                    <li>Email: <a href="mailto:support@musicshop.vn" class="text-white text-decoration-none">support@musicshop.vn</a></li>
+                    <li>Phone: <a href="tel:+84234567890" class="text-white text-decoration-none">+84 234 567 890</a></li>
+                </ul>
             </div>
-            <div class="col-md-4 text-md-end text-center">
-                <h6 class="fw-bold mb-2">Giờ mở cửa</h6>
-                <p class="mb-1">Thứ 2 - Thứ 7: 8:00 - 21:00</p>
-                <p class="mb-1">Chủ nhật: 9:00 - 18:00</p>
-                <p class="mb-0 mt-2 small">MusicShop &copy; 2025. All rights reserved.</p>
+            <!-- Social Media Section -->
+            <div class="col-6 col-md-3">
+                <h5 class="mb-3">Follow Us</h5>
+                <ul class="list-unstyled">
+                    <li><a href="https://facebook.com/musicshop" class="text-white text-decoration-none">Facebook</a></li>
+                    <li><a href="https://instagram.com/musicshop" class="text-white text-decoration-none">Instagram</a></li>
+                    <li><a href="https://twitter.com/musicshop" class="text-white text-decoration-none">Twitter</a></li>
+                </ul>
             </div>
+        </div>
+        <div class="text-center mt-4">
+            <p class="mb-0">© 2025 MusicShop. All rights reserved.</p>
         </div>
     </div>
 </footer>

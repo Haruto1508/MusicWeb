@@ -15,13 +15,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import model.Address;
 import model.Discount;
 import model.Product;
-import model.ShippingFee;
 import model.User;
 
 /**
@@ -53,11 +53,12 @@ public class OrderConfirmServlet extends HttpServlet {
 
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response, boolean isPost) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
+        if (session == null || session.getAttribute("user") == null) {
+            request.setAttribute("error", "Vui lòng đăng nhập để tiếp tục.");
             response.sendRedirect("login");
             return;
         }
+        User user = (User) session.getAttribute("user");
 
         String productIdParam = request.getParameter("productId");
         String quantityStr = request.getParameter("quantity");
@@ -73,10 +74,17 @@ public class OrderConfirmServlet extends HttpServlet {
         }
 
         int productId = 0, quantity = 1;
+        if (productIdParam == null || quantityStr == null) {
+            request.setAttribute("error", "Sản phẩm hoặc số lượng không hợp lệ.");
+            response.sendRedirect("shop");
+            return;
+        }
+        
         try {
             productId = Integer.parseInt(productIdParam);
             quantity = Integer.parseInt(quantityStr);
         } catch (Exception e) {
+            request.setAttribute("error", "Sản phẩm hoặc số lượng không hợp lệ.");
             response.sendRedirect("shop");
             return;
         }
@@ -88,7 +96,8 @@ public class OrderConfirmServlet extends HttpServlet {
 
         Product product = new ProductDAO().getProductById(productId);
         if (product == null) {
-            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
+            request.setAttribute("error", "Không tìm thấy sản phẩm.");
+            response.sendRedirect("shop");
             return;
         }
 
@@ -123,21 +132,19 @@ public class OrderConfirmServlet extends HttpServlet {
         BigDecimal quantityBD = new BigDecimal(quantity);
         BigDecimal productPrice = product.getPrice();
         BigDecimal productTotalPrice = productPrice.multiply(quantityBD);
-        BigDecimal shippingFee = ShippingFee.SHIPPING_FEE;
         BigDecimal discountAmount = BigDecimal.ZERO;
-        BigDecimal totalAmount = productTotalPrice.add(shippingFee);
+        BigDecimal totalAmount = productTotalPrice; // Mặc định là giá sản phẩm
         Discount selectedDiscount = null;
 
         if (voucherIdStr != null && !voucherIdStr.equals("not")) {
             try {
                 int voucherId = Integer.parseInt(voucherIdStr);
                 selectedDiscount = new DiscountDAO().getDiscountById(voucherId);
-
                 if (selectedDiscount != null && isDiscountValid(selectedDiscount)) {
                     switch (selectedDiscount.getDiscountType().getCode()) {
                         case 1:
                             discountAmount = productTotalPrice.multiply(
-                                    selectedDiscount.getDiscountValue().divide(BigDecimal.valueOf(100))
+                                    selectedDiscount.getDiscountValue().divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
                             );
                             break;
                         case 2:
@@ -149,17 +156,16 @@ public class OrderConfirmServlet extends HttpServlet {
                         default:
                             discountAmount = BigDecimal.ZERO;
                     }
-                    totalAmount = productTotalPrice.subtract(discountAmount).add(shippingFee);
+                    totalAmount = productTotalPrice.subtract(discountAmount);
                 }
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+                System.out.println("Invalid voucher ID: " + voucherIdStr);
             }
         }
 
         request.setAttribute("product", product);
         request.setAttribute("quantity", quantity);
         request.setAttribute("productPrice", productPrice);
-        request.setAttribute("shippingFee", shippingFee);
         request.setAttribute("totalAmount", totalAmount);
         request.setAttribute("discountAmount", discountAmount);
         request.setAttribute("selectedDiscount", selectedDiscount);

@@ -150,7 +150,7 @@
                                         <div class="product-info">
                                             <div class="product-name">${guitar.name}</div>
                                             <div class="product-price">
-                                                <strong><fmt:formatNumber value="${guitar.price}"  currencySymbol="VNÐ" groupingUsed="true"/></strong>
+                                                <strong><fmt:formatNumber value="${guitar.price}" type="number" pattern="#,##0"/> VNÐ</strong>
                                             </div>
                                             <div class="product-actions">
                                                 <a href="${pageContext.request.contextPath}/product?id=${guitar.productId}" class="text-decoration-none text-white">

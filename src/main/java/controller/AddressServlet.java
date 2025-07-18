@@ -236,6 +236,7 @@ public class AddressServlet extends HttpServlet {
     private void deleteAddress(HttpServletRequest request, HttpServletResponse response, User user, AddressDAO addressDAO, HttpSession session)
             throws ServletException, IOException {
         String addressIdStr = request.getParameter("addressId");
+        System.out.println(addressIdStr);
         int addressId;
         try {
             addressId = Integer.parseInt(addressIdStr);

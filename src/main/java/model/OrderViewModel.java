@@ -4,10 +4,9 @@
  */
 package model;
 
+import enums.DiscountType;
 import enums.OrderStatus;
 import enums.PaymentMethod;
-import enums.PaymentStatus;
-import enums.ShippingMethod;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
@@ -23,16 +22,14 @@ public class OrderViewModel {
 
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
-    private BigDecimal finalAmount;
-
+    private DiscountType discountType;
+            
     private String receiverName;
     private String orderPhone;
     private String fullAddress;
 
     private PaymentMethod paymentMethod;
-    private PaymentStatus paymentStatus;
 
-    private String shippingMethod;
     private String trackingNumber;
     private Timestamp estimatedDelivery;
 
@@ -40,22 +37,20 @@ public class OrderViewModel {
 
     public OrderViewModel () {}
 
-    public OrderViewModel(int orderId, Timestamp orderDate, OrderStatus status, BigDecimal totalAmount, BigDecimal discountAmount, BigDecimal finalAmount, String receiverName, String orderPhone, String fullAddress, PaymentMethod paymentMethod, PaymentStatus paymentStatus, String shippingMethod, String trackingNumber, Timestamp estimatedDelivery, List<OrderDetail> orderDetails) {
+    public OrderViewModel(int orderId, Timestamp orderDate, OrderStatus status, BigDecimal totalAmount, BigDecimal discountAmount, String receiverName, String orderPhone, String fullAddress, PaymentMethod paymentMethod, String trackingNumber, Timestamp estimatedDelivery, List<OrderDetail> orderDetails, DiscountType discountType) {
         this.orderId = orderId;
         this.orderDate = orderDate;
         this.status = status;
         this.totalAmount = totalAmount;
         this.discountAmount = discountAmount;
-        this.finalAmount = finalAmount;
         this.receiverName = receiverName;
         this.orderPhone = orderPhone;
         this.fullAddress = fullAddress;
         this.paymentMethod = paymentMethod;
-        this.paymentStatus = paymentStatus;
-        this.shippingMethod = shippingMethod;
         this.trackingNumber = trackingNumber;
         this.estimatedDelivery = estimatedDelivery;
         this.orderDetails = orderDetails;
+        this.discountType = discountType;
     }
     
     public int getOrderId() {
@@ -98,14 +93,6 @@ public class OrderViewModel {
         this.discountAmount = discountAmount;
     }
 
-    public BigDecimal getFinalAmount() {
-        return finalAmount;
-    }
-
-    public void setFinalAmount(BigDecimal finalAmount) {
-        this.finalAmount = finalAmount;
-    }
-
     public String getReceiverName() {
         return receiverName;
     }
@@ -138,22 +125,6 @@ public class OrderViewModel {
         this.paymentMethod = paymentMethod;
     }
 
-    public PaymentStatus getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(PaymentStatus paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
-    public String getShippingMethod() {
-        return shippingMethod;
-    }
-
-    public void setShippingMethod(String shippingMethod) {
-        this.shippingMethod = shippingMethod;
-    }
-
     public String getTrackingNumber() {
         return trackingNumber;
     }
@@ -178,8 +149,16 @@ public class OrderViewModel {
         this.orderDetails = orderDetails;
     }
 
+    public DiscountType getDiscountType() {
+        return discountType;
+    }
+
+    public void setDiscountType(DiscountType discountType) {
+        this.discountType = discountType;
+    }
+
     @Override
     public String toString() {
-        return "OrderViewModel{" + "orderId=" + orderId + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discountAmount=" + discountAmount + ", finalAmount=" + finalAmount + ", receiverName=" + receiverName + ", orderPhone=" + orderPhone + ", fullAddress=" + fullAddress + ", paymentMethod=" + paymentMethod + ", paymentStatus=" + paymentStatus + ", shippingMethod=" + shippingMethod + ", trackingNumber=" + trackingNumber + ", estimatedDelivery=" + estimatedDelivery + ", orderDetails=" + orderDetails + '}';
+        return "OrderViewModel{" + "orderId=" + orderId + ", orderDate=" + orderDate + ", status=" + status + ", totalAmount=" + totalAmount + ", discountAmount=" + discountAmount + ", discountType=" + discountType + ", receiverName=" + receiverName + ", orderPhone=" + orderPhone + ", fullAddress=" + fullAddress + ", paymentMethod=" + paymentMethod + ", trackingNumber=" + trackingNumber + ", estimatedDelivery=" + estimatedDelivery + ", orderDetails=" + orderDetails + '}';
     }
 }

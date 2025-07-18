@@ -7,6 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> 
 
 <!DOCTYPE html>
 <html lang="en">
@@ -143,7 +144,9 @@
                                         </div>
                                         <div class="product-info">
                                             <div class="product-name">${piano.name}</div>
-                                            <div class="product-price">${piano.price} ₫</div>
+                                            <div class="product-price">
+                                                <strong><fmt:formatNumber value="${piano.price}"  currencySymbol="VNÐ" groupingUsed="true" pattern="#,##0"/></strong>
+                                            </div>
                                             <div class="product-actions">
                                                 <a href="${pageContext.request.contextPath}/product?id=${piano.productId}" class="text-decoration-none text-white">
                                                     <button class="product-button buy">

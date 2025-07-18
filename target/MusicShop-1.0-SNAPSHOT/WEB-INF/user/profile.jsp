@@ -63,6 +63,9 @@
                         <li><a href="${pageContext.request.contextPath}/account?view=cart" 
                                class="${view == 'cart' ? 'active' : ''}" onclick="activeBtn(event, this)">
                                 <i class="fas fa-shopping-cart"></i> Cart</a></li>
+                        <li><a href="${pageContext.request.contextPath}/account?view=history" 
+                               class="${view == 'history' ? 'active' : ''}" onclick="activeBtn(event, this)">
+                                <i class="fas fa-shopping-cart"></i> History</a></li>
                         <li><a href="${pageContext.request.contextPath}/account?view=password" 
                                class="${view == 'password' ? 'active' : ''}" onclick="activeBtn(event, this)">
                                 <i class="fas fa-lock"></i> Change Password</a></li>
@@ -82,6 +85,9 @@
                     </c:when>
                     <c:when test="${view == 'order'}">
                         <jsp:include page="/WEB-INF/user/order.jsp" />
+                    </c:when>
+                    <c:when test="${view == 'history'}">
+                        <jsp:include page="/WEB-INF/user/history.jsp" />
                     </c:when>
                     <c:when test="${view == 'password'}">
                         <jsp:include page="/WEB-INF/user/password.jsp" />

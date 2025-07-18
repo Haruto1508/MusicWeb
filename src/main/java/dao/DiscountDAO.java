@@ -33,7 +33,6 @@ public class DiscountDAO extends JDBCUtil {
                 discount.setDiscountValue(rs.getBigDecimal("discount_value"));
                 discount.setStartDate(rs.getDate("start_date").toLocalDate());
                 discount.setEndDate(rs.getDate("end_date").toLocalDate());
-                discount.setMinimumOrderValue(rs.getBigDecimal("minimum_order_value"));
                 discount.setUsageLimit(rs.getInt("usage_limit"));
                 discount.setUsedCount(rs.getInt("used_count"));
                 discount.setIsActive(rs.getBoolean("is_active"));
@@ -61,7 +60,6 @@ public class DiscountDAO extends JDBCUtil {
                 discount.setDiscountValue(rs.getBigDecimal("discount_value"));
                 discount.setStartDate(rs.getDate("start_date").toLocalDate());
                 discount.setEndDate(rs.getDate("end_date").toLocalDate());
-                discount.setMinimumOrderValue(rs.getBigDecimal("minimum_order_value"));
                 discount.setUsageLimit(rs.getInt("usage_limit"));
                 discount.setUsedCount(rs.getInt("used_count"));
                 discount.setIsActive(rs.getBoolean("is_active"));
@@ -91,7 +89,6 @@ public class DiscountDAO extends JDBCUtil {
                 discount.setDiscountValue(rs.getBigDecimal("discount_value"));
                 discount.setStartDate(rs.getDate("start_date").toLocalDate());
                 discount.setEndDate(rs.getDate("end_date").toLocalDate());
-                discount.setMinimumOrderValue(rs.getBigDecimal("minimum_order_value"));
                 discount.setUsageLimit(rs.getInt("usage_limit"));
                 discount.setUsedCount(rs.getInt("used_count"));
                 discount.setIsActive(rs.getBoolean("is_active"));

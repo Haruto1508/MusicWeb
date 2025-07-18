@@ -5,6 +5,7 @@
 package controller;
 
 import dao.AddressDAO;
+import dao.DiscountDAO;
 import dao.OrderDAO;
 import dao.ProductDAO;
 import java.io.IOException;
@@ -66,32 +67,39 @@ public class OrderSubmitServlet extends HttpServlet {
         String addressIdStr = request.getParameter("addressId");
         String voucherIdStr = request.getParameter("voucherId");
         String paymentMethodStr = request.getParameter("paymentMethod");
-        String shippingMethodStr = request.getParameter("shippingMethod");
 
+        // Log để debug
         System.out.println("productIdStr = " + productIdStr);
         System.out.println("quantityStr = " + quantityStr);
         System.out.println("addressIdStr = " + addressIdStr);
         System.out.println("voucherIdStr = " + voucherIdStr);
         System.out.println("paymentMethodStr = " + paymentMethodStr);
-        System.out.println("shippingMethodStr = " + shippingMethodStr);
 
-        // Lưu lại để hiển thị lại khi có lỗi
-        request.setAttribute("productId", productIdStr);
-        request.setAttribute("quantity", quantityStr);
-        request.setAttribute("addressId", addressIdStr);
-        request.setAttribute("voucherId", voucherIdStr);
-        request.setAttribute("paymentMethod", paymentMethodStr);
-        request.setAttribute("shippingMethod", shippingMethodStr);
+        // Thiết lập các thuộc tính request
+        setRequestAttributes(request, productIdStr, quantityStr, addressIdStr, voucherIdStr, paymentMethodStr);
 
-        int addressId, productId, quantity, paymentMethod, shippingMethod;
+        int addressId, productId, quantity, paymentMethod;
         Integer voucherId = null;
 
         try {
+            // Kiểm tra null hoặc chuỗi rỗng
+            if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
+                throw new NumberFormatException("Address ID is missing");
+            }
+            if (productIdStr == null || productIdStr.trim().isEmpty()) {
+                throw new NumberFormatException("Product ID is missing");
+            }
+            if (quantityStr == null || quantityStr.trim().isEmpty()) {
+                throw new NumberFormatException("Quantity is missing");
+            }
+            if (paymentMethodStr == null || paymentMethodStr.trim().isEmpty()) {
+                throw new NumberFormatException("Payment method is missing");
+            }
+
             addressId = Integer.parseInt(addressIdStr);
             productId = Integer.parseInt(productIdStr);
             quantity = Integer.parseInt(quantityStr);
             paymentMethod = Integer.parseInt(paymentMethodStr);
-            shippingMethod = Integer.parseInt(shippingMethodStr);
 
             if (quantity <= 0) {
                 throw new NumberFormatException("Quantity must be positive");
@@ -99,26 +107,65 @@ public class OrderSubmitServlet extends HttpServlet {
             if (paymentMethod != 1 && paymentMethod != 2) {
                 throw new NumberFormatException("Invalid payment method");
             }
-            if (shippingMethod <= 0 || shippingMethod > 3) {
-                throw new NumberFormatException("Invalid shipping method");
-            }
             if (voucherIdStr != null && !voucherIdStr.equals("not")) {
+                if (voucherIdStr.trim().isEmpty()) {
+                    throw new NumberFormatException("Voucher ID is missing");
+                }
                 voucherId = Integer.parseInt(voucherIdStr);
+                DiscountDAO discountDAO = new DiscountDAO();
+                Discount discount = discountDAO.getDiscountById(voucherId);
+                if (discount == null || !isDiscountValid(discount)) {
+                    throw new IllegalArgumentException("Invalid or expired discount");
+                }
             }
         } catch (NumberFormatException e) {
             String error;
+            System.out.println("NumberFormatException: " + e.getMessage());
+            System.out.println("productIdStr: " + productIdStr);
+            System.out.println("quantityStr: " + quantityStr);
+            System.out.println("addressIdStr: " + addressIdStr);
+            System.out.println("voucherIdStr: " + voucherIdStr);
+            System.out.println("paymentMethodStr: " + paymentMethodStr);
             switch (e.getMessage()) {
+                case "Address ID is missing":
+                    error = "Địa chỉ không được để trống.";
+                    break;
+                case "Product ID is missing":
+                    error = "Sản phẩm không được để trống.";
+                    break;
+                case "Quantity is missing":
+                    error = "Số lượng không được để trống.";
+                    break;
+                case "Payment method is missing":
+                    error = "Phương thức thanh toán không được để trống.";
+                    break;
                 case "Quantity must be positive":
-                    error = "Quantity must be positive";
+                    error = "Số lượng phải lớn hơn 0.";
                     break;
                 case "Invalid payment method":
-                    error = "Invalid payment method";
+                    error = "Phương thức thanh toán không hợp lệ.";
                     break;
-                case "Invalid shipping method":
-                    error = "Invalid shipping method";
+                case "Voucher ID is missing":
+                    error = "Mã voucher không hợp lệ.";
                     break;
                 default:
-                    error = "Invalid input data";
+                    error = "Dữ liệu đầu vào không hợp lệ: " + e.getMessage();
+            }
+            request.setAttribute("error", error);
+            request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
+            return;
+        } catch (IllegalArgumentException e) {
+            String error;
+            System.out.println("IllegalArgumentException: " + e.getMessage());
+            System.out.println("productIdStr: " + productIdStr);
+            System.out.println("quantityStr: " + quantityStr);
+            System.out.println("addressIdStr: " + addressIdStr);
+            System.out.println("voucherIdStr: " + voucherIdStr);
+            System.out.println("paymentMethodStr: " + paymentMethodStr);
+            if (e.getMessage().equals("Invalid or expired discount")) {
+                error = "Voucher không hợp lệ hoặc đã hết hạn.";
+            } else {
+                error = "Lỗi dữ liệu: " + e.getMessage();
             }
             request.setAttribute("error", error);
             request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
@@ -129,7 +176,7 @@ public class OrderSubmitServlet extends HttpServlet {
         AddressDAO addressDAO = new AddressDAO();
         Address address = addressDAO.getAddressById(addressId, user.getUserId());
         if (address == null) {
-            request.setAttribute("error", "Invalid address");
+            request.setAttribute("error", "Địa chỉ không hợp lệ.");
             request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
             return;
         }
@@ -137,7 +184,7 @@ public class OrderSubmitServlet extends HttpServlet {
         // Kiểm tra sản phẩm
         ProductDAO productDAO = new ProductDAO();
         if (productDAO.getProductById(productId) == null) {
-            request.setAttribute("error", "Product not found");
+            request.setAttribute("error", "Sản phẩm không tồn tại.");
             request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
             return;
         }
@@ -151,40 +198,40 @@ public class OrderSubmitServlet extends HttpServlet {
                     productId,
                     quantity,
                     voucherId,
-                    paymentMethod,
-                    shippingMethod
+                    paymentMethod
             );
-
             request.setAttribute("orderId", orderId);
             request.getRequestDispatcher("/WEB-INF/order-success.jsp").forward(request, response);
         } catch (SQLException e) {
             String errorMessage = e.getMessage();
+            System.out.println("SQLException: " + errorMessage);
             if (errorMessage.contains("Invalid address")) {
-                request.setAttribute("error", "Invalid address");
+                request.setAttribute("error", "Địa chỉ không hợp lệ.");
             } else if (errorMessage.contains("Product not found")) {
-                request.setAttribute("error", "Product not found or inactive");
+                request.setAttribute("error", "Sản phẩm không tồn tại hoặc không hoạt động.");
             } else if (errorMessage.contains("Insufficient stock")) {
-                request.setAttribute("error", "Insufficient stock");
+                request.setAttribute("error", "Số lượng tồn kho không đủ.");
             } else if (errorMessage.contains("Invalid or expired discount")) {
-                request.setAttribute("error", "Invalid or expired discount");
+                request.setAttribute("error", "Voucher không hợp lệ hoặc đã hết hạn.");
             } else if (errorMessage.contains("Order value does not meet")) {
-                request.setAttribute("error", "Order value does not meet discount requirements");
-            } else if (errorMessage.contains("Invalid shipping method")) {
-                request.setAttribute("error", "Invalid shipping method");
+                request.setAttribute("error", "Giá trị đơn hàng không đáp ứng yêu cầu giảm giá.");
+            } else if (errorMessage.contains("Invalid payment method")) {
+                request.setAttribute("error", "Phương thức thanh toán không hợp lệ.");
             } else {
-                request.setAttribute("error", "Failed to create order");
+                request.setAttribute("error", "Không thể tạo đơn hàng: " + errorMessage);
             }
-
-            // Giữ lại các giá trị người dùng đã chọn
-            request.setAttribute("productId", productIdStr);
-            request.setAttribute("quantity", quantityStr);
-            request.setAttribute("paymentMethod", paymentMethodStr);
-            request.setAttribute("shippingMethod", shippingMethodStr);
-            request.setAttribute("voucherId", voucherIdStr);
-            request.setAttribute("addressId", addressIdStr);
-
             request.getRequestDispatcher("/WEB-INF/order-confirmation.jsp").forward(request, response);
         }
+    }
+
+    // Hàm thiết lập các thuộc tính request
+    private void setRequestAttributes(HttpServletRequest request, String productIdStr, String quantityStr,
+            String addressIdStr, String voucherIdStr, String paymentMethodStr) {
+        request.setAttribute("productId", productIdStr);
+        request.setAttribute("quantity", quantityStr);
+        request.setAttribute("addressId", addressIdStr);
+        request.setAttribute("voucherId", voucherIdStr);
+        request.setAttribute("paymentMethod", paymentMethodStr);
     }
 
     private boolean isDiscountValid(Discount discount) {

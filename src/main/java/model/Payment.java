@@ -5,7 +5,6 @@
 package model;
 
 import enums.PaymentMethod;
-import enums.PaymentStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -19,15 +18,13 @@ public class Payment {
     private LocalDate payDate;
     private BigDecimal amount;
     private PaymentMethod paymentMethod;
-    private PaymentStatus paymentStatus;
 
-    public Payment(int payment_id, Order order, LocalDate payDate, BigDecimal amount, PaymentMethod paymentMethod, PaymentStatus paymentStatus) {
+    public Payment(int payment_id, Order order, LocalDate payDate, BigDecimal amount, PaymentMethod paymentMethod) {
         this.payment_id = payment_id;
         this.order = order;
         this.payDate = payDate;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.paymentStatus = paymentStatus;
     }
 
     public Payment() {}
@@ -71,18 +68,10 @@ public class Payment {
     public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
-
-    public PaymentStatus getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(PaymentStatus paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
+    
     @Override
     public String toString() {
-        return "Payment{" + "payment_id=" + payment_id + ", order=" + order + ", payDate=" + payDate + ", amount=" + amount + ", paymentMethod=" + paymentMethod + ", paymentStatus=" + paymentStatus + '}';
+        return "Payment{" + "payment_id=" + payment_id + ", order=" + order + ", payDate=" + payDate + ", amount=" + amount + ", paymentMethod=" + paymentMethod + '}';
     }
     
     

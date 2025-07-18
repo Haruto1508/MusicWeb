@@ -21,7 +21,7 @@
                     <div class="col">
                         <div class="card shadow-sm border-0 order-card">
                             <!-- Tiêu đề đơn hàng -->
-                            <div class="order-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <span>🆔 Order ID <strong>${order.orderId}</strong></span>
                             </div>
                             <div class="card-body">
@@ -31,7 +31,7 @@
                                         <p class="mb-1 text-muted"><i class="fa-solid fa-calendar-alt me-1"></i> Order Date: 
                                             <c:choose>
                                                 <c:when test="${order.orderDateAsDate != null}">
-                                                    <fmt:formatDate value="${order.orderDateAsDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                                    <fmt:formatDate value="${order.orderDateAsDate}" pattern="dd/MM/yyyy HH:mm:ss"/>
                                                 </c:when>
                                                 <c:otherwise>
                                                     No date
@@ -39,7 +39,7 @@
                                             </c:choose>
                                         </p>
                                         <p class="mb-1 text-muted"><i class="fa-solid fa-money-bill-wave me-1"></i> Total amount: 
-                                            <strong><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0.000"/> VNĐ</strong>
+                                            <strong><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> VNĐ</strong>
                                         </p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
@@ -61,12 +61,12 @@
                                                     <h6 class="mb-1">${order.orderDetail.product.name}</h6>
                                                     <p class="mb-1 text-muted">Quantity: ${order.orderDetail.quantity}</p>
                                                     <p class="mb-0 text-muted">Price: 
-                                                        <fmt:formatNumber value="${order.orderDetail.price}" pattern="#,##0.000"/> VNĐ
+                                                        <fmt:formatNumber value="${order.orderDetail.price}" pattern="#,##0"/> VNĐ
                                                     </p>
                                                 </div>
                                                 <div class="text-end">
                                                     <p class="mb-0 fw-bold">
-                                                        <fmt:formatNumber value="${order.orderDetail.price * order.orderDetail.quantity}" pattern="#,##0.000"/> VNĐ
+                                                        <fmt:formatNumber value="${order.orderDetail.price * order.orderDetail.quantity}" pattern="#,##0"/> VNĐ
                                                     </p>
                                                 </div>
                                             </div>

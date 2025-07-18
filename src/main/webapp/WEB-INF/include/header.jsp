@@ -8,7 +8,7 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg bg-dark">
     <div class="container">
         <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/home">
             <i class="fa-solid fa-music me-1"></i> MusicShop
@@ -34,12 +34,6 @@
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/violin?page=1">Violin</a></li>
                     </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="${pageContext.request.contextPath}/introduce">Introduce</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="#contact">Contact</a>
-                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle fw-semibold" href="#" id="accountDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -50,26 +44,22 @@
                             <c:when test="${not empty user}">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=info">Profile</a></li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/order">History</a></li>
-                                <c:if test="${not empty admin}">
+                                    <c:if test="${not empty admin}">
                                     <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin">Admin</a></li>
-                                </c:if>
+                                    </c:if>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
                             </c:when>
+                            <c:when test="${user.role.id == 1}">
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin-dashboard">Admin Panel</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                            </c:when>
                             <c:otherwise>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=login">Login</a></li>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/account?view=register">Register</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/login">Login</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/register">Register</a></li>
                             </c:otherwise> 
                         </c:choose>
                     </ul>
-                </li>
-                <li class="nav-item mx-2">
-                    <form class="d-flex" role="search" action="${pageContext.request.contextPath}/search" method="get">
-                        <input class="form-control form-control-sm me-2 rounded-pill" type="search" name="query" placeholder="Search..." aria-label="Search">
-                        <button class="btn btn-light btn-sm rounded-pill px-3" type="submit">
-                            <i class="fa fa-search text-primary"></i>
-                        </button>
-                    </form>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-semibold ${view == 'cart' ? 'active' : ''}" href="${pageContext.request.contextPath}/account?view=cart">

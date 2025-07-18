@@ -49,36 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log('Payment method updated:', selectedPayment);
         });
     }
-
-    // Shipping Method
-    if (shippingMethodSelect && shippingMethodInput) {
-        shippingMethodSelect.addEventListener("change", function () {
-            const selectedShipping = shippingMethodSelect.value;
-            shippingMethodInput.value = selectedShipping;
-
-            const addressForm = document.querySelector("#addressListSection form");
-            if (addressForm) {
-                const shippingInput = addressForm.querySelector("input[name='shippingMethod']");
-                if (shippingInput) {
-                    shippingInput.value = selectedShipping;
-                } else {
-                    console.warn('Warning: input[name="shippingMethod"] not found in addressForm');
-                }
-            }
-
-            if (voucherForm) {
-                const voucherShippingInput = voucherForm.querySelector("#voucherShippingMethod");
-                if (voucherShippingInput) {
-                    voucherShippingInput.value = selectedShipping;
-                } else {
-                    console.warn('Warning: #voucherShippingMethod not found');
-                }
-            }
-
-            console.log('Shipping method updated:', selectedShipping);
-        });
-    }
-
+    
     // Voucher Select
     if (voucherSelect) {
         voucherSelect.addEventListener("change", function () {

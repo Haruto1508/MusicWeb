@@ -87,7 +87,7 @@ public class ProductDAO extends JDBCUtil {
                         rs.getBigDecimal("discount_value"),
                         startDate != null ? startDate.toLocalDate() : null,
                         endDate != null ? endDate.toLocalDate() : null,
-                        rs.getBigDecimal("minimum_order_value"), rs.getInt("usage_limit"),
+                        rs.getInt("usage_limit"),
                         rs.getInt("used_count"),
                         rs.getBoolean("is_active"));
 
@@ -133,7 +133,7 @@ public class ProductDAO extends JDBCUtil {
                         rs.getString("description"), null,
                         rs.getBigDecimal("discount_value"), rs.getDate("start_date").toLocalDate(),
                         rs.getDate("end_date").toLocalDate(),
-                        rs.getBigDecimal("minimum_order_value"), rs.getInt("usage_limit"),
+                        rs.getInt("usage_limit"),
                         rs.getInt("used_count"),
                         rs.getBoolean("is_active"));
 
@@ -199,7 +199,6 @@ public class ProductDAO extends JDBCUtil {
                             rs.getBigDecimal("discount_value"),
                             rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
                             rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
-                            rs.getBigDecimal("minimum_order_value"),
                             rs.getInt("usage_limit"),
                             rs.getInt("used_count"),
                             rs.getBoolean("is_active")
@@ -332,7 +331,6 @@ public class ProductDAO extends JDBCUtil {
                             rs.getBigDecimal("discount_value"),
                             rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
                             rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
-                            rs.getBigDecimal("minimum_order_value"),
                             rs.getInt("usage_limit"),
                             rs.getInt("used_count"),
                             rs.getBoolean("is_active")
@@ -454,7 +452,6 @@ public class ProductDAO extends JDBCUtil {
                             rs.getBigDecimal("discount_value"),
                             rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
                             rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
-                            rs.getBigDecimal("minimum_order_value"),
                             rs.getInt("usage_limit"),
                             rs.getInt("used_count"),
                             rs.getBoolean("is_active")
@@ -556,56 +553,52 @@ public class ProductDAO extends JDBCUtil {
     public List<Product> getRandomProducts(int category) {
         List<Product> products = new ArrayList<>();
 
-        String sql = "SELECT TOP 10* \n"
+        String sql = "SELECT TOP 12* \n"
                 + "  FROM Products p  \n"
-                + "  LEFT JOIN Categories c ON c.category_id = p.category_id \n"
-                + "  LEFT JOIN Brands b ON b.brand_id = p.brand_id\n"
                 + "  LEFT JOIN Discounts d ON d.discount_id = p.discount_id\n"
                 + "  WHERE p.category_id = ?\n"
                 + "  ORDER BY NEWID()";
         Object[] params = {category};
 
         try ( ResultSet rs = execSelectQuery(sql, params)) {
-            Category cate = new Category(rs.getInt("category_id"), rs.getString("description"), rs.getString("name"));
-            Brand brand = new Brand(rs.getInt("brand_id"), rs.getString("brand_name"));
             Discount discount = null;
+            while (rs.next()) {             
+                int discountId = rs.getInt("discount_id");
+                if (!rs.wasNull() && discountId != 0) {
+                    int discountType = rs.getInt("discount_type");
+                    DiscountType type = DiscountType.fromType(discountType);
+                    discount = new Discount(
+                            discountId,
+                            rs.getString("code"),
+                            rs.getString("description"),
+                            type,
+                            rs.getBigDecimal("discount_value"),
+                            rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
+                            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
+                            rs.getInt("usage_limit"),
+                            rs.getInt("used_count"),
+                            rs.getBoolean("is_active")
+                    );
+                }
 
-            int discountId = rs.getInt("discount_id");
-            if (!rs.wasNull() && discountId != 0) {
-                int discountType = rs.getInt("discount_type");
-                DiscountType type = DiscountType.fromType(discountType);
-                discount = new Discount(
-                        discountId,
-                        rs.getString("code"),
+                Product product = new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
                         rs.getString("description"),
-                        type,
-                        rs.getBigDecimal("discount_value"),
-                        rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
-                        rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
-                        rs.getBigDecimal("minimum_order_value"),
-                        rs.getInt("usage_limit"),
-                        rs.getInt("used_count"),
-                        rs.getBoolean("is_active")
+                        rs.getBigDecimal("price"),
+                        rs.getInt("stock_quantity"),
+                        null,
+                        rs.getString("image_url"),
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        null,
+                        discount,
+                        rs.getInt("sold_quantity"),
+                        rs.getString("material"),
+                        rs.getInt("manufacturing_year"),
+                        rs.getString("made_in")
                 );
+                products.add(product);
             }
-
-            Product product = new Product(
-                    rs.getInt("product_id"),
-                    rs.getString("name"),
-                    rs.getString("description"),
-                    rs.getBigDecimal("price"),
-                    rs.getInt("stock_quantity"),
-                    cate,
-                    rs.getString("image_url"),
-                    rs.getTimestamp("created_at").toLocalDateTime(),
-                    brand,
-                    discount,
-                    rs.getInt("sold_quantity"),
-                    rs.getString("material"),
-                    rs.getInt("manufacturing_year"),
-                    rs.getString("made_in")
-            );
-            products.add(product);
         } catch (Exception e) {
             e.printStackTrace();
         }

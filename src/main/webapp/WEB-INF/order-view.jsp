@@ -11,7 +11,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Chi tiết đơn hàng</title>
+        <title>Order Details</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header.css">
@@ -20,85 +20,123 @@
     </head>
     <body>
         <%@ include file="/WEB-INF/include/header.jsp" %>
-        
-        <!-- Đặt ngôn ngữ mặc định cho định dạng tiền tệ -->
+
+        <!-- Set default locale for currency formatting -->
         <fmt:setLocale value="vi_VN"/>
 
         <div class="container">
             <div class="order-confirmation">
-                <!-- Thông tin đơn hàng -->
+                <!-- Order Information -->
                 <div class="order-info">
-                    <h2><i class="fa fa-info-circle me-2"></i>Thông tin đơn hàng</h2>
-                    <div><strong>Mã đơn hàng:</strong> #${order.orderId}</div>
+                    <h2><i class="fa fa-info-circle me-2"></i>Order Information</h2>
+                    <div><strong>Order ID:</strong> #${order.orderId}</div>
                     <div>
-                        <strong>Ngày đặt hàng:</strong> 
-                        <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy" />
+                        <strong>Order Date:</strong> 
+                        <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm:ss" />
                     </div>
                     <div>
-                        <strong>Trạng thái:</strong> 
+                        <strong>Estimated Delivery:</strong>
+                        <fmt:formatDate value="${order.estimatedDelivery}" pattern="dd/MM/yyyy" />
+                    </div>
+                    <div>
+                        <strong>Status:</strong> 
                         <span class="badge bg-warning text-dark">
                             <i class="fa fa-clock me-1"></i>${order.status}
                         </span>
                     </div>
                 </div>
 
-                <!-- Sản phẩm -->
+                <!-- Product Items -->
                 <div class="order-summary">
-                    <h2><i class="fa fa-shopping-cart me-2"></i>Sản phẩm</h2>
+                    <h2><i class="fa fa-shopping-cart me-2"></i>Products</h2>
                     <c:forEach var="detail" items="${order.orderDetails}">
                         <div class="order-item">
                             <img src="${detail.product.imageUrl}" alt="${detail.product.name}" width="100">
                             <div class="item-info">
                                 <div class="item-name">${detail.product.name}</div>
-                                <div>Số lượng: ${detail.quantity}</div>
+                                <div>Quantity: ${detail.quantity}</div>
                                 <div class="item-price">
-                                    <fmt:formatNumber value="${detail.price}" type="currency" currencySymbol="đ" groupingUsed="true" />
+                                    <fmt:formatNumber value="${detail.price}" currencySymbol="đ" groupingUsed="true" pattern="#,##0"/> VNÐ
                                 </div>
                             </div>
                         </div>
                     </c:forEach>
 
                     <div class="total">
-                        <span>Tổng cộng:</span>
-                        <span><fmt:formatNumber value="${order.totalAmount}" type="currency" currencySymbol="đ" groupingUsed="true"/></span>
+                        <span>Total:</span>
+                        <span><fmt:formatNumber value="${order.totalAmount}" currencySymbol="đ" groupingUsed="true" pattern="#,##0"/> VNÐ</span>
                     </div>
                     <div class="total">
-                        <span>Giảm giá:</span>
-                        <span><fmt:formatNumber value="${order.discountAmount}" type="currency" currencySymbol="đ" groupingUsed="true"/></span>
-                    </div>
-                    <div class="total">
-                        <span>Phí vận chuyển:</span>
-                        <span><fmt:formatNumber value="30000" type="currency" currencySymbol="đ" groupingUsed="true"/></span>
-                    </div>
-                    <div class="total">
-                        <span>Tổng thanh toán:</span>
-                        <strong><fmt:formatNumber value="${order.finalAmount}" type="currency" currencySymbol="đ" groupingUsed="true"/></strong>
+                        <span>Discount:</span>
+                        <c:choose>
+                            <c:when test="${not empty discountPercent}">
+                                <span><fmt:formatNumber value="${discountPercent}" pattern="#,##0"/>%</span>
+                            </c:when>
+                            <c:when test="${not empty discountNull}">
+                                <span>${discountNull}</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span><fmt:formatNumber value="${discountValue}" pattern="#,##0"/> VNÐ</span>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
 
-                <!-- Địa chỉ giao hàng -->
+                <!-- Shipping Address -->
                 <div class="shipping-address">
-                    <h2><i class="fa fa-map-marker-alt me-2"></i>Địa chỉ giao hàng</h2>
-                    <div><strong>Tên người nhận:</strong> ${order.receiverName}</div>
-                    <div><strong>Số điện thoại:</strong> ${order.orderPhone}</div>
-                    <div><strong>Địa chỉ:</strong> ${order.fullAddress}</div>
+                    <h2><i class="fa fa-map-marker-alt me-2"></i>Shipping Address</h2>
+                    <div><strong>Recipient Name:</strong> ${order.receiverName}</div>
+                    <div><strong>Phone Number:</strong> ${order.orderPhone}</div>
+                    <div><strong>Address:</strong> ${order.fullAddress}</div>
                 </div>
 
-                <!-- Phương thức thanh toán -->
+                <!-- Payment Method -->
                 <div class="payment-method">
-                    <h2><i class="fa fa-credit-card me-2"></i>Phương thức thanh toán</h2>
-                    <div><strong>${order.paymentMethod}</strong></div>
-                    <div>Trạng thái: ${order.paymentStatus}</div>
+                    <h2><i class="fa fa-credit-card me-2"></i>Payment Method</h2>
+                    <div class="btn bg-info"><strong>${order.paymentMethod}</strong></div>
                 </div>
 
-                <!-- Thông tin vận chuyển -->
-                <div class="shipping-info">
-                    <h2><i class="fa fa-truck me-2"></i>Thông tin vận chuyển</h2>
-                    <div><strong>Đơn vị vận chuyển:</strong> ${order.shippingMethod}</div>
-                    <div><strong>Mã vận đơn:</strong> ${order.trackingNumber}</div>
-                    <div>
-                        <strong>Ước tính giao hàng:</strong>
-                        <fmt:formatDate value="${order.estimatedDelivery}" pattern="dd/MM/yyyy" />
+                <c:if test="${order.status.label == 'Pending'}">
+                    <div class="action-buttons">
+                        <button class="btn btn-danger p-2" data-bs-toggle="modal" data-bs-target="#returnModal">
+                            <i class="fa fa-undo me-2"></i>cancel order
+                        </button>
+                    </div>
+                </c:if>
+
+                <div class="d-flex justify-content-center">
+                    <c:if test="${order.status.label == 'Delivered'}">
+                        <div class="action-buttons">
+                            <button class="btn btn-success p-2" onclick="confirmReceipt()">
+                                <a href="${pageContext.request.contextPath}/WEB-INF/product-review.jsp"></a><i class="fa fa-check me-2"></i>Confirm Receipt
+                            </button>
+                            <button class="btn btn-danger p-2" data-bs-toggle="modal" data-bs-target="#returnModal">
+                                <i class="fa fa-undo me-2"></i>Return Order
+                            </button>
+                        </div>
+                    </c:if>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Modal -->
+        <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="returnModalLabel">Return Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="returnForm" action="${pageContext.request.contextPath}/order" method="post">
+                            <input name="action" value="createReturn">
+                            <input type="hidden" name="orderId" value="${order.orderId}">
+                            <div class="return-reason">
+                                <label for="returnReason"><strong>Reason for Return</strong></label>
+                                <textarea class="form-control" id="returnDetails" name="reason" rows="4" placeholder="Provide more details about the return"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger p-2 mt-2">Submit Return Request</button>
+                        </form>
                     </div>
                 </div>
             </div>

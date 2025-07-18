@@ -4,7 +4,6 @@
  */
 package controller;
 
-import dao.OrderDAO;
 import dao.ProductDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -101,7 +100,7 @@ public class ProductServlet extends HttpServlet {
     }
 
     protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-        String[] attributes = {"addFail", "addSuccess"};
+        String[] attributes = {"addFail", "addSuccess", "updateFail"};
         for (String attr : attributes) {
             Object val = session.getAttribute(attr);
             if (val != null) {

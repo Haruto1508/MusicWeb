@@ -55,6 +55,25 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- delete Address Model -->
+                    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered"> 
+                            <div class="modal-content">
+                                <form method="post" action="${pageContext.request.contextPath}/address">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="addressId" id="deleteAddressId" value="${address.addressId}">
+                                    <div class="modal-body text-center">
+                                        <p class="mb-0">Are you sure you want to delete this address?</p>
+                                    </div>
+                                    <div class="modal-footer border-0 justify-content-center">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </c:forEach>
             </c:when>
             <c:otherwise>
@@ -72,24 +91,7 @@
         </div>
     </div>
 
-    <!-- delete Address Model -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered"> 
-            <div class="modal-content">
-                <form method="post" action="${pageContext.request.contextPath}/address">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="addressId" id="deleteAddressId">
-                    <div class="modal-body text-center">
-                        <p class="mb-0">Are you sure you want to delete this address?</p>
-                    </div>
-                    <div class="modal-footer border-0 justify-content-center">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Address Modal -->
     <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
@@ -99,7 +101,7 @@
                     <input type="hidden" name="action" id="formAction" value="add">
                     <input type="hidden" name="addressId" id="addressId" value="${editAddressId != null ? editAddressId : ''}">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addressModalLabel">${updateFail != null ? 'Edit Address' : 'Add New Address'}</h5>
+                        <h5 class="modal-title" id="addressModalLabel">Your Address</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">

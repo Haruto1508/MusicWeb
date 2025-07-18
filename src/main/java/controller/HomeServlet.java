@@ -6,13 +6,11 @@ package controller;
 
 import dao.ProductDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
 
@@ -26,7 +24,7 @@ public class HomeServlet extends HttpServlet {
     private final int GUITAR_CATE = 1;
     private final int PIANO_CATE = 2;
     private final int VIOLIN_CATE = 3;
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -46,7 +44,6 @@ public class HomeServlet extends HttpServlet {
         List<Product> pianos = productDAO.getRandomProducts(PIANO_CATE);
         List<Product> violins = productDAO.getRandomProducts(VIOLIN_CATE);
         // Check if random products are already stored in ServletContext
-       
         request.setAttribute("guitars", guitars);
         request.setAttribute("pianos", pianos);
         request.setAttribute("violins", violins);

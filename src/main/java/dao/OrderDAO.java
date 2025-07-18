@@ -5,10 +5,9 @@
 package dao;
 
 import db.JDBCUtil;
+import enums.DiscountType;
 import enums.OrderStatus;
 import enums.PaymentMethod;
-import enums.PaymentStatus;
-import enums.ShippingMethod;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,20 +28,18 @@ import model.Category;
 import model.OrderDetail;
 import model.OrderViewModel;
 import model.Payment;
-import model.Shipping;
 
 public class OrderDAO extends JDBCUtil {
 
     public boolean addOrder(Order order) {
-        String sql = "INSERT INTO Orders (user_id, status, total_amount, discount_id, discount_amount, address_id) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Orders (user_id, status, total_amount, discount_id, address_id) "
+                + "VALUES (?, ?, ?, ?, ?)";
 
         Object[] params = {
             order.getUser().getUserId(),
             order.getStatus() != null ? order.getStatus().getValue() : null, // enum -> int
             order.getTotalAmount(),
             order.getDiscount() != null ? order.getDiscount().getDiscountId() : null,
-            order.getDiscountAmount(),
             order.getAddress() != null ? order.getAddress().getAddressId() : null
         };
 
@@ -54,21 +51,32 @@ public class OrderDAO extends JDBCUtil {
         }
     }
 
-    public int createOrder(int userId, int addressId, int productId, int quantity,
-            Integer discountId, int paymentId, int shippingId) throws SQLException {
-        String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?, ?)}";
-        Object[] params = {
-            userId,
-            addressId,
-            productId,
-            quantity,
-            discountId,
-            paymentId,
-            shippingId,
-            null // OUTPUT order_id
-        };
+    public boolean deleteOrderById(int orderId, int userId) {
+        String sql = "DELETE Orders WHERE order_id = ? AND user_id = ?;";
+        Object[] params = {orderId, userId};
 
-        return execStoredProcedure(procedureCall, params, 8); // output param index 8
+        try {
+            return execQuery(sql, params) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public int createOrder(int userId, int addressId, int productId, int quantity,
+            Integer discountId, int paymentId) throws SQLException {
+        String procedureCall = "{CALL sp_CreateOrder(?, ?, ?, ?, ?, ?, ?)}";
+        Object[] params = {
+            userId, // 1 - @user_id
+            addressId, // 2 - @address_id
+            productId, // 3 - @product_id
+            quantity, // 4 - @quantity
+            discountId, // 5 - @discount_id
+            paymentId, // 6 - @payment_id
+            null // 7 - @order_id OUTPUT
+        };
+        return execStoredProcedure(procedureCall, params, 7);
     }
 
     public Order getOrderById(int orderId) {
@@ -77,7 +85,6 @@ public class OrderDAO extends JDBCUtil {
                 + "     FROM Orders o  \n"
                 + "     LEFT JOIN Address a ON o.address_id = a.address_id  \n"
                 + "	LEFT JOIN Payments p ON p.payment_id = o.payment_id\n"
-                + "     LEFT JOIN Shipping s ON s.shipping_id = o.shipping_id\n"
                 + "     WHERE o.order_id = ?";
 
         Object[] params = {orderId};
@@ -114,13 +121,6 @@ public class OrderDAO extends JDBCUtil {
                 }
                 payment.setAmount(rs.getBigDecimal("amount"));
                 payment.setPaymentMethod(PaymentMethod.fromCode(rs.getInt("payment_method")));
-                payment.setPaymentStatus(PaymentStatus.fromCode(rs.getInt("status"))); // dùng alias nếu trùng
-
-                // Shipping
-                Shipping shipping = new Shipping();
-                shipping.setShipping_id(rs.getInt("shipping_id"));
-                shipping.setShippingMethod(ShippingMethod.fromValue(rs.getInt("shipping_method")));
-                shipping.setTrackingNumber(rs.getString("tracking_number"));
 
                 // Xử lý ngày giao hàng thực tế
                 LocalDate shippedDate = null;
@@ -141,9 +141,7 @@ public class OrderDAO extends JDBCUtil {
                         status,
                         rs.getBigDecimal("total_amount"),
                         discount,
-                        rs.getBigDecimal("discount_amount"),
                         address,
-                        shipping,
                         payment,
                         shippedDate,
                         estimatedDelivery
@@ -172,7 +170,7 @@ public class OrderDAO extends JDBCUtil {
                 + "JOIN OrderDetails od ON o.order_id = od.order_id \n"
                 + "LEFT JOIN Address a ON o.address_id = a.address_id \n"
                 + "LEFT JOIN Products p ON od.product_id = p.product_id \n"
-                + "WHERE o.user_id = ? \n"
+                + "WHERE o.user_id = ? AND is_return = 0 \n"
                 + "ORDER BY o.order_id DESC;";
 
         try ( ResultSet rs = execSelectQuery(sql, new Object[]{userId})) {
@@ -228,7 +226,6 @@ public class OrderDAO extends JDBCUtil {
                     order.setStatus(status);
                     order.setOrderDate(orderDate);
                     order.setTotalAmount(rs.getBigDecimal("total_amount"));
-                    order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
                     order.setShippedDate(shippedDate);
                     order.setEstimatedDelivery(estimatedDelivery);
 
@@ -322,29 +319,30 @@ public class OrderDAO extends JDBCUtil {
                 + "    o.order_date, \n"
                 + "    o.status, \n"
                 + "    o.total_amount, \n"
-                + "    ISNULL(d.discount_value, 0) AS discount_amount,\n"
-                + "    (o.total_amount - ISNULL(d.discount_value, 0) + 30000) AS final_amount,\n"
+                + "    o.shipped_date, \n"
+                + "    ISNULL(d.discount_value, 0) AS discount_amount, d.discount_type,\n"
                 + "    a.receiver_name, \n"
-                + "    a.receiver_phone AS order_phone,\n"
-                + "    a.street + ', ' + ISNULL(a.ward + ', ', '') + ISNULL(a.district + ', ', '') + a.city AS full_address,\n"
-                + "    pay.payment_method, \n"
-                + "    pay.status AS payment_status,\n"
-                + "    s.shipping_method, \n"
-                + "    s.tracking_number, \n"
-                + "    s.estimated_delivery,\n"
-                + "    p.product_id, \n"
-                + "    p.name AS product_name, \n"
-                + "    p.image_url, \n"
+                + "    a.receiver_phone AS order_phone, \n"
+                + "    CONCAT(\n"
+                + "        ISNULL(a.street, ''), ', ', \n"
+                + "        ISNULL(a.ward, ''), ', ', \n"
+                + "        ISNULL(a.district, ''), ', ', \n"
+                + "        ISNULL(a.city, '')\n"
+                + "    ) AS full_address, \n"
+                + "    p.payment_method, \n"
+                + "    o.estimated_delivery, \n"
+                + "    pr.product_id, \n"
+                + "    pr.name AS product_name, \n"
+                + "    pr.image_url, \n"
                 + "    od.quantity, \n"
-                + "    od.price\n"
-                + "FROM Orders o\n"
-                + "JOIN OrderDetails od ON o.order_id = od.order_id\n"
-                + "JOIN Products p ON od.product_id = p.product_id\n"
-                + "LEFT JOIN Address a ON o.address_id = a.address_id\n"
-                + "LEFT JOIN Payments pay ON o.order_id = pay.order_id\n"
-                + "LEFT JOIN Shipping s ON o.order_id = s.order_id\n"
-                + "LEFT JOIN Discounts d ON o.discount_id = d.discount_id\n"
-                + "WHERE o.order_id = ?";
+                + "    od.price \n"
+                + "FROM Orders o \n"
+                + "JOIN OrderDetails od ON o.order_id = od.order_id \n"
+                + "JOIN Products pr ON od.product_id = pr.product_id \n"
+                + "LEFT JOIN Address a ON o.address_id = a.address_id \n"
+                + "LEFT JOIN Payments p ON o.payment_id = p.payment_id \n"
+                + "LEFT JOIN Discounts d ON o.discount_id = d.discount_id \n"
+                + "WHERE o.order_id = ?;";
 
         OrderViewModel orderView = null;
         List<OrderDetail> productList = new ArrayList<>();
@@ -356,39 +354,39 @@ public class OrderDAO extends JDBCUtil {
                     orderView = new OrderViewModel();
                     orderView.setOrderId(rs.getInt("order_id"));
                     orderView.setOrderDate(rs.getTimestamp("order_date"));
-
-                    // Chuyển status int sang enum rồi set enum hoặc set string mô tả tùy class
-                    int statusInt = rs.getInt("status");
-                    orderView.setStatus(OrderStatus.fromInt(statusInt)); // giả sử setter nhận OrderStatus
-
+                    int discountTypeCode = rs.getInt("discount_type");
+                    orderView.setDiscountType(!rs.wasNull() ? DiscountType.fromType(discountTypeCode) : DiscountType.NONE);
+                    try {
+                        orderView.setStatus(OrderStatus.fromInt(rs.getInt("status")));
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Invalid status value: " + rs.getInt("status") + " for orderId: " + orderId);
+                        orderView.setStatus(OrderStatus.PENDING); // Fallback
+                    }
                     orderView.setTotalAmount(rs.getBigDecimal("total_amount"));
                     orderView.setDiscountAmount(rs.getBigDecimal("discount_amount"));
-                    orderView.setFinalAmount(rs.getBigDecimal("final_amount"));
-                    orderView.setReceiverName(rs.getString("receiver_name"));
-                    orderView.setOrderPhone(rs.getString("order_phone"));
-                    orderView.setFullAddress(rs.getString("full_address"));
+                    orderView.setReceiverName(rs.getString("receiver_name") != null ? rs.getString("receiver_name") : "N/A");
+                    orderView.setOrderPhone(rs.getString("order_phone") != null ? rs.getString("order_phone") : "N/A");
+                    orderView.setFullAddress(rs.getString("full_address") != null ? rs.getString("full_address") : "N/A");
+                    try {
+                        int paymentMethodCode = rs.getInt("payment_method");
+                        if (!rs.wasNull()) {
+                            orderView.setPaymentMethod(PaymentMethod.fromCode(paymentMethodCode));
+                        } else {
+                            orderView.setPaymentMethod(null);
+                            System.out.println("Payment method is NULL for orderId: " + orderId);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Invalid payment_method value: " + rs.getInt("payment_method") + " for orderId: " + orderId);
+                        orderView.setPaymentMethod(PaymentMethod.CARD); // Fallback
+                    }
 
-                    // payment_method - int
-                    int paymentMethodInt = rs.getInt("payment_method");
-                    orderView.setPaymentMethod(PaymentMethod.fromCode(paymentMethodInt));
-
-                    // payment_status - int
-                    int paymentStatusInt = rs.getInt("payment_status");
-                    orderView.setPaymentStatus(PaymentStatus.fromCode(paymentStatusInt));
-
-                    // shipping_method - int
-                    String shippingMethod = rs.getString("shipping_method");
-                    orderView.setShippingMethod(shippingMethod);
-
-                    orderView.setTrackingNumber(rs.getString("tracking_number"));
                     orderView.setEstimatedDelivery(rs.getTimestamp("estimated_delivery"));
                 }
 
-                // Xử lý danh sách sản phẩm trong đơn hàng
                 Product product = new Product();
                 product.setProductId(rs.getInt("product_id"));
-                product.setName(rs.getString("product_name"));
-                product.setImageUrl(rs.getString("image_url"));
+                product.setName(rs.getString("product_name") != null ? rs.getString("product_name") : "N/A");
+                product.setImageUrl(rs.getString("image_url") != null ? rs.getString("image_url") : "default-image.jpg");
 
                 OrderDetail detail = new OrderDetail();
                 detail.setProduct(product);
@@ -397,23 +395,130 @@ public class OrderDAO extends JDBCUtil {
 
                 productList.add(detail);
             }
-
             if (orderView != null) {
                 orderView.setOrderDetails(productList);
+                System.out.println("Order loaded with " + productList.size() + " products for orderId: " + orderId);
             }
+        } catch (SQLException e) {
+            System.err.println("SQL Error for orderId: " + orderId + " - " + e.getMessage());
+            e.printStackTrace();
+        }
+        return orderView;
+    }
 
+    public List<Order> getOrdersHistoryByUserId(int userId) {
+        List<Order> orders = new ArrayList<>();
+        Map<Integer, Order> orderMap = new LinkedHashMap<>();
+
+        String sql = "SELECT \n"
+                + "    o.*, \n"
+                + "    a.city, a.district, a.ward, a.street, \n"
+                + "    a.receiver_name, a.receiver_phone, \n"
+                + "    od.order_detail_id, od.quantity, od.price as [order_detail_price],\n"
+                + "    p.product_id, p.name AS product_name, p.image_url \n"
+                + "FROM Orders o \n"
+                + "JOIN OrderDetails od ON o.order_id = od.order_id \n"
+                + "LEFT JOIN Address a ON o.address_id = a.address_id \n"
+                + "LEFT JOIN Products p ON od.product_id = p.product_id \n"
+                + "WHERE o.user_id = ? AND o.is_return = 0 AND o.status = 3 \n"
+                + "ORDER BY o.order_id DESC;";
+
+        try ( ResultSet rs = execSelectQuery(sql, new Object[]{userId})) {
+            while (rs.next()) {
+                int orderId = rs.getInt("order_id");
+
+                // Nếu order chưa được tạo, thì tạo mới
+                Order order = orderMap.get(orderId);
+                if (order == null) {
+                    // Tạo User
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+
+                    // Tạo Address
+                    Address address = new Address();
+                    address.setAddressId(rs.getInt("address_id"));
+                    address.setStreet(rs.getString("street"));
+                    address.setCity(rs.getString("city"));
+                    address.setWard(rs.getString("ward"));
+                    address.setDistrict(rs.getString("district"));
+                    address.setReceiverName(rs.getString("receiver_name"));
+                    address.setReceiverPhone(rs.getString("receiver_phone"));
+
+                    // Trạng thái đơn hàng
+                    OrderStatus status = OrderStatus.fromInt(rs.getInt("status"));
+
+                    // Ngày đặt hàng
+                    LocalDateTime orderDate = null;
+                    Timestamp orderTimestamp = rs.getTimestamp("order_date");
+                    if (orderTimestamp != null) {
+                        orderDate = orderTimestamp.toLocalDateTime();
+                    }
+
+                    // Ngày giao hàng thực tế
+                    LocalDate shippedDate = null;
+                    Date shippedSqlDate = rs.getDate("shipped_date");
+                    if (shippedSqlDate != null) {
+                        shippedDate = shippedSqlDate.toLocalDate();
+                    }
+
+                    // Ngày giao dự kiến
+                    LocalDate estimatedDelivery = null;
+                    Timestamp estimatedTimestamp = rs.getTimestamp("estimated_delivery");
+                    if (estimatedTimestamp != null) {
+                        estimatedDelivery = estimatedTimestamp.toLocalDateTime().toLocalDate();
+                    }
+
+                    // Tạo đối tượng Order
+                    order = new Order();
+                    order.setOrderId(orderId);
+                    order.setUser(user);
+                    order.setAddress(address);
+                    order.setStatus(status);
+                    order.setOrderDate(orderDate);
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    order.setShippedDate(shippedDate);
+                    order.setEstimatedDelivery(estimatedDelivery);
+
+                    orderMap.put(orderId, order);
+                }
+
+                // Tạo Product
+                Product product = new Product();
+                product.setProductId(rs.getInt("product_id"));
+                product.setName(rs.getString("product_name"));
+                product.setImageUrl(rs.getString("image_url"));
+
+                // Tạo OrderDetail
+                OrderDetail detail = new OrderDetail();
+                detail.setOrderDetailId(rs.getInt("order_detail_id"));
+                detail.setQuantity(rs.getInt("quantity"));
+                detail.setPrice(rs.getBigDecimal("order_detail_price"));
+                detail.setProduct(product);
+
+                // Gán sản phẩm đại diện (nếu bạn muốn hiển thị 1 sp trong đơn)
+                order.setOrderDetail(detail);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>(orderMap.values());
+    }
+
+    public boolean deleteAllOrder(int orderId) {
+        String sql = "DELETE FROM Orders WHERE user_id = ? AND status = 3";
+        Object[] params = {orderId};
+
+        try {
+            return execQuery(sql, params) > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return orderView;
+        return false;
     }
 
     public static void main(String[] args) {
-        List<Order> or = new OrderDAO().getOrdersByUserId(2);
-
-        for (Order o : or) {
-            System.out.println(o);
-        }
+        OrderViewModel m = new OrderDAO().getOrderView(2);
     }
 }

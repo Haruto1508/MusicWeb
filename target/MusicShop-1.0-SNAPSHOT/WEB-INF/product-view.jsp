@@ -65,28 +65,30 @@
                                 </div>
                                 <div class="actions mt-3">
                                     <div class="d-flex">
-                                        <c:if test="${product.stockQuantity > 0}">
-                                            <form action="${pageContext.request.contextPath}/cart" method="get">
-                                                <input type="hidden" name="productId" value="${product.productId}">
-                                                <input type="hidden" name="quantity" id="addToCartQuantity" value="1">
-                                                <input type="hidden" name="action" value="add">
-                                                <button type="submit" class="btn btn-danger add-to-cart">
-                                                    <i class="fa fa-cart-plus"></i> Add to cart
+                                        <c:choose>
+                                            <c:when test="${product.stockQuantity > 0}">
+                                                <form action="${pageContext.request.contextPath}/cart" method="get">
+                                                    <input type="hidden" name="productId" value="${product.productId}">
+                                                    <input type="hidden" name="quantity" id="addToCartQuantity" value="1">
+                                                    <input type="hidden" name="action" value="add">
+                                                    <button type="submit" class="btn btn-danger add-to-cart">
+                                                        <i class="fa fa-cart-plus"></i> Add to cart
+                                                    </button>
+                                                </form>
+                                                <form id="buyNowForm" action="${pageContext.request.contextPath}/order-confirm" method="post" class="d-inline">
+                                                    <input type="hidden" name="productId" value="${product.productId}" />
+                                                    <input type="hidden" name="quantity" id="buyNowQuantity" value="1" />
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fa fa-shopping-cart"></i> Buy now
+                                                    </button>
+                                                </form>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <button type="button" class="btn btn-danger add-to-cart" disabled>
+                                                    <i class="fa fa-cart-plus"></i> Sold out
                                                 </button>
-                                            </form>
-                                        </c:if>
-                                        <c:if test="${product.stockQuantity == 0}">
-                                            <button type="button" class="btn btn-danger add-to-cart" disabled>
-                                                <i class="fa fa-cart-plus"></i> Sold out
-                                            </button>
-                                        </c:if>
-                                        <form id="buyNowForm" action="${pageContext.request.contextPath}/order-confirm" method="post" class="d-inline">
-                                            <input type="hidden" name="productId" value="${product.productId}" />
-                                            <input type="hidden" name="quantity" id="buyNowQuantity" value="1" />
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fa fa-shopping-cart"></i> Buy now
-                                            </button>
-                                        </form>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
                             </div>

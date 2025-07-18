@@ -140,6 +140,7 @@ CREATE TABLE Orders (
     order_date DATETIME DEFAULT GETDATE(),
     status INT DEFAULT 1 CHECK (status BETWEEN 1 AND 5),
     total_amount DECIMAL(15,3) NOT NULL,
+	is_return BIT DEFAULT 0,
     discount_id INT,
     address_id INT,
 	payment_id INT NOT NULL,
@@ -149,6 +150,18 @@ CREATE TABLE Orders (
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (discount_id) REFERENCES Discounts(discount_id),
 	FOREIGN KEY (payment_id) REFERENCES Payments(payment_id)
+);
+GO
+
+CREATE TABLE ReturnOrder (
+	return_id INT PRIMARY KEY IDENTITY(1,1),
+	order_id INT NOT NULL,
+	user_id INT NOT NULL,
+	reason NVARCHAR(150) NOT NULL,
+	return_date DATETIME DEFAULT GETDATE(),
+	return_status INT DEFAULT 1, -- 1: pending, 2: accept, 3: reject
+	FOREIGN KEY (order_id) REFERENCES Orders(order_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 GO
 
@@ -264,7 +277,6 @@ BEGIN
         BEGIN
             DECLARE @discount_type INT;
             DECLARE @discount_value DECIMAL(15,3);
-            DECLARE @min_order_value DECIMAL(15,3);
             DECLARE @start_date DATE;
             DECLARE @end_date DATE;
             DECLARE @is_active BIT;
@@ -273,7 +285,6 @@ BEGIN
 
             SELECT @discount_type = discount_type, 
                    @discount_value = discount_value, 
-                   @min_order_value = minimum_order_value,
                    @start_date = start_date, 
                    @end_date = end_date, 
                    @is_active = is_active,
@@ -291,9 +302,6 @@ BEGIN
                @end_date < GETDATE() OR 
                (@usage_limit > 0 AND @used_count >= @usage_limit)
                 THROW 50005, 'Invalid or expired discount', 1;
-
-            IF @min_order_value IS NOT NULL AND @product_total_price < @min_order_value
-                THROW 50006, 'Order value does not meet discount requirements', 1;
 
             -- Tính giá trị giảm giá
             IF @discount_type = 1 -- Percent

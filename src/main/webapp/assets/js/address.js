@@ -12,7 +12,8 @@ const vietnamProvinces = [
 
 function populateCitySelect(selectId) {
     const select = document.getElementById(selectId);
-    if (!select) return;
+    if (!select)
+        return;
 
     // Clear old options
     select.innerHTML = '<option value="" disabled selected>-- Select City/Province --</option>';
@@ -47,13 +48,18 @@ function openAddressModal(mode, id = '', receiverName = '', receiverPhone = '', 
     const citySelect = document.getElementById('city');
     const isDefaultInput = document.getElementById('isDefault');
 
+    const modalTitle = document.getElementById("addressModalLabel");
+    modalTitle.textContent = (mode === 'edit') ? "Edit Address" : "Add New Address";
+
     // Clear errors
     [receiverNameInput, receiverPhoneInput, streetInput, wardInput, districtInput, citySelect].forEach(input => {
-        if (input) input.classList.remove('is-invalid');
+        if (input)
+            input.classList.remove('is-invalid');
     });
     ["nameError", "phoneError", "streetError", "wardError", "districtError", "cityError"].forEach(id => {
         const error = document.getElementById(id);
-        if (error) error.textContent = "";
+        if (error)
+            error.textContent = "";
     });
 
     // Set values
@@ -71,7 +77,8 @@ function openAddressModal(mode, id = '', receiverName = '', receiverPhone = '', 
         // Set radio style
         if (style) {
             const styleInput = document.querySelector(`input[name="style"][value="${style}"]`);
-            if (styleInput) styleInput.checked = true;
+            if (styleInput)
+                styleInput.checked = true;
         }
 
     } else {

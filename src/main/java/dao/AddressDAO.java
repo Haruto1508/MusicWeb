@@ -35,7 +35,7 @@ public class AddressDAO extends JDBCUtil {
 
     public List<Address> getAddressesByUserId(int userId) {
         List<Address> list = new ArrayList<>();
-        String sql = "SELECT *, \n"
+        String sql = "SELECT a.*, \n"
                 + "	u.user_id,\n"
                 + "	u.full_name,\n"
                 + "	u.phone\n"
