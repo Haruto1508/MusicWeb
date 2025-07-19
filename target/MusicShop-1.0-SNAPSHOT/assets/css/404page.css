@@ -187,13 +187,16 @@ a {
 
 .button {
     margin-top: 4rem;
+    border: 2px solid black;
     padding: 1.2rem 3rem;
     color: white;
-    background-color: #8b5cf6;;
+    background-color: orangered;
 }
 
 .button:hover { 
-    background-color: #8b5cf6a8; 
+    background-color: #ff4500b3; 
+    box-shadow: 5px 4px 5px #293b49;
+    transition: 0.2s ease;
 }
 
 .by {

@@ -5,6 +5,7 @@
 package controller;
 
 import dao.ProductDAO;
+import dao.ReviewDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -15,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
+import model.Review;
+import model.User;
 import util.RelatedProduct;
 
 /**
@@ -63,6 +66,12 @@ public class ProductServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        User user = (User) session.getAttribute("user");
         clearSession(request, response, session);
 
         request.setCharacterEncoding("UTF-8");
@@ -70,14 +79,21 @@ public class ProductServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String id = request.getParameter("id");
-        ProductDAO producDAO = new ProductDAO();
+        if (id == null || id.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
 
-        Product product = producDAO.getProductById(Integer.parseInt(id));
+        ProductDAO productDAO = new ProductDAO();
+        ReviewDAO reviewDAO = new ReviewDAO();
 
-        // related product
-        List<Product> relatedList = producDAO.getRelatedProducts(product.getProductId(), RelatedProduct.RELATED_PRODUCT_LIMIT);
+        Product product = productDAO.getProductById(Integer.parseInt(id));
+        // Fetch all reviews for the product
+        List<Review> reviews = reviewDAO.getReviewsByUserAndProduct(user.getUserId(), Integer.parseInt(id));
+        List<Product> relatedList = productDAO.getRelatedProducts(product.getProductId(), RelatedProduct.RELATED_PRODUCT_LIMIT);
 
         request.setAttribute("product", product);
+        request.setAttribute("reviews", reviews);
         request.setAttribute("relatedList", relatedList);
         request.getRequestDispatcher("/WEB-INF/product-view.jsp").forward(request, response);
 
@@ -97,6 +113,65 @@ public class ProductServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        User user = (User) session.getAttribute("user");
+        String action = request.getParameter("action");
+        ReviewDAO reviewDAO = new ReviewDAO();
+
+        if (action == null) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
+        switch (action) {
+            case "addReview":
+                int productId = Integer.parseInt(request.getParameter("productId"));
+                int rating = Integer.parseInt(request.getParameter("rating"));
+                String comment = request.getParameter("comment");
+                boolean added = reviewDAO.createReview(productId, user.getUserId(), rating, comment);
+                if (added) {
+                    session.setAttribute("addSuccess", "Review posted successfully!");
+                } else {
+                    session.setAttribute("addFail", "Failed to post review.");
+                }
+                break;
+            case "editReview":
+                int reviewId = Integer.parseInt(request.getParameter("reviewId"));
+                Review review = reviewDAO.getReviewById(reviewId);
+                if (review != null && (user.getUserId() == review.getUser().getUserId())) {
+                    review.setRating(Integer.parseInt(request.getParameter("rating")));
+                    review.setComment(request.getParameter("comment"));
+                    boolean updated = reviewDAO.updateReview(review);
+                    if (updated) {
+                        session.setAttribute("addSuccess", "Review updated successfully!");
+                    } else {
+                        session.setAttribute("addFail", "Failed to update review.");
+                    }
+                }
+                break;
+            case "deleteReview":
+                reviewId = Integer.parseInt(request.getParameter("reviewId"));
+                review = reviewDAO.getReviewById(reviewId);
+                if (review != null && (user.getUserId() == review.getUser().getUserId())) {
+                    boolean deleted = reviewDAO.deleteReview(reviewId);
+                    if (deleted) {
+                        session.setAttribute("addSuccess", "Review deleted successfully!");
+                    } else {
+                        session.setAttribute("addFail", "Failed to delete review.");
+                    }
+                }
+                break;
+        }
+
+        // Redirect to the same product page
+        String productId = request.getParameter("productId");
+        response.sendRedirect(request.getContextPath() + "/product?id=" + productId);
     }
 
     protected void clearSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {

@@ -36,7 +36,8 @@
             </div>
 
             <div class="text">Oops. The page you're looking for doesn't exist.</div>
-            <a class="button" href="${pageContext.request.contextPath}/home">Back Home</a>
+<!--            <a class="button" href="${pageContext.request.contextPath}/home">Back Home</a>-->
+            <button class="button" onclick="window.history.back()">Back</button>
         </div>
     </body>
 </html>

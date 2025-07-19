@@ -106,14 +106,13 @@ public class LoginServlet extends HttpServlet {
         if (loginUser != null) {
             HttpSession session = request.getSession();
 
+            // Remember me cookie
             if ("on".equals(rememberMe)) {
-                // Tạo cookie lưu lại account (username)
                 Cookie userCookie = new Cookie("userAccount", loginUser.getAccount());
                 userCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
                 userCookie.setPath(request.getContextPath());
                 response.addCookie(userCookie);
             } else {
-                // Xóa cookie nếu tồn tại
                 Cookie userCookie = new Cookie("userAccount", "");
                 userCookie.setMaxAge(0);
                 userCookie.setPath(request.getContextPath());
@@ -124,10 +123,19 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", loginUser);
             session.setAttribute("message", "Welcome " + loginUser.getAccount());
 
+            // Kiểm tra redirect URL trước khi phân quyền
+            String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
+            session.removeAttribute("redirectAfterLogin");
+
+            if (redirectUrl != null && !redirectUrl.isEmpty()) {
+                response.sendRedirect(redirectUrl);
+                return;
+            }
+
             // Phân quyền
             int roleId = loginUser.getRole().getId();
             if (roleId == 1) { // Admin
-                session.setAttribute("admin", "admin  ");
+                session.setAttribute("admin", "admin");
                 response.sendRedirect(request.getContextPath() + "/home");
             } else if (roleId == 2) { // User
                 response.sendRedirect(request.getContextPath() + "/home");

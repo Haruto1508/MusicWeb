@@ -21,11 +21,11 @@ public class AddressServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            response.sendRedirect("login");
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
+        User user = (User) session.getAttribute("user");
 
         String action = request.getParameter("action");
         AddressDAO addressDAO = new AddressDAO();

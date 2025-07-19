@@ -89,17 +89,11 @@ public class OrderDetailDAO extends JDBCUtil {
                 + "	od.product_id,\n"
                 + "	od.quantity,\n"
                 + "	od.price,\n"
-                + "	p.product_id,\n"
-                + "	p.name,\n"
-                + "	p.discount_end,\n"
-                + "	p.image_url,\n"
-                + "	p.description,\n"
-                + "	p.price,\n"
-                + "	p.sold_quantity\n"
+                + "	p.* \n"
                 + "FROM OrderDetails od\n"
                 + "JOIN Orders o ON o.order_id = od.order_id\n"
                 + "JOIN Products p ON p.product_id = od.product_id\n"
-                + "WHERE o.orderId = ?;";
+                + "WHERE o.order_id = ?;";
 
         try {
             Object[] params = {orderId};
@@ -190,25 +184,12 @@ public class OrderDetailDAO extends JDBCUtil {
         }
         return list;
     }
-
-//    public List<OrderDetail> getOrderDetailsByUserId(int orderId) {
-//        List<OrderDetail> list = new ArrayList<>();
-//        String sql = "SELECT od.*, p.name FROM OrderDetails od JOIN Products p ON od.product_id = p.product_id WHERE od.order_id = ?";
-//        try ( Connection conn = JDBCUtil.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
-//            ps.setInt(1, orderId);
-//            ResultSet rs = ps.executeQuery();
-//            while (rs.next()) {
-//                OrderDetail od = new OrderDetail();
-//                od.setOrderId(orderId);
-//                od.setOrderId(rs.getInt("order_id"));
-//                od.setProductId(rs.getInt("product_id"));
-//                od.setQuantity(rs.getInt("quantity"));
-//                od.setPrice(rs.getBigDecimal("price"));
-//                list.add(od);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return list;
-//    }
+    
+    public static void main(String[] args) {
+        List<OrderDetail> ol = new OrderDetailDAO().getOrderDetailsByOrderId(9);
+        
+        for(OrderDetail od : ol) {
+            System.out.println(od.toString());
+        }
+    }
 }

@@ -1,10 +1,8 @@
-model\DiscountCODE.class
 controller\AddressServlet.class
 dao\OrderDAO.class
 controller\CartServlet.class
 util\RelatedProduct.class
 dao\CategoryDAO.class
-model\ShippingFee.class
 controller\RefreshServlet.class
 model\Address.class
 enums\Gender.class
@@ -14,7 +12,6 @@ model\Product.class
 controller\UpdateUserServlet.class
 dao\UserDAO.class
 dao\AddressDAO.class
-model\Shipping.class
 model\User.class
 controller\ProductServlet.class
 db\JDBCUtil.class
@@ -47,8 +44,6 @@ util\AddressUtil.class
 enums\DiscountType.class
 model\AddressStyle.class
 controller\AdminServlet.class
-enums\PaymentStatus.class
-enums\ShippingMethod.class
 controller\LoginServlet.class
 controller\CheckoutServlet.class
 controller\DispatcherServlet.class

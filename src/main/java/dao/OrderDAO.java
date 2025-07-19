@@ -519,6 +519,7 @@ public class OrderDAO extends JDBCUtil {
     }
 
     public static void main(String[] args) {
-        OrderViewModel m = new OrderDAO().getOrderView(2);
+        Product p = new OrderDAO().getProductByOrderId(9);
+        System.out.println(p.toString());
     }
 }

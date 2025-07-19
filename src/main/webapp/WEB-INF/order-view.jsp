@@ -107,8 +107,10 @@
                 <div class="d-flex justify-content-center">
                     <c:if test="${order.status.label == 'Delivered'}">
                         <div class="action-buttons">
-                            <button class="btn btn-success p-2" onclick="confirmReceipt()">
-                                <a href="${pageContext.request.contextPath}/WEB-INF/product-review.jsp"></a><i class="fa fa-check me-2"></i>Confirm Receipt
+                            <button  class="btn btn-success p-2">
+                                <a href="${pageContext.request.contextPath}/product-review?orderId=${order.orderId}" class="text-light text-decoration-none"/>
+                                    <i class="fa fa-check me-2"></i>Confirm Receipt
+                                </a>
                             </button>
                             <button class="btn btn-danger p-2" data-bs-toggle="modal" data-bs-target="#returnModal">
                                 <i class="fa fa-undo me-2"></i>Return Order
@@ -130,7 +132,6 @@
                     <div class="modal-body">
                         <form id="returnForm" action="${pageContext.request.contextPath}/order" method="post">
                             <input name="action" value="createReturn">
-                            <input type="hidden" name="orderId" value="${order.orderId}">
                             <div class="return-reason">
                                 <label for="returnReason"><strong>Reason for Return</strong></label>
                                 <textarea class="form-control" id="returnDetails" name="reason" rows="4" placeholder="Provide more details about the return"></textarea>
