@@ -452,7 +452,7 @@ INSERT INTO Subcategories (name, category_id) VALUES
 ('Semi-electric', 3);
 
 -- Discount
-INSERT INTO Discounts (code, description, discount_type, discount_value, start_date, end_date, minimum_order_value, usage_limit)
+INSERT INTO Discounts (code, description, discount_type, discount_value, start_date, end_date, usage_limit)
 VALUES
 ('WELCOME10', N'10% off for new customers', 1, 10.0, '2025-01-01', '2026-01-01', 100),
 ('SUMMER50', N'Giảm 50k cho đơn hàng trên 500k', 2, 50000, '2025-06-01', '2025-08-31', 200),
@@ -626,6 +626,7 @@ VALUES
 (N'Scott Cao STV-1000', N'Master violin for soloists', 22000000.000, 10, 3, 28, 'violin_48.jpg', N'China', 2023, N'Maple', NULL),
 (N'Gliga Gems 3', N'Handmade master violin', 25000000.000, 10, 3, 29, 'violin_49.jpg', N'Romania', 2022, N'Spruce', NULL),
 (N'Knilling Maestro', N'Professional violin outfit', 17000000.000, 15, 3, 30, 'violin_50.jpg', N'China', 2023, N'Maple', NULL);
+
 -- Product Image
 INSERT INTO ProductImages (product_id, image_url, caption, is_primary)
 VALUES 
